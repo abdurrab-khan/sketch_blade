@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["./src/types/req-type.d.ts"]
+  },
+  "exclude": ["node_modules", "dist", "client"],
+  "include": ["src/**/*"]
+}
