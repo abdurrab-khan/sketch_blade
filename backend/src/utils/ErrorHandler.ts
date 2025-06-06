@@ -1,4 +1,4 @@
-interface IErrorHandler {
+export interface IErrorHandler {
    statusCode: number;
    message?: string;
 }
