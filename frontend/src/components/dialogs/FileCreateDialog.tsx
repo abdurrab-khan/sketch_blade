@@ -25,10 +25,11 @@ import AddCollaboratorInput from "../AddCollaboratorInput.tsx";
 import { Textarea } from "../ui/textarea";
 import { Loader2 } from "lucide-react";
 import useMutate from "../../hooks/useMutate.ts";
-import { AxiosResponse } from "axios";
 import { CollaboratorData } from "../../types/user.ts";
 import { FileDetails } from "../../types/file.ts";
+import { AxiosMutateProps } from "@/types/index.ts";
 
+// Zod Validation Schema: for creation of file
 const formSchema = z.object({
   fileName: z
     .string()
@@ -76,36 +77,13 @@ export function FileCreateDialog({
     },
   });
 
-  const createMutationFun = ({
-    clerkId,
-    data,
-  }: {
-    clerkId: string;
-    data: any;
-  }): Promise<AxiosResponse> => {
-    return axios.post("file", data, {
-      headers: {
-        Authorization: `Bearer ${clerkId}`,
-      },
-    });
+  const getMutationProps = ({ uri, data, method }: { uri: string, data: unknown, method?: "post" | "put" }): AxiosMutateProps => {
+    return {
+      method: method ?? "post", uri, data
+    }
   };
 
-  const updateMutationFun = ({
-    clerkId,
-    data,
-  }: {
-    clerkId: string;
-    data: any;
-  }): Promise<AxiosResponse> => {
-    return axios.put(`file/${_id}`, data, {
-      headers: {
-        Authorization: `Bearer ${clerkId}`,
-      },
-    });
-  };
-
-  const createMutation = useMutate({
-    mutateFn: createMutationFun,
+  const mutation = useMutate({
     options: { queryKey: ["getFiles"] },
     finallyFn: () => {
       form.reset();
@@ -113,25 +91,23 @@ export function FileCreateDialog({
     },
   });
 
-  const updateMutation = useMutate({
-    mutateFn: updateMutationFun,
-    options: { queryKey: ["getFiles"] },
-    finallyFn: () => {
-      form.reset();
-      setIsOpen(false);
-    },
-  });
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     data["collaborators"] = collaborators ?? [];
+
     if (fileData) {
-      updateMutation.mutate(data);
+      const updateMutationProps = getMutationProps({ uri: `/file/${_id}`, data, method: "put" })
+
+      mutation.mutate(updateMutationProps);
     } else {
-      createMutation.mutate(data);
+      const createMutationProps = getMutationProps({ uri: `/file`, data: data })
+
+      mutation.mutate(createMutationProps);
     }
   };
 
   useEffect(() => {
+
     if (fileData?.collaborators) {
       setCollaborators(fileData.collaborators);
     }
@@ -189,7 +165,7 @@ export function FileCreateDialog({
             />
             <DialogFooter>
               <Button type="submit" variant={"app"} className={"w-full"}>
-                {createMutation.isPending || updateMutation.isPending ? (
+                {mutation.isPending ? (
                   <>
                     {fileData ? "Updating..." : "Creating..."}
                     <Loader2 className="mr-3 h-8 w-8 animate-spin" />

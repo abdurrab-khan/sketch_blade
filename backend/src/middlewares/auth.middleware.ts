@@ -17,12 +17,11 @@ const userMiddleware = AsyncHandler(
                }),
             );
 
-         // const session = await verifyToken(token, {
-         //    secretKey: process.env.CLERK_SECRET_KEY,
-         // });
+         const session = await verifyToken(token, {
+            secretKey: process.env.CLERK_SECRET_KEY,
+         });
 
-         // req.userId = session.sub;
-         req.userId = "user_2y1uwvm6q4I96kZYVXUI9zi4Fqk";
+         req.userId = session.sub;
          next();
       } catch (err) {
          return res.status(401).json(

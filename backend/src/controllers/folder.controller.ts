@@ -164,7 +164,7 @@ export const getFolders = AsyncHandler(async (req: Request, res: Response) => {
    const folders = await FolderModel.aggregate([
       {
          $match: {
-            creatorId: new Types.ObjectId(userId),
+            creatorId: userId,
          },
       },
       {

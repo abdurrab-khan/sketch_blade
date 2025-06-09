@@ -14,7 +14,6 @@ import { Label } from "../ui/label.tsx";
 import { Separator } from "../ui/separator.tsx";
 import { useResponse } from "../../hooks/useResponse.tsx";
 import { Loader2 } from "lucide-react";
-import axios from "axios";
 import useMutate from "../../hooks/useMutate.ts";
 import { FolderDetails } from "../../types/file.ts";
 import { cn } from "../../lib/utils.ts";
@@ -39,13 +38,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
   const [openDialog, setOpenDialog] = useState(false);
 
   const { data, isPending } = useResponse({
-    queryFn: async ({ clerkId }) => {
-      return await axios.get(`/api/folder/small-folder`, {
-        headers: {
-          Authorization: `Bearer ${clerkId}`,
-        },
-      });
-    },
+    queryProps: { "uri": "/folder" },
     queryKeys: ["getFolders"],
   });
 
@@ -53,34 +46,25 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
     setSelectedFolder((prev) => (prev === folderId ? "" : folderId));
   };
 
-  const handleMoveFile = ({ clerkId }: { clerkId: string }) => {
-    return axios.put(
-      `/api/file/${_id}/folder`,
-      {
-        folderId: selectedFolder,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${clerkId}`,
-        },
-      },
-    );
-  };
-
   const fileUpdateMutation = useMutate({
-    mutateFn: handleMoveFile,
     options: { queryKey: ["getFiles"] },
-    isShowSuccessToast: true,
+    isShowToast: true,
     finallyFn: () => setOpenDialog(false),
   });
 
   const handleSubmit = () => {
     if (!selectedFolder) return;
+
     if (existingFolderId === selectedFolder) {
       setOpenDialog(false);
       return;
     }
-    fileUpdateMutation.mutate();
+
+    fileUpdateMutation.mutate({
+      method: "post",
+      uri: `/folder/file/${_id}`,
+      data: { folderId: selectedFolder }
+    });
   };
 
   const handleOpenChange = () => {
@@ -90,6 +74,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
 
   const handleInputChange = (e) => {
     setInputSearch(e.target.value);
+
     if (!e.target.value) {
       setListFolders(data);
     } else {

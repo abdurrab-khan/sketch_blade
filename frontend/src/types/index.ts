@@ -1,5 +1,15 @@
 import { ArrowDirection, ArrowPosition, SelectionPurpose } from "./shapes";
 
+export interface AxiosMutateProps {
+  method: "post" | "put" | "delete";
+  uri: string;
+  data?: any;
+}
+
+export interface AxiosQueryProps {
+  uri: string;
+}
+
 export interface ApiResponse {
   success: boolean;
   statusCode: number;

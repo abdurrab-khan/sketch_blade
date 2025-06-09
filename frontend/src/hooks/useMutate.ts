@@ -1,37 +1,31 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "./use-toast.ts";
-import { useSelector } from "react-redux";
-import { RootState } from "../redux/store.ts";
-import { AxiosError, AxiosResponse } from "axios";
+import useApiClient from "./useApiClient.ts";
+import { ApiResponse, AxiosMutateProps } from "@/types/index.ts";
 
-const useMutate = ({
-  mutateFn,
-  options,
-  finallyFn,
-  isShowSuccessToast = false,
-}: {
-  mutateFn: ({
-    clerkId,
-    data,
-  }: {
-    clerkId: string;
-    data: any;
-  }) => Promise<AxiosResponse>;
-  options?: { [key: string]: string[] };
-  finallyFn?: () => void;
-  isShowSuccessToast?: boolean;
-}): { mutate: any; isPending: boolean; isError: boolean; data?: any } => {
+interface useMutateProps {
+  finallyFn: () => void;
+  isShowToast?: boolean;
+  options?: Record<string, string[]>;
+}
+
+const useMutate = ({ finallyFn, options, isShowToast }: useMutateProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const clerkId = useSelector((state: RootState) => state.auth._id);
+  const apiClient = useApiClient();
 
-  const mutationFn = async (data) => {
+  const mutationFn = async (mutateProps: AxiosMutateProps) => {
     try {
-      const res = await mutateFn({ clerkId, data: data || {} });
-      return res.data?.data || [];
+      const res = (await apiClient[mutateProps.method](
+        mutateProps.uri,
+        mutateProps.data,
+      )) as ApiResponse;
+
+      return res?.data || null;
     } catch (err) {
-      const error = err as AxiosError;
-      throw new Error(error.response?.data?.message || error.message);
+      const error = err as ApiResponse;
+
+      throw new Error(error.message);
     } finally {
       if (finallyFn) {
         finallyFn();
@@ -46,7 +40,7 @@ const useMutate = ({
       if (options) {
         queryClient.invalidateQueries(options);
       }
-      if (isShowSuccessToast) {
+      if (isShowToast) {
         toast({
           title: "Success",
           description: res?.message || "Successfully deleted",

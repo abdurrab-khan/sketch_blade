@@ -28,13 +28,7 @@ const File = () => {
 
   const { data, isPending, isError, error } = useResponse({
     queryKeys: [fileId as string],
-    queryFn: async ({ clerkId }) => {
-      return axios.get(`file/${fileId}`, {
-        headers: {
-          Authorization: `Bearer ${clerkId}`,
-        },
-      });
-    },
+    queryProps: { "uri": `/file/${fileId}` }
   });
 
   useEffect(() => {

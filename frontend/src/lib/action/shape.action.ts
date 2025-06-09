@@ -1,4 +1,5 @@
-import { Shape } from "../../types";
+import { Shape } from "@/types/shapes";
+import { LOCALSTORAGE_KEY } from "../constant";
 
 function updateShape(
   id: string,
@@ -9,7 +10,7 @@ function updateShape(
   if (!shapes) return null;
 
   const updatedShape = shapes?.map((shape) => {
-    if (shape.id === id) {
+    if (shape._id === id) {
       return { ...shape, ...shapeProperties };
     } else {
       return shape;
@@ -25,7 +26,10 @@ function createNewShape(shapeProperties: Shape) {
 
   const previousShapes = getAllShapes() || [];
 
-  delete shapeProperties.isAddable;
+  if (shapeProperties.isAddable) {
+    delete shapeProperties?.isAddable;
+  }
+
   previousShapes.push(shapeProperties);
 
   localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(previousShapes));
@@ -45,7 +49,7 @@ function deleteShape(ids: string[]) {
   const previousShapes = getAllShapes();
 
   const filteredShapes = previousShapes?.filter(
-    (shape) => !ids.includes(shape.id),
+    (shape) => !ids.includes(shape._id),
   );
 
   localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(filteredShapes));

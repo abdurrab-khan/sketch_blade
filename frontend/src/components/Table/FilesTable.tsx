@@ -7,18 +7,15 @@ import { useResponse } from "../../hooks/useResponse.tsx";
 import { FileCreateDialog } from "../dialogs/FileCreateDialog.tsx";
 import { FaFileCirclePlus } from "react-icons/fa6";
 import { FileDetails } from "../../types/file.ts";
-import useApiClient from "@/hooks/useApiClient.ts";
 
 interface FilesTableProps {
   type: "all" | "my";
 }
 
 const FilesTable: React.FC<FilesTableProps> = () => {
-  const apiClient = useApiClient();
-
   const { data, isPending } = useResponse({
     queryKeys: ["getFiles"],
-    queryFn: async () => await apiClient.get("file")
+    queryProps: { uri: "/file" }
   });
 
   return (

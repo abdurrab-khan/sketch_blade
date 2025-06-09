@@ -153,29 +153,14 @@ export const fileColumns: ColumnDef<FileDetails>[] = [
     cell: ({ row }) => {
       const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-      const deleteFn = ({
-        clerkId,
-      }: {
-        clerkId: string;
-      }): Promise<AxiosResponse> => {
-        return axios.delete(`/api/file/${row.original._id}`, {
-          headers: {
-            Authorization: `Bearer ${clerkId}`,
-          },
-        });
-      };
-
       const mutate = useMutate({
-        mutateFn: deleteFn,
-        isShowSuccessToast: true,
+        isShowToast: true,
         options: { queryKey: ["getFiles"] },
         finallyFn: () => setDeleteDialogOpen(false),
       });
 
       const handleDeleteFile = () => {
-        if (mutate?.mutate) {
-          mutate.mutate();
-        }
+        mutate.mutate({ uri: `/file/${row.original._id}`, method: "delete" })
       };
 
       return (

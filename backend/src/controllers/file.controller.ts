@@ -270,9 +270,8 @@ export const getFile = AsyncHandler(async (req: Request, res: Response) => {
 
    if (!file.length) {
       res.status(404).json(
-         new ApiResponse({
+         new ErrorHandler({
             statusCode: 404,
-            data: null,
             message: "file not found",
          }),
       );
@@ -370,7 +369,7 @@ export const getFiles = AsyncHandler(
             new ApiResponse({
                statusCode: 200,
                data: null,
-               message: "no files found",
+               message: "no file found",
             }),
          );
          return;

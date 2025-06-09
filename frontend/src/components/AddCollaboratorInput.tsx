@@ -30,6 +30,8 @@ import { RootState } from "../redux/store.ts";
 import { debounce } from "lodash";
 import { cn } from "../lib/utils.ts";
 import { CollaboratorActions, CollaboratorData, ListCollaborator } from "../types/user.ts";
+import useApiClient from "@/hooks/useApiClient.ts";
+import { ApiResponse } from "@/types/index.ts";
 
 interface AddCollaboratorInputProps {
   collaborators: CollaboratorData[];
@@ -49,19 +51,22 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
     useState<CollaboratorData | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { email } = useSelector((state: RootState) => state.auth);
+  const apiClient = useApiClient();
 
   const debouncedSearch = useMemo(
     () =>
       debounce(async (searchTerm: { email: string; current_email: string }) => {
         try {
-          const response = await axios.post("/api/users", searchTerm);
-          if (response.data.statusCode === 200) {
-            if (
-              Array.isArray(response.data.data) &&
-              response.data.data.length
-            ) {
-              setListColl(response.data.data);
+          const response = await apiClient.post("/users", searchTerm) as ApiResponse;
+
+          console.log(response)
+          if (response.statusCode === 200) {
+            console.log(Array.isArray(response.data) && response.data.length > 0)
+            if (Array.isArray(response.data) && response.data.length) {
+              console.log("hello")
+              setListColl(response.data);
             } else {
+
               setListColl([]);
             }
           }
@@ -69,13 +74,15 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
           console.error(e);
         }
       }, 700),
-    [],
+    [apiClient],
   );
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const searchItem = e.target.value;
       setInputSearch(searchItem);
+
+      if (!searchItem) return;
       debouncedSearch({ email: searchItem, current_email: email });
     },
     [debouncedSearch, email],

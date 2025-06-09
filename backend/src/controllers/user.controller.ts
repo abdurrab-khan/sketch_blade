@@ -28,10 +28,11 @@ const getUserAsCollaborator = AsyncHandler(
          },
       );
 
-      if (!findUser) {
-         return res.status(404).json(
+      if (!findUser.length) {
+         return res.status(200).json(
             new ApiResponse({
-               statusCode: 404,
+               statusCode: 200,
+               data: [],
                message: "user not found.",
             }),
          );
