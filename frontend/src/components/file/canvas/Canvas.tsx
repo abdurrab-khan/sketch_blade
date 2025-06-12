@@ -3,10 +3,10 @@ import { Rect } from "react-konva";
 import Konva from "konva";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
-import { getAllShapes } from "../../../lib/action/shape.action";
 import { Stage } from "./Stage";
 import Eraser from "../shapes/Eraser";
 import { setShapes } from "../../../redux/slices/appSlice";
+import { getAllShapes } from "@/services/shape.api";
 
 function Canvas() {
   const stageRef = useRef<Konva.Stage>(null)

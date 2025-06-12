@@ -10,7 +10,6 @@ import { Coordinates, FourCoordinates } from "../types";
 import { RootState } from "../redux/store";
 import {
   setShapes,
-  deleteShapes,
   changeActiveTool,
   handleSelectedIds,
   updateExistingShapes,
@@ -26,6 +25,9 @@ import { ToolBarArr } from "../lib/constant";
 import { checkRefValue } from "../utils/AppUtils";
 import { getUpdatedPropsToAddArrow, recalculatesShapeDimensions } from "../utils/ShapeUtils";
 import { getTransformedPos } from "@/utils/Helper";
+
+import { v4 as uuid } from "uuid"
+import { insertNewShape } from "@/services/shape.api";
 
 interface StageHandlerProps {
   currentShape: Shape | null;
@@ -51,6 +53,7 @@ const useStageHandler = ({
   selectionRectRef,
 }: StageHandlerProps) => {
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
+  const [isSelecting, setIsSelecting] = useState<boolean>(false);
   const [startingMousePos, setStartingMousePos] = useState<Coordinates>({
     x: 0,
     y: 0,
@@ -60,14 +63,14 @@ const useStageHandler = ({
   const { type: activeTool, isLocked: isToolLocked } = useSelector(
     (state: RootState) => state.app.activeTool,
   );
-  const newShapeProperties = useShapeProperties(isDrawing);
+  const newShapeProperties = useShapeProperties();
   const { selectedShapesId, selectedShapeToAddArrow, shapes } = useSelector(
     (state: RootState) => state.app
   );
 
   const dispatch = useDispatch();
 
-  // Helper functions to update, add the shape and clear the selection.
+  // <----------------------------> HELPER FUNCTION <------------------------------>
   const clearSelection = useCallback(() => {
     if (isDragging.current || isTransforming.current || !transformerRef.current)
       return;
@@ -77,9 +80,9 @@ const useStageHandler = ({
     tr.nodes([]);
     dispatch(handleSelectedIds(null));
     dispatch(changeToolBarProperties(null));
-  }, [dispatch]);
+  }, [dispatch, isDragging, isTransforming, transformerRef]);
 
-  const addShape = useCallback(
+  const createNewShape = useCallback(
     (customizedCurrentShape?: Shape) => {
       if (currentShape?.isAddable) {
         dispatch(setShapes(customizedCurrentShape ?? currentShape));
@@ -93,6 +96,8 @@ const useStageHandler = ({
         }
       }
 
+      insertNewShape(customizedCurrentShape ?? currentShape)
+
       setIsDrawing(false);
       setCurrentShape(null);
       setStartingMousePos({ x: 0, y: 0 });
@@ -100,52 +105,6 @@ const useStageHandler = ({
     [currentShape, dispatch, isToolLocked, setCurrentShape],
   );
 
-  // Mouse Handler
-  // Handle Mouse Down
-  const handleMouseDown = useCallback(
-    (e: KonvaEventObject<MouseEvent>): void => {
-      e.evt.preventDefault();
-
-      const allRef = checkRefValue(stageRef, selectionRectRef, transformerRef) as [Konva.Stage, Konva.Rect, Konva.Transformer] | null;
-      if (!allRef) return;
-
-      const [stage, selectionRectangle, tr] = allRef;
-      if (![...ToolBarArr, "cursor"].includes(activeTool)) return;
-
-
-      const isStartingToDraw = !isDrawing;
-      const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
-      const transformedPos = getTransformedPos(stage);
-      if (!transformedPos) return;
-
-      if (!isStartingToDraw) {
-        setIsDrawing(true)
-        setStartingMousePos({
-          x: transformedPos.x,
-          y: transformedPos.y,
-        });
-
-        if (activeTool === ToolType.Cursor) {
-          handleCursorToolMouseDown(e, tr, selectionRectangle, metaPressed)
-        } else {
-          handleShapeToolMouseDown(transformedPos)
-        }
-      } else {
-
-        if (activeTool === "point arrow") {
-          handleShapeAttachment(transformedPos);
-
-          (currentShape as Arrow)?.points?.push(
-            ...Object.values(transformedPos)
-          );
-        }
-      }
-    },
-    [isDrawing, activeTool, dispatch, setCurrentShape, setIsDrawing, setStartingMousePos],
-  );
-
-  // Handle the cursor tool mouse down event
-  // This function handles the mouse down event for the cursor tool.
   const handleCursorToolMouseDown = (e: KonvaEventObject<MouseEvent>, tr: Konva.Transformer, selectionRect: Konva.Rect, metaPressed: boolean) => {
     const isNodesTheir = tr.nodes().length > 0;
 
@@ -187,35 +146,31 @@ const useStageHandler = ({
         dispatch(handleSelectedIds({ _id: ids, purpose: "FOR_EDITING" }));
       }
     }
+
   }
 
-  // Handle the shape tool mouse down event
-  // This function handles the mouse down event for the shape tool.
   const handleShapeToolMouseDown = (transformedPos: Coordinates) => {
-    let newShapeToCreate = newShapeProperties;
+    const newShapeToCreate = {
+      _id: uuid(),
+      ...newShapeProperties
+    };
 
     if (activeTool === "point arrow" || activeTool === "free hand") {
-      newShapeToCreate = {
-        ...newShapeToCreate,
-        points: [
-          ...Object.values(transformedPos),
-        ],
-        isDrawingArrow: true
-      } as Shape
+      if (activeTool === "point arrow") {
+        newShapeToCreate["isDrawingArrow"] = true
+      }
+
+      newShapeToCreate["points"] = [
+        ...Object.values(transformedPos),
+      ];
     } else {
-      newShapeToCreate = {
-        x: transformedPos.x,
-        y: transformedPos.y
-      } as Shape
+      newShapeToCreate["x"] = transformedPos.x;
+      newShapeToCreate["y"] = transformedPos.y;
     }
 
     setCurrentShape(newShapeToCreate);
-
-    return newShapeToCreate;
   }
 
-  // Handle the shape attachment
-  // This function handles the attachment of shapes.
   const handleShapeAttachment = (transformedPos?: Coordinates) => {
     const shape = currentShape ?? {
       ...newShapeProperties,
@@ -250,97 +205,6 @@ const useStageHandler = ({
 
   }
 
-  // Handle Mouse Up
-  const handleMouseUp = useCallback(
-    (e: KonvaEventObject<MouseEvent>): void => {
-      e.evt.preventDefault();
-      const drawingState = !isDrawing;
-      const tr = transformerRef.current;
-
-      if (!drawingState || !tr) {
-        if (isDragging.current || isTransforming.current) {
-          isDragging.current = false;
-          isTransforming.current = false;
-        }
-        return;
-      }
-
-      if (selectionRectRef.current && selectionRectRef.current.visible()) {
-        selectionRectRef.current.visible(false);
-        setIsDrawing(false);
-      }
-
-      if (!currentShape) return;
-
-      if (activeTool === "point arrow") {
-        handleShapeAttachment()
-      }
-
-      if (ToolBarArr.includes(activeTool)) {
-        if (activeTool === "point arrow") {
-          if ((currentShape as Arrow).points.length < 3 ||
-            !(currentShape as Arrow).isDrawingArrow) {
-            if ((currentShape as Arrow).isDrawingArrow) {
-              setCurrentShape(
-                (prev) => ({
-                  ...prev,
-                  isDrawingArrow: false,
-                }) as Arrow
-              );
-            }
-
-            return;
-          }
-        }
-
-        addShape();
-      }
-    },
-    [isDrawing, activeTool, setIsDrawing],
-  );
-
-  // Handle Mouse Move
-  const handleMouseMove = useCallback(
-    (e: KonvaEventObject<MouseEvent>): void => {
-      e.evt.preventDefault();
-
-      const allRefs = checkRefValue(selectionRectRef, stageRef, transformerRef) as [Konva.Rect, Konva.Stage, Konva.Transformer] | null
-      if (!allRefs) return;
-      const [selectionRectangle, stage, tr] = allRefs
-
-      const drawingState = !isDrawing;
-
-      if (!drawingState) {
-        toggleHoveredState(e);
-        return;
-      }
-
-      const transformedPos = getTransformedPos(stage);
-      if (!transformedPos) return;
-
-      if (activeTool === "cursor") {
-        if (isDragging.current || isTransforming.current) return;
-
-        // Handle the coordinates of selection rectangle
-        handleSelectionRect(selectionRectangle, transformedPos)
-
-        // Handle selected shape based on selection rect interaction.
-        handleSelectedShape(stage, selectionRectangle, tr)
-      } else if (ToolBarArr.includes(activeTool)) {
-        const updatedCoordinates = { ...startingMousePos, x2: transformedPos.x, y2: transformedPos.y } as unknown as FourCoordinates;
-
-        const updatedShapeValue =
-          recalculatesShapeDimensions(
-            activeTool,
-            updatedCoordinates,
-            currentShape!,
-          );
-
-        setCurrentShape(updatedShapeValue);
-      }
-    },
-    [isDrawing, isHovered, startingMousePos, currentShape, selectedShapesId?._id, dispatch]);
-
   // Toggle the hovered state of the shape
   // This function toggles the hovered state of the shape based on the mouse event.
   const toggleHoveredState = (e: KonvaEventObject<MouseEvent>) => {
@@ -365,7 +229,7 @@ const useStageHandler = ({
 
   // Handle selected shape based on the selection rectangle.
   // This function handles the selected shape based on the selection rectangle.
-  const handleSelectedShape = (stage: Konva.Stage, selectionRect: Konva.Rect, tr: Konva.Transformer) => {
+  const handleSelectedShape = useCallback((stage: Konva.Stage, selectionRect: Konva.Rect, tr: Konva.Transformer) => {
     const shapes = stage.find(".shape");
     const box = selectionRect.getClientRect();
     const selected = shapes.filter((shape) =>
@@ -381,14 +245,146 @@ const useStageHandler = ({
       const selectedShapes = selected.map((items) => items.attrs);
       tr.nodes(selected);
 
-      dispatch(handleSelectedIds({ _id: ids, purpose: "FOR_EDITING" }));
-      dispatch(changeToolBarProperties(selectedShapes));
+      // dispatch(handleSelectedIds({ _id: ids, purpose: "FOR_EDITING" }));
+      // dispatch(changeToolBarProperties(selectedShapes));
     } else if (selected.length === 0) {
       tr.nodes([]);
       dispatch(handleSelectedIds(null));
       dispatch(changeToolBarProperties(null));
     }
-  }
+  }, [dispatch, selectedShapesId])
+
+  // <---------------------------> Mouse event handler <--------------------------->
+
+  const handleMouseDown = useCallback(
+    (e: KonvaEventObject<MouseEvent>): void => {
+      e.evt.preventDefault();
+
+      const allRef = checkRefValue(stageRef, selectionRectRef, transformerRef) as [Konva.Stage, Konva.Rect, Konva.Transformer] | null;
+      if (!allRef) return;
+
+      const [stage, selectionRectangle, tr] = allRef;
+      if (![...ToolBarArr, "cursor"].includes(activeTool)) return;
+
+      const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
+      const transformedPos = getTransformedPos(stage);
+      if (!transformedPos) return;
+
+      // Initializing Starting MousePos
+      setStartingMousePos({
+        x: transformedPos.x,
+        y: transformedPos.y,
+      });
+
+      if (activeTool === ToolType.Cursor) {
+        if (!isSelecting) {
+          setIsSelecting(true);
+          handleCursorToolMouseDown(e, tr, selectionRectangle, metaPressed)
+        }
+      } else if (ToolBarArr.includes(activeTool)) {
+        if (!isDrawing) {
+          setIsDrawing(true)
+
+          handleShapeToolMouseDown(transformedPos)
+        } else {
+          if (activeTool === "point arrow") {
+            handleShapeAttachment(transformedPos);
+
+            (currentShape as Arrow)?.points?.push(
+              ...Object.values(transformedPos)
+            );
+          }
+        }
+      }
+
+    },
+    [isDrawing, isSelecting, newShapeProperties, activeTool, dispatch, currentShape, setCurrentShape, setIsDrawing, setStartingMousePos],
+  );
+
+  const handleMouseUp = useCallback(
+    (e: KonvaEventObject<MouseEvent>): void => {
+      e.evt.preventDefault();
+
+      if (activeTool === ToolType.Cursor) {
+        if (!isDrawing) {
+          if (isDragging.current || isTransforming.current) {
+            isDragging.current = false;
+            isTransforming.current = false;
+          }
+        }
+
+
+        if (isSelecting) {
+          selectionRectRef?.current?.visible(false);
+          setIsSelecting(false);
+        }
+      } else if (ToolBarArr.includes(activeTool)) {
+        if (!isDrawing) {
+          // 
+        } else {
+          if (!currentShape) return;
+
+          if (activeTool === ToolType.PointArrow) {
+            if ((currentShape as Arrow).points.length < 3 ||
+              !(currentShape as Arrow).isDrawingArrow) {
+              if ((currentShape as Arrow).isDrawingArrow) {
+                setCurrentShape(
+                  (prev) => ({
+                    ...prev,
+                    isDrawingArrow: false,
+                  }) as Arrow
+                );
+              }
+            }
+            handleShapeAttachment()
+          } else {
+            createNewShape();
+          }
+        }
+      };
+
+    },
+    [isDrawing, currentShape, activeTool, isSelecting, setIsDrawing],
+  );
+
+  const handleMouseMove = useCallback(
+    (e: KonvaEventObject<MouseEvent>): void => {
+      e.evt.preventDefault();
+
+      const allRefs = checkRefValue(selectionRectRef, stageRef, transformerRef) as [Konva.Rect, Konva.Stage, Konva.Transformer] | null
+      if (!allRefs) return;
+
+      const [selectionRectangle, stage, tr] = allRefs
+
+      if (!isDrawing && !isSelecting) {
+        toggleHoveredState(e);
+      }
+
+      const transformedPos = getTransformedPos(stage);
+      if (!transformedPos) return;
+
+      if (activeTool === ToolType.Cursor) {
+        if (isSelecting) {
+          // Handle the coordinates of selection rectangle
+          handleSelectionRect(selectionRectangle, transformedPos)
+
+          // Handle selected shape based on selection rect interaction.
+          handleSelectedShape(stage, selectionRectangle, tr)
+        }
+      } else if (ToolBarArr.includes(activeTool) && currentShape) {
+        const updatedCoordinates = { ...startingMousePos, x2: transformedPos.x, y2: transformedPos.y } as unknown as FourCoordinates;
+
+        const updatedShapeValue =
+          recalculatesShapeDimensions(
+            activeTool,
+            updatedCoordinates,
+            currentShape,
+          );
+        setCurrentShape(updatedShapeValue);
+      }
+
+    },
+    [selectionRectRef, stageRef, transformerRef, isDrawing, isSelecting, activeTool, currentShape, toggleHoveredState, isDragging, isTransforming, startingMousePos, setCurrentShape]);
 
   useEffect(() => {
     if (!isDrawing || activeTool !== "point arrow") return;
@@ -406,7 +402,7 @@ const useStageHandler = ({
             };
 
             // addShape is missing, either define it or import it
-            // addShape(updatedShape as Shape);
+            // createNewShape(updatedShape as Shape);
             return;
           }
         }
@@ -421,7 +417,7 @@ const useStageHandler = ({
     return () => {
       document.removeEventListener("keydown", handleKeyboardEvent);
     };
-  }, [isDrawing, setCurrentShape, dispatch, currentShape]);
+  }, [isDrawing, setCurrentShape, dispatch, currentShape, activeTool]);
 
   useEffect(() => {
     const handleshapedelete = (e: KeyboardEvent) => {
@@ -431,8 +427,6 @@ const useStageHandler = ({
       )
         return;
       const tr = transformerRef.current;
-
-      dispatch(deleteShapes());
 
       tr?.nodes([]);
       dispatch(handleSelectedIds(null));

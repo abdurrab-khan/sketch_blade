@@ -15,7 +15,7 @@ export const Nav: React.FC<Props> = ({ fileId }) => {
           "relative z-50 flex w-full flex-col gap-y-3 md:flex-row md:justify-between"
         }
       >
-        <EditFile fileId={fileId as string} fileName={"fuck"} />
+        <EditFile fileId={fileId as string} fileName={"🤯"} />
         <Tools />
         <ShareSection />
       </div>

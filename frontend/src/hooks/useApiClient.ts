@@ -32,7 +32,6 @@ export default function useApiClient() {
 
     apiClient.interceptors.response.use(
       (response: ApiResponse<any, any>) => {
-        console.log("Success:- ", response.data);
         const customResponse: ApiResponse = {
           success: response.data?.success,
           statusCode: response.data?.statusCode || response.status,

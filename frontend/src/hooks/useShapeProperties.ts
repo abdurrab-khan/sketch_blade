@@ -6,15 +6,16 @@ import { Shape } from "../types/shapes/shape-union.ts";
 import { ToolBarProperties } from "../types/tools/tool.ts";
 import { getShapeProperties } from "../utils/ShapeUtils.ts";
 
-const useShapeProperties = (isDrawing: boolean): Shape | null => {
+const useShapeProperties = (): Shape | null => {
   const [shapeProperties, setShapeProperties] = useState<Shape | null>(null);
+
   const {
     activeTool: { type: activeTool },
     toolBarProperties: properties,
   } = useSelector((state: RootState) => state.app);
 
   useEffect(() => {
-    if (!properties || !isDrawing) return;
+    if (!properties) return;
 
     if (ToolBarArr.includes(activeTool)) {
       const allProperties = getShapeProperties(
@@ -25,13 +26,14 @@ const useShapeProperties = (isDrawing: boolean): Shape | null => {
 
       setShapeProperties({
         type: activeTool,
+        isAddable: false,
         customProperties: properties,
         ...allProperties,
       } as Shape);
     } else {
       setShapeProperties(null);
     }
-  }, [activeTool, properties, isDrawing]);
+  }, [activeTool, properties]);
 
   return shapeProperties;
 };

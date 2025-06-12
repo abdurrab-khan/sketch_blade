@@ -1,36 +1,27 @@
-import axios from "../api/axios";
-import { Shape } from "../types/shapes";
+import { LOCALSTORAGE_KEY } from "@/lib/constant";
+import { Shape } from "@/types/shapes";
 
-export class ShapeApi {
-  static SHAPE_KEY = "sketch_blade";
+export const getAllShapes = (): Promise<Shape[] | null> => {
+  const shapes = JSON.parse(localStorage.getItem(LOCALSTORAGE_KEY) ?? "[]");
 
-  static async getShapeById(shapeId: string): Promise<Shape> {}
+  return shapes;
+};
 
-  static async getAllShapes(): Promise<Shape[]> {}
+export const getShape = (id: string): Promise<Shape | null> => {};
 
-  static async addNewShape(
-    shape: Shape,
-    isAuthenticated: boolean,
-  ): Promise<void> {
-    if (!shape.isAddable) return;
-    const { isAddable, ...shapeWithoutIsAddable } = shape;
+export const insertNewShape = (shape: Shape) => {
+  const prevShapes = getAllShapes() ?? [];
 
-    if (isAuthenticated) {
-      return;
-    } else {
-      const existingShapes = JSON.parse(
-        localStorage.getItem(this.SHAPE_KEY) || "[]",
-      );
+  localStorage.setItem(
+    LOCALSTORAGE_KEY,
+    JSON.stringify([...prevShapes, shape]),
+  );
+};
 
-      const updatedShapes = Array.isArray(existingShapes)
-        ? [...existingShapes, shapeWithoutIsAddable]
-        : [shapeWithoutIsAddable];
+export const updateShapes = (ids: string[], props: Partial<Shape>) => {};
 
-      localStorage.setItem(this.SHAPE_KEY, JSON.stringify(updatedShapes));
-    }
-  }
+export const updateShape = (id: string, props: Partial<Shape>) => {};
 
-  static async updateShape(shapeId: string, shape: Shape): Promise<void> {}
+export const deleteShapes = (ids: string[]) => {};
 
-  static async deleteShape(shapeId: string): Promise<void> {}
-}
+export const deleteShape = (id: string) => {};

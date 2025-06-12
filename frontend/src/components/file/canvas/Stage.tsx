@@ -57,6 +57,7 @@ export const Stage: React.FC<StageProps> = ({
   );
   const shapes = useSelector((state: RootState) => state.app.shapes);
 
+
   return (
     <KonvaStage
       ref={stageRef}
@@ -69,21 +70,23 @@ export const Stage: React.FC<StageProps> = ({
       className={cn(getCustomCursor(activeTool, isHovered))}
     >
       <Layer>
-        {shapes &&
+        {Array.isArray(shapes) &&
           shapes.length > 0 &&
           shapes.map((props, index) => (
             <GetDynamicShape key={index} {...props} />
-          ))}
+          )
+          )}
+
         {currentShape && <GetDynamicShape {...currentShape} />}
+
+        {children}
+
+        <GlobalTransformer
+          ref={transformerRef}
+          isDragging={isDragging}
+          isTransforming={isTransforming}
+        />
       </Layer>
-
-      {children}
-
-      <GlobalTransformer
-        ref={transformerRef}
-        isDragging={isDragging}
-        isTransforming={isTransforming}
-      />
     </KonvaStage>
   );
 };

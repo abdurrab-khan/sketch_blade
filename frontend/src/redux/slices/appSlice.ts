@@ -19,12 +19,13 @@ import {
   ToolBarProperties,
   ToolType,
 } from "../../types/tools/tool.ts";
+import { toolBarProperties } from "@/lib/constant.ts";
 
 type AppState = {
   clerkId: string | null;
   shapes: Shape[];
   activeTool: ActiveTool;
-  toolBarProperties: ToolBarProperties | null;
+  toolBarProperties: Partial<ToolBarProperties> | null;
   selectedShapesId: SelectedShapesId | null;
   selectedShapeToAddArrow: ArrowProps | null;
 };
@@ -60,43 +61,57 @@ export const appSlice = createSlice({
         type: type === null ? state.activeTool.type : type,
         isLocked: isLocked === null ? state.activeTool.isLocked : isLocked,
       };
+
+      if (type) {
+        state.toolBarProperties = toolBarProperties[type];
+      } else {
+        state.toolBarProperties = null;
+      }
     },
+
     changeToolBarPropertiesValue: (state, action) => {
       const payload = action.payload;
       if (!payload) return;
-      if (!state.shapes || !state.selectedShapesId?._id.length) return;
 
-      state.selectedShapesId?._id.forEach((_id) => {
-        const shapeIndex = state.shapes.findIndex((shape) => shape._id === _id);
-
-        if (shapeIndex !== -1) {
-          const propertyKey: keyof ToolBarProperties = Object.keys(
-            action.payload,
-          )[0] as keyof ToolBarProperties;
-          const shape = state.shapes[shapeIndex];
-
-          const updatedProperties = getShapeProperties(
-            shape.type,
-            [propertyKey],
-            action.payload,
+      if (
+        Array.isArray(state.selectedShapesId?._id) &&
+        state.selectedShapesId?._id?.length > 0
+      ) {
+        state.selectedShapesId?._id.forEach((_id) => {
+          const shapeIndex = state.shapes.findIndex(
+            (shape) => shape._id === _id,
           );
 
-          state.shapes[shapeIndex] = {
-            ...state.shapes[shapeIndex],
-            customProperties: {
-              ...state.shapes[shapeIndex].customProperties,
-              ...payload,
-            },
-            ...updatedProperties,
-          };
-        }
-      });
+          if (shapeIndex !== -1) {
+            const propertyKey: keyof ToolBarProperties = Object.keys(
+              action.payload,
+            )[0] as keyof ToolBarProperties;
+            const shape = state.shapes[shapeIndex];
+
+            const updatedProperties = getShapeProperties(
+              shape.type,
+              [propertyKey],
+              action.payload,
+            );
+
+            state.shapes[shapeIndex] = {
+              ...state.shapes[shapeIndex],
+              customProperties: {
+                ...state.shapes[shapeIndex].customProperties,
+                ...payload,
+              },
+              ...updatedProperties,
+            };
+          }
+        });
+      }
 
       state.toolBarProperties = {
         ...state.toolBarProperties,
         ...payload,
       };
     },
+
     changeToolBarProperties: (state, action) => {
       const attrs = action.payload;
 
@@ -107,15 +122,21 @@ export const appSlice = createSlice({
 
       state.toolBarProperties = getCombineShapeProps(attrs);
     },
+
     setShapes: (state, action) => {
       const shapes: Shape = action.payload;
 
-      if (shapes && state.shapes.length) {
-        state.shapes = [shapes];
+      if (Array.isArray(shapes)) {
+        if (state.shapes.length > 0) {
+          state.shapes.concat(shapes);
+        } else {
+          state.shapes = shapes;
+        }
       } else {
         state.shapes.push(shapes);
       }
     },
+
     updateExistingShapes: (
       state,
       action: {
@@ -153,6 +174,7 @@ export const appSlice = createSlice({
         }
       });
     },
+
     deleteShapes: (
       state,
       action: {
@@ -184,6 +206,7 @@ export const appSlice = createSlice({
       );
       state.selectedShapesId = null;
     },
+
     handleSelectedIds: (
       state,
       action: {
@@ -211,6 +234,7 @@ export const appSlice = createSlice({
         purpose,
       };
     },
+
     setSelectedShapeToAddArrow: (
       state,
       action: {

@@ -210,12 +210,12 @@ export function recalculatesShapeDimensions(
   shape: Shape,
 ): Shape {
   const copyShape = { ...shape };
-  const { x1, y2, y1, x2 } = coordinates;
+  const { x, y2, y, x2 } = coordinates;
 
   switch (tool) {
     case ToolType.Rectangle: {
-      const width = Math.abs(x2 - x1);
-      const height = Math.abs(y2 - y1);
+      const width = Math.abs(x2 - x);
+      const height = Math.abs(y2 - y);
 
       if (!copyShape.isAddable && (height > 4 || width > 5)) {
         copyShape.isAddable = true;
@@ -223,15 +223,14 @@ export function recalculatesShapeDimensions(
 
       (copyShape as ArrowSupportedShapes)["height"] = height;
       (copyShape as ArrowSupportedShapes)["width"] = width;
-
       break;
     }
     case ToolType.Ellipse: {
-      const width = Math.abs(x2 - x1);
-      const height = Math.abs(y2 - y1);
+      const width = Math.abs(x2 - x);
+      const height = Math.abs(y2 - y);
 
       if (!copyShape.isAddable) {
-        const radius = Math.hypot(x2 - x1, y2 - y1);
+        const radius = Math.hypot(x2 - x, y2 - y);
 
         if (radius >= 5) {
           copyShape.isAddable = true;

@@ -21,6 +21,7 @@ const GetDynamicShape = ({ ...props }: Shape): ReactNode => {
     selectedShapesId,
   } = useSelector((state: RootState) => state.app);
   const Component = ListComponent[props.type];
+
   const updatedProps = getUpdatedProps(
     props,
     activeTool,

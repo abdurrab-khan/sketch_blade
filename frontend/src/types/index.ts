@@ -23,8 +23,8 @@ export interface Coordinates {
 }
 
 export interface FourCoordinates {
-  x1: number;
-  y1: number;
+  x: number;
+  y: number;
   x2: number;
   y2: number;
 }

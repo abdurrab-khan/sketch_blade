@@ -1,6 +1,5 @@
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
-import axios, { AxiosError } from "axios";
 import { useNavigate, useParams } from "react-router";
 import Container from "./Container.tsx";
 import { ApiResponse } from "../../types/index.ts";
@@ -33,8 +32,9 @@ const File = () => {
 
   useEffect(() => {
     if (isError) {
-      const err = error as AxiosError<ApiResponse>;
-      const route = err?.response?.status === 404 ? "/404" : "/";
+      const err = error as unknown as ApiResponse;
+      const route = (err?.statusCode === 404 || !data) ? "/404" : "/";
+
       navigate(route);
     }
   }, [isError, error, data, navigate]);
