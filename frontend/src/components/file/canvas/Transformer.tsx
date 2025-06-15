@@ -18,11 +18,11 @@ const Transformer = React.forwardRef<Konva.Transformer, TransformerProps>(
         const innerRef = ref as React.MutableRefObject<Konva.Transformer | null>;
         const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId);
 
-        useEffect(() => {
-            if (!innerRef || (selectedIds && selectedIds._id.length > 0)) return;
+        // useEffect(() => {
+        //     if (!innerRef || (selectedIds && selectedIds._id.length > 0)) return;
 
-            innerRef.current?.nodes([]);
-        }, [selectedIds, innerRef]);
+        //     innerRef.current?.nodes([]);
+        // }, [selectedIds, innerRef]);
 
         return (
             <KonvaTransformer

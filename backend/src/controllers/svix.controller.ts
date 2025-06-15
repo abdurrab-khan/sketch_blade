@@ -148,15 +148,6 @@ export const svixController = AsyncHandler(
                   primary_email_address_id,
                } = evt.data;
 
-               console.log("User data is:- ", {
-                  id,
-                  first_name,
-                  last_name,
-                  image_url,
-                  email_addresses,
-                  primary_email_address_id,
-               });
-
                if (!id) {
                   throw new ErrorHandler({
                      statusCode: 400,

@@ -59,11 +59,8 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
         try {
           const response = await apiClient.post("/users", searchTerm) as ApiResponse;
 
-          console.log(response)
           if (response.statusCode === 200) {
-            console.log(Array.isArray(response.data) && response.data.length > 0)
             if (Array.isArray(response.data) && response.data.length) {
-              console.log("hello")
               setListColl(response.data);
             } else {
 

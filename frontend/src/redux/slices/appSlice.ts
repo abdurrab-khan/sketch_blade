@@ -214,23 +214,14 @@ export const appSlice = createSlice({
       },
     ) => {
       const { _id = "", purpose = "DEFAULT" } = action?.payload || {};
-      const previousIds = state.selectedShapesId?._id || null;
-      let id;
 
       if (!action?.payload) {
         state.selectedShapesId = null;
         return;
       }
 
-      if (previousIds && Array.isArray(_id)) {
-        const prevId = Array.isArray(previousIds) ? previousIds : [previousIds];
-        id = [...prevId, ..._id];
-      } else {
-        id = _id;
-      }
-
       state.selectedShapesId = {
-        _id: id as string | string[],
+        _id: _id as string | string[],
         purpose,
       };
     },

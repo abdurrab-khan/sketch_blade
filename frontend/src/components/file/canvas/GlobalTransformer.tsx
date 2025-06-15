@@ -1,7 +1,7 @@
 import Konva from "konva";
 import { Group } from "react-konva";
 import { KonvaEventObject } from "konva/lib/Node";
-import { forwardRef, MutableRefObject, useRef } from "react";
+import { forwardRef, MutableRefObject, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import Transformer from "./Transformer";
@@ -29,12 +29,15 @@ interface GlobalTransformerProps {
 const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(({ isDragging, isTransforming }, tr) => {
   const groupRef = useRef<Konva.Group>(null)
 
+  const selectedShapeIds = useSelector((state: RootState) => state.app.selectedShapesId)
+
   const { type: activeTool } = useSelector(
     (state: RootState) => state.app.activeTool,
   );
   const shapes: Shape[] = useSelector(
     (state: RootState) => state.app.shapes,
   ) as Shape[];
+
   const dispatch = useDispatch();
 
   // Helper functions
@@ -182,8 +185,15 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
         )
       }
     }
-
   }
+
+  useEffect(() => {
+    const trRef = (tr as MutableRefObject<Konva.Transformer>)?.current;
+
+    if (!trRef || Array.isArray(selectedShapeIds?._id)) return;
+
+    trRef.nodes([])
+  }, [selectedShapeIds, tr])
 
   return (
     <Group ref={groupRef}>

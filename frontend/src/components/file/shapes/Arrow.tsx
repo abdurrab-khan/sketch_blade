@@ -17,6 +17,7 @@ import { checkRefValue } from "../../../utils/AppUtils";
 
 import { ARROW_CIRCLE_RADIUS } from "../../../lib/constant";
 import { updatePointsAfterTransformation } from "../../../utils/Helper";
+import ShapeGroup from "./ShapeGroup";
 
 const Arrow: React.FC<Shape> = ({ ...props }) => {
   const [isClicked, setIsClicked] = useState(false);
@@ -160,7 +161,9 @@ const Arrow: React.FC<Shape> = ({ ...props }) => {
 
   useEffect(() => {
     const tr = trRef?.current;
-    if (!tr || trRef.current?.nodes().length === 0) return;
+    if (!tr) return;
+
+    if (tr.nodes()?.length === 0) return;
 
     if (Array.isArray(selectedShapes?._id) || selectedShapes?._id !== props._id) {
       if (isClicked) {
@@ -177,7 +180,7 @@ const Arrow: React.FC<Shape> = ({ ...props }) => {
 
   return (
     <>
-      <Group ref={groupRef} onClick={handleOnClick}>
+      <ShapeGroup _id={props._id} trRef={trRef} groupRef={groupRef}>
         <KonvaArrow ref={arrowRef} {...props} lineCap="round" name={"shape"} />
         {
           isClicked && (props as ArrowConfig).points.map((_, i) => {
@@ -204,7 +207,7 @@ const Arrow: React.FC<Shape> = ({ ...props }) => {
             )
           })
         }
-      </Group>
+      </ShapeGroup>
       <Transformer
         ref={trRef}
         handleTransforming={handleTransforming}

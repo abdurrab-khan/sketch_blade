@@ -6,17 +6,18 @@ import { Shape } from "../../../types/shapes";
 // Redux
 import { RootState } from "../../../redux/store";
 import { useDispatch, useSelector } from "react-redux";
-import { handleSelectedIds, updateExistingShapes } from "../../../redux/slices/appSlice";
+import { updateExistingShapes } from "../../../redux/slices/appSlice";
 
 // Canvas
 import Konva from "konva";
 import Transformer from "../canvas/Transformer";
-import { Group, Ellipse as KonvaEllipse } from "react-konva";
+import { Ellipse as KonvaEllipse } from "react-konva";
 import { KonvaEventObject, NodeConfig } from "konva/lib/Node";
 
 // Utils
 import { updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
 import { getResizeShape } from "@/utils/Helper";
+import ShapeGroup from "./ShapeGroup";
 
 const Ellipse: React.FC<Shape> = ({ ...props }) => {
   const dispatch = useDispatch();
@@ -25,22 +26,7 @@ const Ellipse: React.FC<Shape> = ({ ...props }) => {
 
   const trRef = useRef<Konva.Transformer>(null)
 
-  const handleOnClick = (e: KonvaEventObject<MouseEvent>) => {
-    e.evt.preventDefault();
-
-    const tr = trRef?.current;
-    if (!tr) return;
-
-    const metaPressed = e.evt.ctrlKey || e.evt.shiftKey || e.evt.metaKey;
-    if (metaPressed && selectedShapes) return;
-
-
-    const id = selectedShapes?._id === props._id ? null : { _id: props._id };
-
-    tr.nodes(id ? [e.target] : [])
-    dispatch(handleSelectedIds(id))
-  }
-
+  // ------------------------------- TRANSFORMER EVENT HANDLER ----------------------------
   const handleTransformingEnd = (e: KonvaEventObject<MouseEvent>) => {
     if (!(e?.currentTarget?.attrs)) return;
 
@@ -107,10 +93,15 @@ const Ellipse: React.FC<Shape> = ({ ...props }) => {
   }, [props._id, selectedShapes])
 
   return <>
-    <Group onClick={handleOnClick}>
+    <ShapeGroup trRef={trRef} _id={props._id}>
       <KonvaEllipse {...props} strokeScaleEnabled={false} name={"shape"} />
-    </Group>
-    <Transformer ref={trRef} handleTransformingEnd={handleTransformingEnd} handleDragMove={handleDragMove} handleDragEnd={handleDragEnd} />
+    </ShapeGroup>
+    <Transformer
+      ref={trRef}
+      handleTransformingEnd={handleTransformingEnd}
+      handleDragMove={handleDragMove}
+      handleDragEnd={handleDragEnd}
+    />
   </>;
 };
 export default Ellipse;

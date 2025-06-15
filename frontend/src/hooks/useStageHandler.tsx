@@ -112,7 +112,7 @@ const useStageHandler = ({
       selectionRect.width(0);
       selectionRect.height(0);
       selectionRect?.visible(true);
-      setIsDrawing(true);
+      setIsSelecting(true);
 
       if (isNodesTheir || !metaPressed) {
         clearSelection();
@@ -120,7 +120,9 @@ const useStageHandler = ({
     } else if (e.target.hasName("shape")) {
       const isSelected = tr.nodes().indexOf(e.target) >= 0;
 
+      // Only works --- Already have selectedShapesId and meta-pressed
       if (!(metaPressed && selectedShapesId)) return;
+
       if (selectedShapesId?._id && !Array.isArray(selectedShapesId?._id)) {
         const node = stageRef.current?.findOne(`#${selectedShapesId._id}`);
 
@@ -132,9 +134,12 @@ const useStageHandler = ({
       if (isSelected) {
         const nodes = tr.nodes().slice();
         nodes.splice(nodes.indexOf(e.target), 1);
+
         tr.nodes(nodes);
       } else if (!isSelected) {
-        const nodes = tr.nodes().concat([e.target]);
+        const nodes = tr.nodes().slice();
+        nodes.push(e.target)
+
         tr.nodes(nodes);
       }
 
@@ -243,6 +248,7 @@ const useStageHandler = ({
       /* In here we add and remove the selected nodes */
       const ids = selected.map((shape) => shape.attrs.id);
       const selectedShapes = selected.map((items) => items.attrs);
+
       tr.nodes(selected);
 
       // dispatch(handleSelectedIds({ _id: ids, purpose: "FOR_EDITING" }));
@@ -278,7 +284,6 @@ const useStageHandler = ({
 
       if (activeTool === ToolType.Cursor) {
         if (!isSelecting) {
-          setIsSelecting(true);
           handleCursorToolMouseDown(e, tr, selectionRectangle, metaPressed)
         }
       } else if (ToolBarArr.includes(activeTool)) {
@@ -298,7 +303,7 @@ const useStageHandler = ({
       }
 
     },
-    [isDrawing, isSelecting, newShapeProperties, activeTool, dispatch, currentShape, setCurrentShape, setIsDrawing, setStartingMousePos],
+    [isDrawing, isSelecting, newShapeProperties, selectedShapesId, activeTool, dispatch, currentShape, setCurrentShape, setIsDrawing, setStartingMousePos],
   );
 
   const handleMouseUp = useCallback(

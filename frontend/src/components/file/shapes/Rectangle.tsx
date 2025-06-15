@@ -1,5 +1,5 @@
 import Konva from "konva";
-import { Group, Rect } from "react-konva";
+import { Rect } from "react-konva";
 import React, { useEffect, useRef } from "react";
 import { KonvaEventObject, NodeConfig } from "konva/lib/Node";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,12 +7,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { Shape } from "../../../types/shapes";
 
 import { RootState } from "../../../redux/store";
-import { handleSelectedIds, updateExistingShapes } from "../../../redux/slices/appSlice";
+import { updateExistingShapes } from "../../../redux/slices/appSlice";
 
 import Transformer from "../canvas/Transformer";
 
 import { updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
 import { getResizeShape } from "@/utils/Helper";
+import ShapeGroup from "./ShapeGroup";
 
 const Rectangle: React.FC<Shape> = ({ ...props }) => {
   const dispatch = useDispatch();
@@ -21,21 +22,6 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
 
   const reactRef = React.useRef(null);
   const trRef = useRef<Konva.Transformer>(null)
-
-  const handleOnClick = (e: KonvaEventObject<MouseEvent>) => {
-    e.evt.preventDefault();
-
-    const tr = trRef?.current;
-    if (!tr) return;
-
-    const metaPressed = e.evt.ctrlKey || e.evt.shiftKey || e.evt.metaKey;
-    if (metaPressed && selectedShapes) return;
-
-    const id = selectedShapes?._id === props._id ? null : { _id: props._id };
-
-    tr.nodes(id ? [e.target] : [])
-    dispatch(handleSelectedIds(id))
-  }
 
   const handleTransformingEnd = (e: KonvaEventObject<MouseEvent>) => {
     if (!(e?.currentTarget?.attrs)) return;
@@ -58,8 +44,6 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
 
   const handleDragMove = (e: KonvaEventObject<MouseEvent>) => {
     // handle logic when going to beyond canvas x or y position || and attached arrow also.
-
-
     if (!e.currentTarget?.attrs) return;
     const { x, y, arrowProps } = e.currentTarget.attrs as Konva.RectConfig;
     if (!x || !y || !arrowProps || arrowProps?.length === 0) return;
@@ -88,31 +72,24 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
     )
   }
 
-  useEffect(() => {
-    const tr = trRef?.current;
-    if (!tr || trRef.current?.nodes().length === 0) return;
-
-    if (Array.isArray(selectedShapes?._id) || selectedShapes?._id !== props._id) {
-      tr.nodes([])
-    }
-
-    return () => {
-      tr.nodes([])
-    }
-  }, [props._id, selectedShapes])
-
   return (
     <>
-      <Group onClick={handleOnClick}>
+      <ShapeGroup _id={props._id} trRef={trRef}>
         <Rect
+          id={props._id}
           ref={reactRef}
           {...props}
           strokeScaleEnabled={false}
           name={"shape"}
         />
-      </Group>
+      </ShapeGroup>
 
-      <Transformer ref={trRef} handleTransformingEnd={handleTransformingEnd} handleDragMove={handleDragMove} handleDragEnd={handleDragEnd} />
+      <Transformer
+        ref={trRef}
+        handleTransformingEnd={handleTransformingEnd}
+        handleDragMove={handleDragMove}
+        handleDragEnd={handleDragEnd}
+      />
     </>
   );
 };
