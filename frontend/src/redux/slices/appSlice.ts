@@ -73,37 +73,51 @@ export const appSlice = createSlice({
       const payload = action.payload;
       if (!payload) return;
 
-      if (
-        Array.isArray(state.selectedShapesId?._id) &&
-        state.selectedShapesId?._id?.length > 0
-      ) {
+      // Update Shape Properties Handler Function
+      const updateShapeProperties = (shapeIndex: number) => {
+        // Shape is not present
+        if (shapeIndex === -1) return;
+
+        const propertyKey: keyof ToolBarProperties = Object.keys(
+          action.payload,
+        )[0] as keyof ToolBarProperties;
+        const shape = state.shapes[shapeIndex];
+
+        const updatedProperties = getShapeProperties(
+          shape.type,
+          [propertyKey],
+          action.payload,
+        );
+
+        state.shapes[shapeIndex] = {
+          ...state.shapes[shapeIndex],
+          customProperties: {
+            ...state.shapes[shapeIndex].customProperties,
+            ...payload,
+          },
+          ...updatedProperties,
+        };
+      };
+
+      // Handling if Selected is List of Shapes
+      if (Array.isArray(state.selectedShapesId?._id)) {
+        //  Checking -- Whether SelectedShapesId are present or not.
+        if (state.selectedShapesId?._id?.length === 0) return;
+
         state.selectedShapesId?._id.forEach((_id) => {
           const shapeIndex = state.shapes.findIndex(
             (shape) => shape._id === _id,
           );
 
-          if (shapeIndex !== -1) {
-            const propertyKey: keyof ToolBarProperties = Object.keys(
-              action.payload,
-            )[0] as keyof ToolBarProperties;
-            const shape = state.shapes[shapeIndex];
-
-            const updatedProperties = getShapeProperties(
-              shape.type,
-              [propertyKey],
-              action.payload,
-            );
-
-            state.shapes[shapeIndex] = {
-              ...state.shapes[shapeIndex],
-              customProperties: {
-                ...state.shapes[shapeIndex].customProperties,
-                ...payload,
-              },
-              ...updatedProperties,
-            };
-          }
+          updateShapeProperties(shapeIndex);
         });
+      } else {
+        // Handling if Selected is Single Shapes
+        const shapeIndex = state.shapes.findIndex(
+          (shape) => shape._id === state.selectedShapesId?._id,
+        );
+
+        updateShapeProperties(shapeIndex);
       }
 
       state.toolBarProperties = {
@@ -113,14 +127,14 @@ export const appSlice = createSlice({
     },
 
     changeToolBarProperties: (state, action) => {
-      const attrs = action.payload;
+      const shapes = action.payload;
 
-      if (!attrs || attrs.length === 0) {
+      if (!shapes || shapes.length === 0) {
         state.toolBarProperties = null;
         return;
       }
 
-      state.toolBarProperties = getCombineShapeProps(attrs);
+      state.toolBarProperties = getCombineShapeProps(shapes);
     },
 
     setShapes: (state, action) => {

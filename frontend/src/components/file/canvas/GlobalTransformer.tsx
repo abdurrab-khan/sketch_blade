@@ -41,14 +41,11 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
   const dispatch = useDispatch();
 
   // Helper functions
-  const resizeShape = (node: Konva.Node) => {
+  const resizeShape = (attrs: Shape) => {
     // Transformer and group ref 
     const trRef = (tr as MutableRefObject<Konva.Transformer>)?.current;
     const group = groupRef?.current;
     if (!trRef || !group) return;
-
-    // Shape Attrs
-    const attrs = node.attrs as Shape;
 
     // Shapes updated values
     const updatedValue: Array<{ shapeId: string, shapeValue: Partial<Shape> }> = [];
@@ -113,6 +110,7 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
 
     const nodes = (e.currentTarget as Konva.Transformer).nodes();
     if (!nodes.length) return;
+
 
     if (nodes.length === 1) {
       const attrs = nodes[0].attrs;
@@ -189,11 +187,12 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
 
   useEffect(() => {
     const trRef = (tr as MutableRefObject<Konva.Transformer>)?.current;
+    if (!trRef || trRef.nodes().length === 0) return; // Return -- Whether we does not have any shape in transformer.
 
-    if (!trRef || Array.isArray(selectedShapeIds?._id)) return;
-
+    if (Array.isArray(selectedShapeIds?._id)) return;
     trRef.nodes([])
-  }, [selectedShapeIds, tr])
+
+  }, [selectedShapeIds, tr, isDragging])
 
   return (
     <Group ref={groupRef}>

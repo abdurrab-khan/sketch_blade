@@ -1,4 +1,4 @@
-import { handleSelectedIds } from '@/redux/slices/appSlice'
+import { changeToolBarProperties, handleSelectedIds } from '@/redux/slices/appSlice'
 import { RootState } from '@/redux/store'
 import Konva from 'konva'
 import { KonvaEventObject } from 'konva/lib/Node'
@@ -32,6 +32,7 @@ export default function ShapeGroup({ _id, groupRef, trRef, children }: ShapeGrou
 
         tr.nodes(id ? [e.target] : [])
         dispatch(handleSelectedIds(id))
+        dispatch(changeToolBarProperties(id ? [e.target?.attrs] : null));
     }
 
     useEffect(() => {

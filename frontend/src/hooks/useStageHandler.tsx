@@ -249,10 +249,11 @@ const useStageHandler = ({
       const ids = selected.map((shape) => shape.attrs.id);
       const selectedShapes = selected.map((items) => items.attrs);
 
+      // Add Selection Shape -- Global Transformer
       tr.nodes(selected);
 
-      // dispatch(handleSelectedIds({ _id: ids, purpose: "FOR_EDITING" }));
-      // dispatch(changeToolBarProperties(selectedShapes));
+      dispatch(handleSelectedIds({ _id: ids, purpose: "FOR_EDITING" }));
+      dispatch(changeToolBarProperties(selectedShapes));
     } else if (selected.length === 0) {
       tr.nodes([]);
       dispatch(handleSelectedIds(null));
@@ -283,15 +284,18 @@ const useStageHandler = ({
       });
 
       if (activeTool === ToolType.Cursor) {
+        // Handle Selection
         if (!isSelecting) {
           handleCursorToolMouseDown(e, tr, selectionRectangle, metaPressed)
         }
       } else if (ToolBarArr.includes(activeTool)) {
+        // Not isDrawing -- Handle Initialize Shape
         if (!isDrawing) {
           setIsDrawing(true)
-
           handleShapeToolMouseDown(transformedPos)
+
         } else {
+          // isDrawing -- Add Points to "POINT ARROW"
           if (activeTool === "point arrow") {
             handleShapeAttachment(transformedPos);
 
@@ -301,7 +305,6 @@ const useStageHandler = ({
           }
         }
       }
-
     },
     [isDrawing, isSelecting, newShapeProperties, selectedShapesId, activeTool, dispatch, currentShape, setCurrentShape, setIsDrawing, setStartingMousePos],
   );

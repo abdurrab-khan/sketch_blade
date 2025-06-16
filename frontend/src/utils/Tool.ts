@@ -6,8 +6,8 @@ import { ToolBarProperties } from "../types/tools/tool";
  * @param attrs {Shape[]}
  * @returns {ToolBarProperties}
  */
-export function getCombineShapeProps(attrs: Shape[]) {
-  const combineProps = attrs.reduce(
+export function getCombineShapeProps(ShapeAttrs: Shape[]) {
+  const combineProps = ShapeAttrs.reduce(
     (acc: ToolBarProperties, currentValue: Shape) => {
       if (Object.keys(acc).length === 0) {
         return { ...currentValue.customProperties } as ToolBarProperties;
@@ -19,7 +19,7 @@ export function getCombineShapeProps(attrs: Shape[]) {
         if (!(propKey in acc)) {
           acc[propKey] = value as ToolBarProperties[typeof propKey];
         } else if (acc[propKey] !== value) {
-          acc[propKey] = "" as ToolBarProperties[typeof propKey];
+          acc[propKey] = "NOT_SHAPE" as ToolBarProperties[typeof propKey];
         }
       });
 

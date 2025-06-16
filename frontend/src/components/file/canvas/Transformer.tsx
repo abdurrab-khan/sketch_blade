@@ -1,10 +1,7 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import Konva from 'konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import { Transformer as KonvaTransformer } from 'react-konva';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../redux/store';
-
 
 interface TransformerProps {
     handleTransforming?: (e: KonvaEventObject<MouseEvent>) => void;
@@ -15,15 +12,6 @@ interface TransformerProps {
 
 const Transformer = React.forwardRef<Konva.Transformer, TransformerProps>(
     ({ handleTransforming, handleTransformingEnd, handleDragMove, handleDragEnd }, ref) => {
-        const innerRef = ref as React.MutableRefObject<Konva.Transformer | null>;
-        const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId);
-
-        // useEffect(() => {
-        //     if (!innerRef || (selectedIds && selectedIds._id.length > 0)) return;
-
-        //     innerRef.current?.nodes([]);
-        // }, [selectedIds, innerRef]);
-
         return (
             <KonvaTransformer
                 ref={ref}
