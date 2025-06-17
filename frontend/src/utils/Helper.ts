@@ -10,6 +10,7 @@ import {
 } from "../types/shapes";
 import { ToolType } from "../types/tools/tool";
 import { DeletedShapeProps } from "./ShapeUtils";
+import { Node, NodeConfig } from "konva/lib/Node";
 
 /**
  * Utility function to check if the mouse is near the edge of a shape.
@@ -175,6 +176,33 @@ export const findBestConnectionPoints = (
   };
 };
 
+// <-------------------------------> SHAPE TRANSFORMATION VALUE <------------------------->
+export const getRectangleResizeValue = (
+  n: Node<NodeConfig>,
+): Partial<Shape> => {
+  const newWidth = Math.max(5, n.width() * n.scaleX());
+  const newHeight = Math.max(5, n.height() * n.scaleY());
+
+  const updatedValue = {
+    width: Math.round(newWidth),
+    height: Math.round(newHeight),
+    x: Math.round(n.x()),
+    y: Math.round(n.y()),
+    rotation: Math.round(n.rotation()),
+  };
+
+  n.width(newWidth);
+  n.height(newHeight);
+  n.scaleX(1);
+  n.scaleY(1);
+
+  return updatedValue;
+};
+
+export const getEllipseResizeValue = (node: Node<NodeConfig>) => {};
+
+export const getFreeHandResizeValue = (node: Node<NodeConfig>) => {};
+
 // <-------------------------------> HELPER FUNCTIONS <--------------------------------->
 /**
  * Utility function to detect if the mouse is near the edge of a shape.
@@ -256,26 +284,6 @@ export function getTransformedPos(stage: Konva.Stage): Coordinates | null {
   const transformedPos = pos ? invertedTransform.point(pos) : null;
 
   return transformedPos;
-}
-
-/**
- * Utility function to get the transformed position of a pointer in a Konva stage.
- * @param attrs {Konva.NodeConfig}
- * @returns {height: number, width: number} | null
- */
-export function getResizeShape(attrs: Konva.NodeConfig): {
-  height: number;
-  width: number;
-} | null {
-  if (!attrs) return null;
-
-  const height = Math.round(attrs.height! * (attrs.scaleX ?? 1));
-  const width = Math.round(attrs.width! * (attrs.scaleY ?? 1));
-
-  return {
-    height,
-    width,
-  };
 }
 
 /**
@@ -385,9 +393,47 @@ export function getArrowPointsForPosition(
   }
 }
 
-export function updateArrowProps(arrow: Arrow, shape: ArrowSupportedShapes) {
-  const updatedArrowProps = shape.arrowProps?.filter(
-    (p) => p._id !== arrow._id,
-  );
-  const updatedAttachedShape = "";
+/**
+ * Utility function to get the transformed position of a pointer in a Konva stage.
+ * @param nodes {Node<NodeConfig[]>}
+ * @returns {Array<{ shapeId: string; shapeValue: Partial<Shape> }>}
+ */
+export function getResizeShape(
+  nodes: Node<NodeConfig>[],
+): Array<{ shapeId: string; shapeValue: Partial<Shape> }> {
+  const newValues: Array<{ shapeId: string; shapeValue: Partial<Shape> }> = [];
+
+  nodes.forEach((n) => {
+    // Resize Shape -- based on shape type >> "Rectangle", "Ellipse", "Free Hand"
+    switch ((n.attrs as Shape).type) {
+      // Resize -- Rectangle
+      case "rectangle": {
+        const resizedValue = getRectangleResizeValue(n);
+
+        newValues.push({
+          shapeId: n.attrs.id,
+          shapeValue: resizedValue,
+        });
+        break;
+      }
+      // Resize -- Ellipse
+      case "ellipse": {
+        break;
+      }
+      // Resize -- Point Arrow
+      case "point arrow": {
+        break;
+      }
+      // Resize -- Free hand
+      case "free hand": {
+        break;
+      }
+      // Resize -- Text
+      case "text": {
+        break;
+      }
+    }
+  });
+
+  return newValues;
 }

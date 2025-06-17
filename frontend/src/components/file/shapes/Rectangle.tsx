@@ -1,8 +1,9 @@
+import React, { useRef } from "react";
 import Konva from "konva";
 import { Rect } from "react-konva";
-import React, { useEffect, useRef } from "react";
-import { KonvaEventObject, NodeConfig } from "konva/lib/Node";
+import { KonvaEventObject } from "konva/lib/Node";
 import { useDispatch, useSelector } from "react-redux";
+import { getRectangleResizeValue, getResizeShape } from "@/utils/Helper";
 
 import { Shape } from "../../../types/shapes";
 
@@ -12,34 +13,28 @@ import { updateExistingShapes } from "../../../redux/slices/appSlice";
 import Transformer from "../canvas/Transformer";
 
 import { updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
-import { getResizeShape } from "@/utils/Helper";
 import ShapeGroup from "./ShapeGroup";
 
 const Rectangle: React.FC<Shape> = ({ ...props }) => {
   const dispatch = useDispatch();
   const shapes = useSelector((state: RootState) => state.app.shapes)
-  const selectedShapes = useSelector((state: RootState) => state.app.selectedShapesId)
 
   const reactRef = React.useRef(null);
   const trRef = useRef<Konva.Transformer>(null)
 
+  const handleTransforming = (e: KonvaEventObject<MouseEvent>) => {
+    if (!e.target) return;
+    const node = e.target;
+
+    getRectangleResizeValue(node);
+  }
+
   const handleTransformingEnd = (e: KonvaEventObject<MouseEvent>) => {
-    if (!(e?.currentTarget?.attrs)) return;
+    if (!e?.target) return;
+    const node = e.target;
 
-    const node = (e.currentTarget as Konva.Transformer).nodes()
-    const attrs = node[0].attrs as NodeConfig;
-
-    const shapeUpdatedValue = getResizeShape(attrs);
-    if (!shapeUpdatedValue) return;
-
-    dispatch(
-      updateExistingShapes(
-        {
-          shapeId: attrs.id!,
-          shapeValue: shapeUpdatedValue,
-        }
-      )
-    )
+    const newShapeValue = getResizeShape([node]);
+    dispatch(updateExistingShapes(newShapeValue))
   }
 
   const handleDragMove = (e: KonvaEventObject<MouseEvent>) => {
@@ -54,7 +49,6 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
       dispatch(updateExistingShapes(updatedArrowPosition))
     }
   }
-
 
   const handleDragEnd = (e: KonvaEventObject<MouseEvent>) => {
     if (!e.currentTarget?.attrs) return;
@@ -86,6 +80,7 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
 
       <Transformer
         ref={trRef}
+        handleTransforming={handleTransforming}
         handleTransformingEnd={handleTransformingEnd}
         handleDragMove={handleDragMove}
         handleDragEnd={handleDragEnd}

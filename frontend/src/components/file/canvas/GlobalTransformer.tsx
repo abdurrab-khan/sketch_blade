@@ -17,8 +17,8 @@ import { ArrowSupportedShapes } from "../../../lib/constant";
 import { getUpdatedAttachProps, updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
 
 // Types
-import { Arrow as ArrowType, Shape, Arrow } from "../../../types/shapes";
-import { getResizeShape, updatePointsAfterTransformation } from "../../../utils/Helper";
+import { Shape, Arrow } from "../../../types/shapes";
+import { getRectangleResizeValue, getResizeShape, updatePointsAfterTransformation } from "../../../utils/Helper";
 
 // Component Interface
 interface GlobalTransformerProps {
@@ -41,53 +41,45 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
   const dispatch = useDispatch();
 
   // Helper functions
-  const resizeShape = (attrs: Shape) => {
-    // Transformer and group ref 
-    const trRef = (tr as MutableRefObject<Konva.Transformer>)?.current;
-    const group = groupRef?.current;
-    if (!trRef || !group) return;
+  // const resizeShape = (node: Node<NodeConfig>) => {
+  //   // Handle Resize of Rect or Ellipse
+  //   if (ArrowSupportedShapes.includes(node.attrs.type)) {
+  //     const shapeUpdatedValue = getResizeShape(node);
+  //     if (!shapeUpdatedValue) return;
 
-    // Shapes updated values
-    const updatedValue: Array<{ shapeId: string, shapeValue: Partial<Shape> }> = [];
+  //     updatedValue.push({
+  //       shapeId: node.attrs._id,
+  //       shapeValue: shapeUpdatedValue
+  //     })
+  //   } else if (node.attrs.type === "point arrow") {
+  //     // Handle Resize of Arrow
+  //     const arrow = node.attrs as Arrow;
+  //     const newPoints = updatePointsAfterTransformation((node.attrs as ArrowType).points, group);
 
-    // Handle Resize of Rect or Ellipse
-    if (ArrowSupportedShapes.includes(attrs.type)) {
-      const shapeUpdatedValue = getResizeShape(attrs);
-      if (!shapeUpdatedValue) return;
+  //     // Reset group transformation
+  //     group.x(0);
+  //     group.y(0);
+  //     group.scaleX(1);
+  //     group.scaleY(1);
+  //     group.rotation(0);
+  //     group.skewX(0);
+  //     group.skewY(0);
 
-      updatedValue.push({
-        shapeId: attrs._id,
-        shapeValue: shapeUpdatedValue
-      })
-    } else if (attrs.type === "point arrow") {
-      // Handle Resize of Arrow
-      const arrow = attrs as Arrow;
-      const newPoints = updatePointsAfterTransformation((attrs as ArrowType).points, group);
+  //     // Checking whether arrow has a attach shape or not.
+  //     const attachedProps = getUpdatedAttachProps(arrow, shapes);
+  //     if (attachedProps) {
+  //       updatedValue.concat(attachedProps);
+  //     }
 
-      // Reset group transformation
-      group.x(0);
-      group.y(0);
-      group.scaleX(1);
-      group.scaleY(1);
-      group.rotation(0);
-      group.skewX(0);
-      group.skewY(0);
+  //     // Always update arrow points (ensure arrow entry exists)
+  //     updatedValue[0].shapeValue = {
+  //       ...(updatedValue[0].shapeValue ?? {}),
+  //       points: newPoints
+  //     };
+  //   }
 
-      // Checking whether arrow has a attach shape or not.
-      const attachedProps = getUpdatedAttachProps(arrow, shapes);
-      if (attachedProps) {
-        updatedValue.concat(attachedProps);
-      }
-
-      // Always update arrow points (ensure arrow entry exists)
-      updatedValue[0].shapeValue = {
-        ...(updatedValue[0].shapeValue ?? {}),
-        points: newPoints
-      };
-    }
-
-    dispatch(updateExistingShapes(updatedValue));
-  };
+  //   dispatch(updateExistingShapes(updatedValue));
+  // };
 
   const dragShape = (attrs: Konva.NodeConfig) => {
     const { x, y, arrowProps = null, } = attrs;
@@ -105,23 +97,28 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
     }
   };
 
-  const handleTransformingEnd = (e: KonvaEventObject<MouseEvent>) => {
-    if (!(e?.currentTarget?.attrs)) return;
+  const handleTransforming = (e: KonvaEventObject<MouseEvent>) => {
+    isTransforming.current = true
+    if (!e.currentTarget) return;
 
     const nodes = (e.currentTarget as Konva.Transformer).nodes();
-    if (!nodes.length) return;
 
-
-    if (nodes.length === 1) {
-      const attrs = nodes[0].attrs;
-
-      resizeShape(attrs);
-    } else {
-      nodes.forEach((node) => {
-        const attrs = node.attrs;
-
-        resizeShape(attrs);
+    if (nodes.length > 0) {
+      nodes.forEach((n) => {
+        getRectangleResizeValue(n);
       })
+    }
+  }
+
+  const handleTransformingEnd = (e: KonvaEventObject<MouseEvent>) => {
+    isTransforming.current = false;
+    if (!e?.currentTarget) return;
+
+    const nodes = (e.currentTarget as Konva.Transformer).nodes();
+
+    if (nodes.length > 0) {
+      const newShapeValue = getResizeShape(nodes);
+      dispatch(updateExistingShapes(newShapeValue))
     }
   }
 
@@ -198,7 +195,7 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
     <Group ref={groupRef}>
       <Transformer
         ref={tr}
-        handleTransforming={() => isTransforming.current = true}
+        handleTransforming={handleTransforming}
         handleTransformingEnd={handleTransformingEnd}
         handleDragMove={handleDragMove}
         handleDragEnd={handleDragEnd}

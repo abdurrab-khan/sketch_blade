@@ -47,7 +47,17 @@ export default function ShapeGroup({ _id, groupRef, trRef, children }: ShapeGrou
     }, [selectedShapes, trRef, _id])
 
     return (
-        <Group ref={groupRef} onClick={handleGroupClick}>
+        <Group
+            ref={groupRef}
+            onClick={(e: KonvaEventObject<MouseEvent>) => {
+                if (!selectedShapes?._id) return;
+                handleGroupClick(e);
+            }}
+            onMouseDown={(e: KonvaEventObject<MouseEvent>) => {
+                if (selectedShapes?._id) return;
+                handleGroupClick(e);
+            }}
+        >
             {children}
         </Group>
     )
