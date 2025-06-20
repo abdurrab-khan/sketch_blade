@@ -17,22 +17,46 @@ export default function ShapeGroup({ _id, groupRef, trRef, children }: ShapeGrou
     const selectedShapes = useSelector((state: RootState) => state.app.selectedShapesId)
     const dispatch = useDispatch();
 
-    // Toggle -- Adding is removing shape ids.
-    const handleGroupClick = (e: KonvaEventObject<MouseEvent>) => {
+    // Toggle -- Handle mouse down event
+    const handleMouseDown = (e: KonvaEventObject<MouseEvent>) => {
         e.evt.preventDefault();
 
         const tr = trRef?.current;
         if (!tr) return;
 
+        // Check -- whether meta-pressed and already selectedShape is there.
+        // If this happen this implementation is there useStageHandler
         const metaPressed = e.evt.ctrlKey || e.evt.shiftKey || e.evt.metaKey;
         if ((metaPressed && selectedShapes)) return;
 
+        // Check -- whether selectedShapesIds is array -- if yes return it.
+        if (Array.isArray(selectedShapes?._id)) return;
 
-        const id = selectedShapes?._id === _id ? null : { _id: _id };
 
-        tr.nodes(id ? [e.target] : [])
-        dispatch(handleSelectedIds(id))
-        dispatch(changeToolBarProperties(id ? [e.target?.attrs] : null));
+        // Validate -- selectedShapeId should not equal to current id. 
+        if (selectedShapes?._id !== _id) {
+            const id = { _id: _id };
+
+            tr.nodes([e.target])
+            dispatch(handleSelectedIds(id))
+            dispatch(changeToolBarProperties([e.target?.attrs]));
+        }
+    }
+
+
+    // Toggle -- Handle mouse down event
+    const handleMouseClick = (e: KonvaEventObject<MouseEvent>) => {
+        e.evt.preventDefault();
+
+        const tr = trRef?.current;
+        if (!tr) return;
+
+        // Check -- Whether selectedShape?._id is array if yes -- clicked shape into the transformer
+        if (Array.isArray(selectedShapes?._id)) {
+            tr.nodes([e.target])
+            dispatch(handleSelectedIds({ _id: _id }))
+            dispatch(changeToolBarProperties([e.target?.attrs]));
+        }
     }
 
     useEffect(() => {
@@ -49,14 +73,8 @@ export default function ShapeGroup({ _id, groupRef, trRef, children }: ShapeGrou
     return (
         <Group
             ref={groupRef}
-            onClick={(e: KonvaEventObject<MouseEvent>) => {
-                if (!selectedShapes?._id) return;
-                handleGroupClick(e);
-            }}
-            onMouseDown={(e: KonvaEventObject<MouseEvent>) => {
-                if (selectedShapes?._id) return;
-                handleGroupClick(e);
-            }}
+            onClick={handleMouseClick}
+            onMouseDown={handleMouseDown}
         >
             {children}
         </Group>
