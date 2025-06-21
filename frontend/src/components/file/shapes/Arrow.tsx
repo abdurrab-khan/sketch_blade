@@ -3,12 +3,12 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { ArrowConfig } from "konva/lib/shapes/Arrow";
 import { useDispatch, useSelector } from "react-redux";
 import React, { useEffect, useRef, useState } from "react";
-import { Circle, Group, Arrow as KonvaArrow } from "react-konva";
+import { Circle, Arrow as KonvaArrow } from "react-konva";
 
 import { Arrow as ArrowType, Shape } from "../../../types/shapes";
 
 import { RootState } from "../../../redux/store";
-import { handleSelectedIds, updateExistingShapes } from "../../../redux/slices/appSlice";
+import { updateExistingShapes } from "../../../redux/slices/appSlice";
 
 import Transformer from "../canvas/Transformer";
 
@@ -20,7 +20,7 @@ import { updatePointsAfterTransformation } from "../../../utils/Helper";
 import ShapeGroup from "./ShapeGroup";
 
 const Arrow: React.FC<Shape> = ({ ...props }) => {
-  const [isClicked, setIsClicked] = useState(false);
+  const [isClicked, setIsClicked] = useState<boolean>(false);
 
   const arrowRef = useRef<Konva.Arrow>(null);
   const trRef = useRef<Konva.Transformer>(null);
@@ -31,23 +31,6 @@ const Arrow: React.FC<Shape> = ({ ...props }) => {
   const selectedShapes = useSelector((state: RootState) => state.app.selectedShapesId);
   const dispatch = useDispatch();
 
-  // Handler function when click on group.
-  const handleOnClick = (e: KonvaEventObject<MouseEvent>) => {
-    e.evt.preventDefault();
-
-    const tr = trRef?.current;
-    if (!tr) return;
-
-    const metaPressed = e.evt.ctrlKey || e.evt.shiftKey || e.evt.metaKey;
-    if (metaPressed && selectedShapes) return;
-
-    const id = selectedShapes?._id === props._id ? null : { _id: props._id };
-
-    setIsClicked(prev => !prev)
-    tr.nodes(id ? [e.target] : [])
-    dispatch(handleSelectedIds(id))
-  }
-
   // Attached Points movement handler.
   const handlePointDrag = (pointIndex: number, e: KonvaEventObject<MouseEvent>) => {
     const tr = trRef?.current;
@@ -55,12 +38,12 @@ const Arrow: React.FC<Shape> = ({ ...props }) => {
     if (!tr || !arrRef) return;
 
 
-    const points = (props as ArrowType).points;
+    const points = [...(props as ArrowType).points];
     const x = e.target.x();
     const y = e.target.y();
 
-    points[pointIndex * 2] = x
-    points[pointIndex * 2 + 1] = y;
+    points[pointIndex * 2 - 1] = x
+    points[pointIndex * 2] = y;
 
     tr.forceUpdate();
     arrRef.setAttrs({ points })
@@ -72,7 +55,7 @@ const Arrow: React.FC<Shape> = ({ ...props }) => {
         {
           shapeId: props._id,
           shapeValue: {
-            points: (props as ArrowType).points
+            points: arrowRef.current?.points() ?? (props as ArrowType).points
           }
         }
       )
@@ -81,11 +64,11 @@ const Arrow: React.FC<Shape> = ({ ...props }) => {
 
   // Transformer handling function.
   const handleTransforming = () => {
-    // Change the size of the circle.
+    // Change the size of the ellipse.
     updateControlCircles();
   }
 
-  // Handler function to update the size of circle.
+  // Handler function to update the size of ellipse.
   const updateControlCircles = () => {
     if (!isClicked || !groupRef.current) return;
 
@@ -160,49 +143,40 @@ const Arrow: React.FC<Shape> = ({ ...props }) => {
 
 
   useEffect(() => {
-    const tr = trRef?.current;
-    if (!tr) return;
-
-    if (tr.nodes()?.length === 0) return;
-
-    if (Array.isArray(selectedShapes?._id) || selectedShapes?._id !== props._id) {
-      if (isClicked) {
-        setIsClicked(false);
-      }
-
-      tr.nodes([])
+    // Check -- Whether selectedShape is Array or selectedShape is null and isClicked is true 
+    if ((Array.isArray(selectedShapes?._id) || !selectedShapes?._id) && isClicked) {
+      setIsClicked(false);
     }
-
-    return () => {
-      tr.nodes([])
-    }
-  }, [props._id, isClicked, selectedShapes])
+  }, [isClicked, selectedShapes])
 
   return (
     <>
-      <ShapeGroup _id={props._id} trRef={trRef} groupRef={groupRef}>
+      <ShapeGroup _id={props._id} trRef={trRef} groupRef={groupRef} setIsClicked={setIsClicked} >
         <KonvaArrow ref={arrowRef} {...props} lineCap="round" name={"shape"} />
         {
           isClicked && (props as ArrowConfig).points.map((_, i) => {
             if (i % 2 === 0) return null;
+
             const points = (props as ArrowConfig).points;
-            const x = points[i];
-            const y = points[i + 1];
+            const x = points[i - 1];
+            const y = points[i];
             const pointIndex = i / 2;
 
             return (
               <Circle
+                key={i}
+                ref={(node) => {
+                  if (node) {
+                    circleRefs.current[pointIndex] = node;
+                  }
+                }}
                 x={x}
                 y={y}
                 radius={ARROW_CIRCLE_RADIUS}
                 stroke="lightgray"
                 onDragMove={(e) => handlePointDrag(pointIndex, e)}
                 onDragEnd={handleCircleDragEnd}
-                ref={(node) => {
-                  if (node) {
-                    circleRefs.current[pointIndex] = node;
-                  }
-                }}
+                draggable
               />
             )
           })

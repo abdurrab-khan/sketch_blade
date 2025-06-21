@@ -404,7 +404,7 @@ export function getResizeShape(
   const newValues: Array<{ shapeId: string; shapeValue: Partial<Shape> }> = [];
 
   nodes.forEach((n) => {
-    // Resize Shape -- based on shape type >> "Rectangle", "Ellipse", "Free Hand"
+    // Resize Shape -- based on shape type >> "Rectangle", "Ellipse", "Free Hand" ... etc.
     switch ((n.attrs as Shape).type) {
       // Resize -- Rectangle
       case "rectangle": {

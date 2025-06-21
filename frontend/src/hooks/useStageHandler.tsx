@@ -409,8 +409,10 @@ const useStageHandler = ({
               points: slicedPoints,
             };
 
+            console.log(updatedShape)
+
             // addShape is missing, either define it or import it
-            // createNewShape(updatedShape as Shape);
+            createNewShape(updatedShape as Shape);
             return;
           }
         }

@@ -6,12 +6,12 @@ export const ARROW_CIRCLE_RADIUS = 5;
 export const ToolBarArr = [
   "text",
   "rectangle",
-  "circle",
+  "ellipse",
   "point arrow",
   "free hand",
 ];
 
-export const ArrowSupportedShapes = ["rectangle", "circle", "text"];
+export const ArrowSupportedShapes = ["rectangle", "ellipse", "text"];
 
 const commonProperties = {
   stroke: "#3282B8",

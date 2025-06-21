@@ -7,13 +7,14 @@ import { Group } from 'react-konva'
 import { useDispatch, useSelector } from 'react-redux'
 
 interface ShapeGroupProps {
-    children: any,
+    _id: string,
+    children: React.ReactNode,
     trRef: RefObject<Konva.Transformer>,
     groupRef?: RefObject<Konva.Group>,
-    _id: string
+    [key: string]: any
 }
 
-export default function ShapeGroup({ _id, groupRef, trRef, children }: ShapeGroupProps) {
+export default function ShapeGroup({ _id, groupRef, trRef, children, ...props }: ShapeGroupProps) {
     const selectedShapes = useSelector((state: RootState) => state.app.selectedShapesId)
     const dispatch = useDispatch();
 
@@ -21,10 +22,13 @@ export default function ShapeGroup({ _id, groupRef, trRef, children }: ShapeGrou
     const handleMouseDown = (e: KonvaEventObject<MouseEvent>) => {
         e.evt.preventDefault();
 
+        // Return -- If name of the shape is not "SHAPE"
+        if (e.target.attrs.name !== "shape") return;
+
         const tr = trRef?.current;
         if (!tr) return;
 
-        // Check -- whether meta-pressed and already selectedShape is there.
+        // Check -- When meta-pressed and already selectedShape is there.
         // If this happen this implementation is there useStageHandler
         const metaPressed = e.evt.ctrlKey || e.evt.shiftKey || e.evt.metaKey;
         if ((metaPressed && selectedShapes)) return;
@@ -40,6 +44,11 @@ export default function ShapeGroup({ _id, groupRef, trRef, children }: ShapeGrou
             tr.nodes([e.target])
             dispatch(handleSelectedIds(id))
             dispatch(changeToolBarProperties([e.target?.attrs]));
+
+            // Check -- In the props is we have is  setIsClicked means it is for arrow
+            if (props.setIsClicked) {
+                props.setIsClicked(true);
+            }
         }
     }
 
@@ -48,10 +57,15 @@ export default function ShapeGroup({ _id, groupRef, trRef, children }: ShapeGrou
     const handleMouseClick = (e: KonvaEventObject<MouseEvent>) => {
         e.evt.preventDefault();
 
+        const metaPressed = e.evt.ctrlKey || e.evt.shiftKey || e.evt.metaKey;
+
+        // Return -- When meta button is pressed.
+        if (metaPressed) return;
+
         const tr = trRef?.current;
         if (!tr) return;
 
-        // Check -- Whether selectedShape?._id is array if yes -- clicked shape into the transformer
+        // Check -- When selectedShape?._id is array if yes -- clicked shape into the transformer
         if (Array.isArray(selectedShapes?._id)) {
             tr.nodes([e.target])
             dispatch(handleSelectedIds({ _id: _id }))

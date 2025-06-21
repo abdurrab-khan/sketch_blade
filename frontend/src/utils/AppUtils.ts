@@ -17,7 +17,7 @@ export function getCustomCursor(
   }
 
   if (
-    ["rectangle", "circle", "free hand", "point arrow"].includes(activeTool)
+    ["rectangle", "ellipse", "free hand", "point arrow"].includes(activeTool)
   ) {
     return "cursor-crosshair";
   } else if (activeTool === ToolType.Text) {

@@ -83,20 +83,26 @@ export const appSlice = createSlice({
         )[0] as keyof ToolBarProperties;
         const shape = state.shapes[shapeIndex];
 
-        const updatedProperties = getShapeProperties(
-          shape.type,
-          [propertyKey],
-          action.payload,
-        );
+        // Return -- If Shape is not exist
+        if (!shape) return;
 
-        state.shapes[shapeIndex] = {
-          ...state.shapes[shapeIndex],
-          customProperties: {
-            ...state.shapes[shapeIndex].customProperties,
-            ...payload,
-          },
-          ...updatedProperties,
-        };
+        // Check --  The give property exits on the shape or not.
+        if ((toolBarProperties[shape?.type] ?? {})[propertyKey]) {
+          const updatedProperties = getShapeProperties(
+            shape.type,
+            [propertyKey],
+            action.payload,
+          );
+
+          state.shapes[shapeIndex] = {
+            ...state.shapes[shapeIndex],
+            customProperties: {
+              ...state.shapes[shapeIndex].customProperties,
+              ...payload,
+            },
+            ...updatedProperties,
+          };
+        }
       };
 
       // Handling if Selected is List of Shapes

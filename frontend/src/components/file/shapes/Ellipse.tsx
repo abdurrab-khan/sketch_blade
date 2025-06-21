@@ -12,7 +12,7 @@ import { updateExistingShapes } from "../../../redux/slices/appSlice";
 import Konva from "konva";
 import Transformer from "../canvas/Transformer";
 import { Ellipse as KonvaEllipse } from "react-konva";
-import { KonvaEventObject, NodeConfig } from "konva/lib/Node";
+import { KonvaEventObject } from "konva/lib/Node";
 
 // Utils
 import { updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
@@ -31,18 +31,12 @@ const Ellipse: React.FC<Shape> = ({ ...props }) => {
     if (!(e?.currentTarget?.attrs)) return;
 
     const node = (e.currentTarget as Konva.Transformer).nodes()
-    const attrs = node[0].attrs as NodeConfig;
 
-    const shapeUpdatedValue = getResizeShape(attrs);
+    const shapeUpdatedValue = getResizeShape(node);
     if (!shapeUpdatedValue) return;
 
     dispatch(
-      updateExistingShapes(
-        {
-          shapeId: attrs.id!,
-          shapeValue: shapeUpdatedValue,
-        }
-      )
+      updateExistingShapes(shapeUpdatedValue)
     )
   }
 
@@ -94,7 +88,12 @@ const Ellipse: React.FC<Shape> = ({ ...props }) => {
 
   return <>
     <ShapeGroup trRef={trRef} _id={props._id}>
-      <KonvaEllipse {...props} strokeScaleEnabled={false} name={"shape"} />
+      <KonvaEllipse
+        id={props._id}
+        {...props}
+        strokeScaleEnabled={false}
+        name={"shape"}
+      />
     </ShapeGroup>
     <Transformer
       ref={trRef}
