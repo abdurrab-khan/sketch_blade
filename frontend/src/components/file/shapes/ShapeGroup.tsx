@@ -15,6 +15,7 @@ interface ShapeGroupProps {
 }
 
 export default function ShapeGroup({ _id, groupRef, trRef, children, ...props }: ShapeGroupProps) {
+    const activeTool = useSelector((state: RootState) => state.app.activeTool);
     const selectedShapes = useSelector((state: RootState) => state.app.selectedShapesId)
     const dispatch = useDispatch();
 
@@ -26,7 +27,7 @@ export default function ShapeGroup({ _id, groupRef, trRef, children, ...props }:
         if (e.target.attrs.name !== "shape") return;
 
         const tr = trRef?.current;
-        if (!tr) return;
+        if (!tr || activeTool?.type === "eraser") return;
 
         // Check -- When meta-pressed and already selectedShape is there.
         // If this happen this implementation is there useStageHandler

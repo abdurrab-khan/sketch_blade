@@ -28,7 +28,36 @@ const Eraser: React.FC<MouseValue> = ({ stageRef }) => {
     (state: RootState) => state.app.toolBarProperties?.eraserRadius,
   );
   const mouseCoordinates = useMouseValue({ stageRef });
-  const { proximity } = useShapeEdgeDetector(10, null)
+  const { proximity } = useShapeEdgeDetector(10, null, isPressed)
+
+  useEffect(() => {
+    if (!isPressed) return;
+
+    const { isNear, shapeId } = proximity;
+
+    // Return -- If isNear or shapeId is not there
+    if (!isNear || !shapeId) return;
+
+    // Return -- If in the selectedIds has already that shapeId.
+    if (Array.isArray(selectedIds?._id) && selectedIds?._id.some((s) => s === shapeId)) return;
+
+    let shapeIds: string[];
+    if (!Array.isArray(selectedIds?._id)) {
+      shapeIds = [shapeId]
+    } else {
+      shapeIds = [
+        ...selectedIds._id,
+        shapeId
+      ]
+    }
+
+    dispatch(
+      handleSelectedIds({
+        _id: shapeIds as string[],
+        purpose: "FOR_DELETING"
+      })
+    );
+  }, [proximity, selectedIds, isPressed, dispatch])
 
   useEffect(() => {
     const handleMouseDown = (e: MouseEvent) => {
@@ -40,12 +69,13 @@ const Eraser: React.FC<MouseValue> = ({ stageRef }) => {
     };
 
     const handleMouseUp = () => {
-      if (selectedIds && Array.isArray(selectedIds)) {
-        const deletedShapeProps = getDeletedShapeProps(selectedIds, shapes);
-        dispatch(deleteShapes(
-          deletedShapeProps
-        ));
-      }
+      if (!selectedIds?._id || !(Array.isArray(selectedIds?._id) && selectedIds?._id.length > 0)) return;
+
+      const deletedShapeProps = getDeletedShapeProps(selectedIds?._id, shapes);
+
+      dispatch(deleteShapes(
+        deletedShapeProps
+      ));
 
       setIsPressed(false);
     };
@@ -59,23 +89,6 @@ const Eraser: React.FC<MouseValue> = ({ stageRef }) => {
     };
   }, [stageRef, isPressed, selectedIds, dispatch, shapes]);
 
-  useEffect(() => {
-    if (!isPressed) return;
-
-    const { isNear, shapeId } = proximity;
-    if (!isNear || !shapeId) return;
-
-    // Checking Is shape already exist if yes,
-    // We does not insert again.
-    if (Array.isArray(selectedIds) && selectedIds.some((s) => s._id === shapeId)) return;
-
-    dispatch(
-      handleSelectedIds({
-        _id: shapeId,
-        purpose: "FOR_DELETING"
-      })
-    );
-  }, [proximity, selectedIds, isPressed, dispatch])
 
   return (
     <Rect

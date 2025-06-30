@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector } from "react-redux";
 
 import { RootState } from "../redux/store";
@@ -12,7 +12,11 @@ interface LastUpdateRef {
   isNear: boolean;
 }
 
-const useShapeEdgeDetector = (threshold = 10, currentShape: Shape | null) => {
+const useShapeEdgeDetector = (
+  threshold = 10,
+  currentShape: Shape | null,
+  isPressed?: boolean,
+) => {
   const [proximity, setProximity] = useState<Proximity>({
     shapeId: null,
     isNear: false,
@@ -28,12 +32,12 @@ const useShapeEdgeDetector = (threshold = 10, currentShape: Shape | null) => {
     activeTool: { type: activeTool },
   } = useSelector((state: RootState) => state.app);
 
-  useEffect(() => {
-    if (!(activeTool === "point arrow" || activeTool === "eraser")) {
-      return;
-    }
+  const handleMouseMove = useCallback(
+    (event: MouseEvent) => {
+      if (!isPressed && activeTool === "eraser") {
+        return;
+      }
 
-    const handleMouseMove = (event: MouseEvent) => {
       if (timeoutRef.current) {
         return;
       }
@@ -59,10 +63,18 @@ const useShapeEdgeDetector = (threshold = 10, currentShape: Shape | null) => {
 
       timeoutRef.current = setTimeout(() => {
         timeoutRef.current = null;
-      }, 50);
-    };
+      }, 100);
+    },
+    [activeTool, currentShape, isPressed, shapes, threshold],
+  );
+
+  useEffect(() => {
+    if (!(activeTool === "point arrow" || activeTool === "eraser")) {
+      return;
+    }
 
     window.addEventListener("mousemove", handleMouseMove);
+
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       if (timeoutRef.current) {
@@ -70,7 +82,7 @@ const useShapeEdgeDetector = (threshold = 10, currentShape: Shape | null) => {
         timeoutRef.current = null;
       }
     };
-  }, [shapes, threshold, activeTool, currentShape]);
+  }, [activeTool, handleMouseMove]);
 
   return { proximity, setProximity };
 };

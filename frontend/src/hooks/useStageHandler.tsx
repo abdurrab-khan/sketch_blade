@@ -399,6 +399,7 @@ const useStageHandler = ({
 
     const handleKeyboardEvent = (e: KeyboardEvent) => {
       if (e.key === "Enter" || e.key === "Escape" || e.key === "Delete") {
+
         if (e.key === "Enter") {
           const points = (currentShape as Arrow)?.points || [];
           const slicedPoints = points?.slice(0, points?.length - 2);
@@ -427,7 +428,7 @@ const useStageHandler = ({
     return () => {
       document.removeEventListener("keydown", handleKeyboardEvent);
     };
-  }, [isDrawing, setCurrentShape, dispatch, currentShape, activeTool]);
+  }, [isDrawing, setCurrentShape, dispatch, currentShape, activeTool, createNewShape]);
 
   useEffect(() => {
     const handleshapedelete = (e: KeyboardEvent) => {
@@ -453,9 +454,10 @@ const useStageHandler = ({
   useEffect(() => {
     if (activeTool !== "point arrow") return;
 
-    if (!selectedShapeToAddArrow) {
-      const { isNear, shapeId, arrowProps } = proximity;
-      if (!isNear || !arrowProps) return;
+    const { isNear, shapeId, arrowProps } = proximity;
+
+    if (isNear) {
+      if (!arrowProps || selectedShapeToAddArrow?._id === shapeId) return;
 
       dispatch(
         setSelectedShapeToAddArrow(

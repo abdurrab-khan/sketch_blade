@@ -73,7 +73,6 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
           id={props._id}
           ref={reactRef}
           {...props}
-          strokeScaleEnabled={false}
           name={"shape"}
         />
       </ShapeGroup>
