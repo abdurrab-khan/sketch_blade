@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import React, { useCallback, useEffect, useState } from "react";
 
 import { ToolType } from "../types/tools/tool";
-import { Arrow, Shape } from "../types/shapes";
+import { Arrow, Ellipse, Rectangle, Shape } from "../types/shapes";
 import { Coordinates, FourCoordinates } from "../types";
 
 import { RootState } from "../redux/store";
@@ -15,6 +15,7 @@ import {
   updateExistingShapes,
   changeToolBarProperties,
   setSelectedShapeToAddArrow,
+  deleteShapes,
 } from "../redux/slices/appSlice";
 
 import useShapeProperties from "./useShapeProperties";
@@ -23,7 +24,7 @@ import useShapeEdgeDetector from "./useShapeEdgeDetector";
 import { ToolBarArr } from "../lib/constant";
 
 import { checkRefValue } from "../utils/AppUtils";
-import { getUpdatedPropsToAddArrow, recalculatesShapeDimensions } from "../utils/ShapeUtils";
+import { getDeletedShapeProps, getUpdatedPropsToAddArrow, recalculatesShapeDimensions } from "../utils/ShapeUtils";
 import { getTransformedPos } from "@/utils/Helper";
 
 import { v4 as uuid } from "uuid"
@@ -105,7 +106,7 @@ const useStageHandler = ({
     [currentShape, dispatch, isToolLocked, setCurrentShape],
   );
 
-  const handleCursorToolMouseDown = (e: KonvaEventObject<MouseEvent>, tr: Konva.Transformer, selectionRect: Konva.Rect, metaPressed: boolean) => {
+  const handleCursorToolMouseDown = useCallback((e: KonvaEventObject<MouseEvent>, tr: Konva.Transformer, selectionRect: Konva.Rect, metaPressed: boolean) => {
     const isNodesTheir = tr.nodes().length > 0;
 
     if (e.target.getType() === "Stage") {
@@ -152,9 +153,9 @@ const useStageHandler = ({
       }
     }
 
-  }
+  }, [clearSelection, dispatch, selectedShapesId, stageRef])
 
-  const handleShapeToolMouseDown = (transformedPos: Coordinates) => {
+  const handleShapeToolMouseDown = useCallback((transformedPos: Coordinates) => {
     const newShapeToCreate = {
       _id: uuid(),
       ...newShapeProperties
@@ -162,21 +163,21 @@ const useStageHandler = ({
 
     if (activeTool === "point arrow" || activeTool === "free hand") {
       if (activeTool === "point arrow") {
-        newShapeToCreate["isDrawingArrow"] = true
+        ((newShapeToCreate as Arrow)["isDrawingArrow"]) = true
       }
 
-      newShapeToCreate["points"] = [
+      ((newShapeToCreate as Arrow)["points"]) = [
         ...Object.values(transformedPos),
       ];
     } else {
-      newShapeToCreate["x"] = transformedPos.x;
-      newShapeToCreate["y"] = transformedPos.y;
+      ((newShapeToCreate as Rectangle | Ellipse)["x"]) = transformedPos.x;
+      ((newShapeToCreate as Rectangle | Ellipse)["y"]) = transformedPos.y;
     }
 
-    setCurrentShape(newShapeToCreate);
-  }
+    setCurrentShape(newShapeToCreate as Shape);
+  }, [activeTool, newShapeProperties, setCurrentShape])
 
-  const handleShapeAttachment = (transformedPos?: Coordinates) => {
+  const handleShapeAttachment = useCallback((transformedPos?: Coordinates) => {
     const shape = currentShape ?? {
       ...newShapeProperties,
       ...Object.values(transformedPos!)
@@ -208,21 +209,21 @@ const useStageHandler = ({
       dispatch(handleSelectedIds(null));
     }
 
-  }
+  }, [currentShape, dispatch, newShapeProperties, selectedShapeToAddArrow, setCurrentShape, shapes])
 
   // Toggle the hovered state of the shape
   // This function toggles the hovered state of the shape based on the mouse event.
-  const toggleHoveredState = (e: KonvaEventObject<MouseEvent>) => {
+  const toggleHoveredState = useCallback((e: KonvaEventObject<MouseEvent>) => {
     if (e.target.hasName("shape") && activeTool === "cursor") {
       setIsHovered(true);
     } else if (!e.target.hasName("shape") && isHovered) {
       setIsHovered(false);
     }
-  }
+  }, [activeTool, isHovered, setIsHovered])
 
   // Handle the selection rectangle
   // This function handles the selection rectangle based on the mouse position.
-  const handleSelectionRect = (selectionRect: Konva.Rect, transformedPos: Coordinates) => {
+  const handleSelectionRect = useCallback((selectionRect: Konva.Rect, transformedPos: Coordinates) => {
     selectionRect.setAttrs({
       visible: true,
       x: Math.min(startingMousePos.x, transformedPos.x),
@@ -230,7 +231,7 @@ const useStageHandler = ({
       width: Math.abs(transformedPos.x - startingMousePos.x),
       height: Math.abs(transformedPos.y - startingMousePos.y),
     });
-  }
+  }, [startingMousePos.x, startingMousePos.y])
 
   // Handle selected shape based on the selection rectangle.
   // This function handles the selected shape based on the selection rectangle.
@@ -392,7 +393,20 @@ const useStageHandler = ({
       }
 
     },
-    [selectionRectRef, stageRef, transformerRef, isDrawing, isSelecting, activeTool, currentShape, toggleHoveredState, isDragging, isTransforming, startingMousePos, setCurrentShape]);
+    [
+      isDrawing,
+      isSelecting,
+      activeTool,
+      currentShape,
+      setCurrentShape,
+      startingMousePos,
+      selectionRectRef,
+      stageRef,
+      transformerRef,
+      handleSelectedShape,
+      handleSelectionRect,
+      toggleHoveredState
+    ]);
 
   useEffect(() => {
     if (!isDrawing || activeTool !== "point arrow") return;
@@ -409,8 +423,6 @@ const useStageHandler = ({
               ...currentShape,
               points: slicedPoints,
             };
-
-            console.log(updatedShape)
 
             // addShape is missing, either define it or import it
             createNewShape(updatedShape as Shape);
@@ -432,12 +444,25 @@ const useStageHandler = ({
 
   useEffect(() => {
     const handleshapedelete = (e: KeyboardEvent) => {
-      if (
-        (selectedShapesId && selectedShapesId?._id.length <= 0) ||
-        e.key !== "Delete"
-      )
-        return;
       const tr = transformerRef.current;
+
+      // Only work when press delete key
+      if (e.key !== "Delete" || !tr) return;
+
+      let ids: string[] | null = null;
+
+      // Update ids and make them array of ids. 
+      if (selectedShapesId?._id) {
+        ids = Array.isArray(selectedShapesId?._id) ? selectedShapesId._id : [selectedShapesId._id];
+      }
+
+      if (!(ids && ids.length > 0)) return;
+
+      // Delete -- From the local state 
+      const deletedShapeProps = getDeletedShapeProps(ids, shapes);
+      dispatch(deleteShapes(
+        deletedShapeProps
+      ));
 
       tr?.nodes([]);
       dispatch(handleSelectedIds(null));
@@ -449,7 +474,7 @@ const useStageHandler = ({
     return () => {
       document.removeEventListener("keydown", handleshapedelete);
     };
-  }, [dispatch, selectedShapesId, transformerRef]);
+  }, [dispatch, selectedShapesId, shapes, transformerRef]);
 
   useEffect(() => {
     if (activeTool !== "point arrow") return;

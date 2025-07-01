@@ -1,4 +1,4 @@
-import Axios, { AxiosResponse } from "axios";
+import Axios from "axios";
 import { useAuth } from "@clerk/clerk-react";
 import { useEffect } from "react";
 import { ApiResponse } from "@/types";

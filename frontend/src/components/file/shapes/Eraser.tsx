@@ -28,7 +28,7 @@ const Eraser: React.FC<MouseValue> = ({ stageRef }) => {
     (state: RootState) => state.app.toolBarProperties?.eraserRadius,
   );
   const mouseCoordinates = useMouseValue({ stageRef });
-  const { proximity } = useShapeEdgeDetector(10, null, isPressed)
+  const { proximity } = useShapeEdgeDetector(20, null, isPressed)
 
   useEffect(() => {
     if (!isPressed) return;

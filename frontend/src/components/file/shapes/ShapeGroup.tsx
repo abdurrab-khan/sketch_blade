@@ -60,11 +60,12 @@ export default function ShapeGroup({ _id, groupRef, trRef, children, ...props }:
 
         const metaPressed = e.evt.ctrlKey || e.evt.shiftKey || e.evt.metaKey;
 
-        // Return -- When meta button is pressed.
-        if (metaPressed) return;
+        // Return -- When meta button is pressed or active tool is "ERASER".
+        if (metaPressed || activeTool.type === "eraser") return;
 
         const tr = trRef?.current;
         if (!tr) return;
+
 
         // Check -- When selectedShape?._id is array if yes -- clicked shape into the transformer
         if (Array.isArray(selectedShapes?._id)) {
