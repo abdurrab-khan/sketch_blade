@@ -14,6 +14,7 @@ import Transformer from "../canvas/Transformer";
 
 import { updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
 import ShapeGroup from "./ShapeGroup";
+import { ToolType } from "@/types/tools/tool";
 
 const Rectangle: React.FC<Shape> = ({ ...props }) => {
   const dispatch = useDispatch();
@@ -68,7 +69,7 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
 
   return (
     <>
-      <ShapeGroup _id={props._id} trRef={trRef}>
+      <ShapeGroup _id={props._id} trRef={trRef} type={ToolType.Rectangle}>
         <Rect
           id={props._id}
           ref={reactRef}

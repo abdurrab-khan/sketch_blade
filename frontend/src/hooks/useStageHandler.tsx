@@ -86,7 +86,7 @@ const useStageHandler = ({
   const createNewShape = useCallback(
     (customizedCurrentShape?: Shape) => {
       if (currentShape?.isAddable) {
-        dispatch(setShapes(customizedCurrentShape ?? currentShape));
+        dispatch(setShapes(customizedCurrentShape ?? { ...currentShape, isDrawing: false }));
 
         if (!isToolLocked) {
           dispatch(
@@ -97,7 +97,7 @@ const useStageHandler = ({
         }
       }
 
-      insertNewShape(customizedCurrentShape ?? currentShape)
+      insertNewShape(customizedCurrentShape ?? { ...currentShape, isDrawing: false })
 
       setIsDrawing(false);
       setCurrentShape(null);
@@ -158,6 +158,7 @@ const useStageHandler = ({
   const handleShapeToolMouseDown = useCallback((transformedPos: Coordinates) => {
     const newShapeToCreate = {
       _id: uuid(),
+      isDrawing: true,
       ...newShapeProperties
     };
 
@@ -262,7 +263,7 @@ const useStageHandler = ({
     }
   }, [dispatch, selectedShapesId])
 
-  // <---------------------------> Mouse event handler <--------------------------->
+  // <---------------------------> Event Handler <--------------------------->
 
   const handleMouseDown = useCallback(
     (e: KonvaEventObject<MouseEvent>): void => {
@@ -294,7 +295,6 @@ const useStageHandler = ({
         if (!isDrawing) {
           setIsDrawing(true)
           handleShapeToolMouseDown(transformedPos)
-
         } else {
           // isDrawing -- Add Points to "POINT ARROW"
           if (activeTool === "point arrow") {
@@ -322,7 +322,6 @@ const useStageHandler = ({
           }
         }
 
-
         if (isSelecting) {
           selectionRectRef?.current?.visible(false);
           setIsSelecting(false);
@@ -334,18 +333,25 @@ const useStageHandler = ({
           if (!currentShape) return;
 
           if (activeTool === ToolType.PointArrow) {
-            if ((currentShape as Arrow).points.length < 3 ||
-              !(currentShape as Arrow).isDrawingArrow) {
-              if ((currentShape as Arrow).isDrawingArrow) {
+            handleShapeAttachment()
+
+            const arrow = currentShape as Arrow;
+
+            if (arrow?.isDrawingArrow) {
+              // If user click at the start point drawing arrow.
+              // We assume -- User want to create pointed arrow.
+              // Otherwise -- User want to create arrow.
+              if (arrow?.points.length === 2) {
                 setCurrentShape(
                   (prev) => ({
                     ...prev,
                     isDrawingArrow: false,
                   }) as Arrow
                 );
+              } else {
+                createNewShape()
               }
             }
-            handleShapeAttachment()
           } else {
             createNewShape();
           }
@@ -418,10 +424,11 @@ const useStageHandler = ({
           const points = (currentShape as Arrow)?.points || [];
           const slicedPoints = points?.slice(0, points?.length - 2);
 
-          if (currentShape?.isAddable) {
+          if (currentShape?.isAddable && slicedPoints.length >= 4) {
             const updatedShape = {
               ...currentShape,
               points: slicedPoints,
+              isDrawing: false
             };
 
             // addShape is missing, either define it or import it

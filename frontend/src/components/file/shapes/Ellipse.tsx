@@ -18,6 +18,7 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
 import { getResizeShape } from "@/utils/Helper";
 import ShapeGroup from "./ShapeGroup";
+import { ToolType } from "@/types/tools/tool";
 
 const Ellipse: React.FC<Shape> = ({ ...props }) => {
   const dispatch = useDispatch();
@@ -87,7 +88,7 @@ const Ellipse: React.FC<Shape> = ({ ...props }) => {
   }, [props._id, selectedShapes])
 
   return <>
-    <ShapeGroup trRef={trRef} _id={props._id}>
+    <ShapeGroup trRef={trRef} _id={props._id} type={ToolType.Ellipse}>
       <KonvaEllipse
         id={props._id}
         {...props}

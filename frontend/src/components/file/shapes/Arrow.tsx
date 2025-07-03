@@ -18,6 +18,7 @@ import { checkRefValue } from "../../../utils/AppUtils";
 import { ARROW_CIRCLE_RADIUS } from "../../../lib/constant";
 import { updatePointsAfterTransformation } from "../../../utils/Helper";
 import ShapeGroup from "./ShapeGroup";
+import { ToolType } from "@/types/tools/tool";
 
 const Arrow: React.FC<Shape> = ({ ...props }) => {
   const [isClicked, setIsClicked] = useState<boolean>(false);
@@ -28,7 +29,6 @@ const Arrow: React.FC<Shape> = ({ ...props }) => {
   const circleRefs = useRef<Konva.Circle[]>([])
 
   const shapes = useSelector((state: RootState) => state.app.shapes);
-  const selectedShapes = useSelector((state: RootState) => state.app.selectedShapesId);
   const dispatch = useDispatch();
 
   // Attached Points movement handler.
@@ -142,16 +142,16 @@ const Arrow: React.FC<Shape> = ({ ...props }) => {
   }
 
 
-  useEffect(() => {
-    // Check -- Whether selectedShape is Array or selectedShape is null and isClicked is true 
-    if ((Array.isArray(selectedShapes?._id) || !selectedShapes?._id) && isClicked) {
-      setIsClicked(false);
-    }
-  }, [isClicked, selectedShapes])
-
   return (
-    <>
-      <ShapeGroup _id={props._id} trRef={trRef} groupRef={groupRef} setIsClicked={setIsClicked} >
+    <React.Fragment>
+      <ShapeGroup
+        _id={props._id}
+        trRef={trRef}
+        groupRef={groupRef}
+        type={ToolType.PointArrow}
+        setIsClicked={setIsClicked}
+        isClicked={isClicked}
+      >
         <KonvaArrow ref={arrowRef} {...props} lineCap="round" name={"shape"} />
         {
           isClicked && (props as ArrowConfig).points.map((_, i) => {
@@ -189,7 +189,7 @@ const Arrow: React.FC<Shape> = ({ ...props }) => {
         handleDragMove={handleDragMove}
         handleDragEnd={handleMovementEnd}
       />
-    </>
+    </React.Fragment>
   );
 };
 

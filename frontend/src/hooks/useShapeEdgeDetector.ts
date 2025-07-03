@@ -6,6 +6,7 @@ import { RootState } from "../redux/store";
 import { Proximity } from "../types";
 import { Shape } from "../types/shapes";
 import { detectShapeEdgeProximity } from "@/utils/Helper";
+import Konva from "konva";
 
 interface LastUpdateRef {
   shapeId: string | null;
@@ -43,6 +44,7 @@ const useShapeEdgeDetector = (
       }
 
       const { clientX, clientY } = event;
+
       const result = detectShapeEdgeProximity(
         clientX,
         clientY,

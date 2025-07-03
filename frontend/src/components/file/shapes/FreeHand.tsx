@@ -4,6 +4,7 @@ import { Line } from "react-konva";
 import { Shape } from "../../../types/shapes";
 import ShapeGroup from "./ShapeGroup";
 import Transformer from "../canvas/Transformer";
+import { ToolType } from "@/types/tools/tool";
 
 const FreeHand: React.FC<Shape> = ({ ...props }) => {
   const trRef = useRef<Konva.Transformer>(null);
@@ -15,7 +16,7 @@ const FreeHand: React.FC<Shape> = ({ ...props }) => {
 
   return (
     <React.Fragment>
-      <ShapeGroup trRef={trRef} _id={props._id}>
+      <ShapeGroup trRef={trRef} _id={props._id} type={ToolType.FreeHand}>
         <Line
           id={props._id}
           ref={lineRef}

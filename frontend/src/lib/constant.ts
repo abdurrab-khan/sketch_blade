@@ -1,7 +1,7 @@
 import { ToolType } from "../types/tools/tool";
 
 export const MAX_ARROW_LIMIT = 15;
-export const ARROW_CIRCLE_RADIUS = 5;
+export const ARROW_CIRCLE_RADIUS = 4;
 
 export const ToolBarArr = [
   "text",
