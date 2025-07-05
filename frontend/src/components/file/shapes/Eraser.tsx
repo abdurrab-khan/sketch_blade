@@ -10,6 +10,7 @@ import {
 import useMouseValue from "../../../hooks/useMouseValue";
 import useShapeEdgeDetector from "../../../hooks/useShapeEdgeDetector";
 import { getDeletedShapeProps } from "../../../utils/ShapeUtils";
+import { deleteShapesAPI } from "@/services/shape.api";
 
 type MouseValue = {
   stageRef: React.RefObject<Konva.Stage>;
@@ -77,6 +78,7 @@ const Eraser: React.FC<MouseValue> = ({ stageRef }) => {
         deletedShapeProps
       ));
 
+      deleteShapesAPI(selectedIds._id)
       setIsPressed(false);
     };
 
@@ -88,7 +90,6 @@ const Eraser: React.FC<MouseValue> = ({ stageRef }) => {
       document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [stageRef, isPressed, selectedIds, dispatch, shapes]);
-
 
   return (
     <Rect

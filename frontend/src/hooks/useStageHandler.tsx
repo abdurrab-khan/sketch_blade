@@ -28,7 +28,7 @@ import { getDeletedShapeProps, getUpdatedPropsToAddArrow, recalculatesShapeDimen
 import { getTransformedPos } from "@/utils/Helper";
 
 import { v4 as uuid } from "uuid"
-import { insertNewShape } from "@/services/shape.api";
+import { deleteShapesAPI, insertNewShape } from "@/services/shape.api";
 
 interface StageHandlerProps {
   currentShape: Shape | null;
@@ -467,9 +467,13 @@ const useStageHandler = ({
 
       // Delete -- From the local state 
       const deletedShapeProps = getDeletedShapeProps(ids, shapes);
+
       dispatch(deleteShapes(
         deletedShapeProps
       ));
+
+
+      deleteShapesAPI(ids)
 
       tr?.nodes([]);
       dispatch(handleSelectedIds(null));

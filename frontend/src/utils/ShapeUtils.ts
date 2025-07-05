@@ -42,12 +42,12 @@ export interface DeletedShapeProps {
  * Utility function to get the shape properties based on the current selector and tool bar properties.
  * @param currentSelector {ToolType}
  * @param key {keyof ToolBarProperties}[]
- * @param toolBarProperties {ToolBarProperties}
+ * @param toolBarProperties {Partial<ToolBarProperties>}
  */
 export function getShapeProperties(
   currentSelector: DrawingToolTypeLiteral,
   key: (keyof ToolBarProperties)[],
-  toolBarProperties: ToolBarProperties,
+  toolBarProperties: Partial<ToolBarProperties>,
 ) {
   if (key.length <= 0 || !Array.isArray(key)) return {};
 

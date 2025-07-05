@@ -243,6 +243,8 @@ export function detectShapeEdgeProximity(
             : "END";
 
         proximityProperties.arrowProps = {
+          x: mouseX,
+          y: mouseY,
           arrowPosition: position,
         };
       }

@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import { RootState } from "../redux/store.ts";
 import { ToolBarArr } from "../lib/constant.ts";
 import { Shape } from "../types/shapes/shape-union.ts";
-import { ToolBarProperties } from "../types/tools/tool.ts";
+import {
+  DrawingToolTypeLiteral,
+  ToolBarProperties,
+} from "../types/tools/tool.ts";
 import { getShapeProperties } from "../utils/ShapeUtils.ts";
 
 const useShapeProperties = (): Shape | null => {
@@ -19,7 +22,7 @@ const useShapeProperties = (): Shape | null => {
 
     if (ToolBarArr.includes(activeTool)) {
       const allProperties = getShapeProperties(
-        activeTool,
+        activeTool as DrawingToolTypeLiteral,
         Object.keys(properties) as (keyof ToolBarProperties)[],
         properties,
       );

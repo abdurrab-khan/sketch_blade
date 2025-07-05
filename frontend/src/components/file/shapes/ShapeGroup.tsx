@@ -35,20 +35,21 @@ export default function ShapeGroup({ _id, groupRef, type, trRef, children, ...pr
 
             const isSelected = selectedShapes?._id === _id;
             if (!isSelected) {
+                // Extract transformer for trRef
+                const tr = trRef?.current;
+
+                if (tr) {
+                    tr.nodes([e.target])
+                };
+
+                // Add id into selectedIds and also insert properties
                 dispatch(handleSelectedIds({ _id: _id }))
                 dispatch(changeToolBarProperties([e.target?.attrs]));
 
                 // Check -- In the props is we have is  setIsClicked means it is for arrow
                 if (e.target.attrs.type === "point arrow") {
                     props.setIsClicked(true);
-                } else {
-                    // Extract transformer for trRef
-                    const tr = trRef?.current;
-
-                    if (tr) {
-                        tr.nodes([e.target])
-                    };
-                };
+                }
             }
         }
 
@@ -67,6 +68,13 @@ export default function ShapeGroup({ _id, groupRef, type, trRef, children, ...pr
             // Check -- When selectedShape?._id is array if yes -- clicked shape into the transformer
             if (Array.isArray(selectedShapes?._id)) {
 
+                // Extract transformer for trRef
+                const tr = trRef?.current;
+
+                if (tr) {
+                    tr.nodes([e.target])
+                };
+
                 // Add id into selectedIds and also insert properties
                 dispatch(handleSelectedIds({ _id: _id }))
                 dispatch(changeToolBarProperties([e.target?.attrs]));
@@ -74,14 +82,7 @@ export default function ShapeGroup({ _id, groupRef, type, trRef, children, ...pr
                 // Check -- In the props is we have is  setIsClicked means it is for arrow
                 if (e.target.attrs.type === "point arrow") {
                     props.setIsClicked(true);
-                } else {
-                    // Extract transformer for trRef
-                    const tr = trRef?.current;
-
-                    if (tr) {
-                        tr.nodes([e.target])
-                    };
-                };
+                }
             }
         }
     }
@@ -89,19 +90,17 @@ export default function ShapeGroup({ _id, groupRef, type, trRef, children, ...pr
     useEffect(() => {
         if (selectedShapes?._id === _id) return;
 
-        // Set isClicked to false if selectedShapesId is not equal to current id and type is PointArrow
+        const tr = trRef?.current;
+
+        if (tr && tr.nodes().length > 0) {
+            tr.nodes([])
+        };
+
         if (type === ToolType.PointArrow) {
             if (props.isClicked) {
                 props.setIsClicked(false);
             }
-        } else {
-            // Clean the transformer when current shape is not equal to selectedShapes
-            const tr = trRef?.current;
-
-            if (tr && tr.nodes().length > 0) {
-                tr.nodes([])
-            };
-        };
+        }
     }, [selectedShapes, trRef, _id, props, type])
 
     return (

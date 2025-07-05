@@ -11,10 +11,18 @@ import {
   StrokeStyle as IStrokeStyle,
   StrokeWidth as IStrokeWidth,
 } from "../../../types/shapes/common.ts";
+import { updateShapes } from "@/services/shape.api.ts";
+import { Shape } from "@/types/shapes/shape-union.ts";
+import { ToolBarProperties } from "@/types/tools/tool.ts";
 
 interface ContainerProps {
   children: React.ReactNode;
   label: string;
+}
+
+interface MainToggleGroup {
+  children: React.ReactNode,
+  key: keyof ToolBarProperties
 }
 
 // Containers for the different tool properties
@@ -37,30 +45,62 @@ const IconContainer = ({ icon, value }: { icon: string; value: string }) => {
   return <img src={icon} className={"size-full object-cover"} alt={value} />;
 };
 
-// Define function that handles value changes and dispatches the new value to the Redux store
-const valueChangerHandler = (
-  dispatch: AppDispatch,
-  dispatchValue: Record<string, string | number>,
-) => {
-  const value = Object.values(dispatchValue)[0];
 
-  if (!value) return;
+const MainToggleGroup: React.FC<MainToggleGroup> = ({ children, key }) => {
+  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
+  const selector = useSelector(
+    (state: RootState) => state.app.toolBarProperties,
+  );
+  const dispatch = useDispatch();
 
-  const key = Object.keys(dispatchValue)[0];
-  if (typeof value === "number") {
-    const isOpacity = key === "opacity";
-    const min = isOpacity ? 0.15 : 10;
-    const max = isOpacity ? 1 : 100;
+  const handleValueChange = (v: string) => {
+    if (!v) return;
 
-    if (value <= min || value > max) return;
+    if (typeof v === "number") {
+
+    }
   }
 
-  // API call to update the value in the backend
+  return (
+    <ToggleGroup
+      type="single"
+      className="gap-2"
+      value={((selector ?? {})[key] ?? "") as string}
+      onValueChange={handleValueChange}
+    >
+      {
+        children
+      }
+    </ToggleGroup>
+  )
+}
+
+// Define function that handles value changes and dispatches the new value to the Redux store
+const valueChangerHandler = async (
+  dispatch: AppDispatch,
+  dispatchValue: Partial<Shape>,
+  selectedShapeId: string | string[] | undefined
+) => {
+  const key = Object.keys(dispatchValue)[0];
+  const value = dispatchValue[key as keyof Shape];
+
+  if (!value) return;
+  if (typeof value === "number") {
+
+  }
+
+  // API calling to update the value in the backend
+  if (selectedShapeId) {
+    const ids = Array.isArray(selectedShapeId) ? selectedShapeId : [selectedShapeId];
+    await updateShapes(ids, dispatchValue);
+  }
+
   dispatch(changeToolBarPropertiesValue(dispatchValue));
 };
 
 // Define the components for each tool property
 const Fill = () => {
+  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
   const selector = useSelector(
     (state: RootState) => state.app.toolBarProperties,
   );
@@ -69,7 +109,9 @@ const Fill = () => {
   const handleValueChange = (color: string) => {
     valueChangerHandler(dispatch, {
       fill: color,
-    });
+    },
+      selectedIds
+    );
   };
 
   return (
@@ -96,6 +138,7 @@ const Fill = () => {
 };
 
 const Stroke = () => {
+  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
   const selector = useSelector(
     (state: RootState) => state.app.toolBarProperties,
   );
@@ -104,7 +147,9 @@ const Stroke = () => {
   const handleValueChange = (color: string) => {
     valueChangerHandler(dispatch, {
       stroke: color,
-    });
+    },
+      selectedIds
+    );
   };
 
   return (
@@ -131,6 +176,7 @@ const Stroke = () => {
 };
 
 const FillStyle = () => {
+  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
   const selector = useSelector(
     (state: RootState) => state.app.toolBarProperties,
   );
@@ -138,8 +184,10 @@ const FillStyle = () => {
 
   const handleValueChange = (style: IFillStyle) => {
     valueChangerHandler(dispatch, {
-      fillStyle: style,
-    });
+      fill: style,
+    },
+      selectedIds
+    );
   };
 
   return (
@@ -165,6 +213,7 @@ const FillStyle = () => {
 };
 
 const StrokeStyle = () => {
+  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
   const selector = useSelector(
     (state: RootState) => state.app.toolBarProperties,
   );
@@ -173,7 +222,9 @@ const StrokeStyle = () => {
   const handleValueChange = (style: IStrokeStyle) => {
     valueChangerHandler(dispatch, {
       strokeStyle: style,
-    });
+    },
+      selectedIds
+    );
   };
 
   return (
@@ -199,6 +250,7 @@ const StrokeStyle = () => {
 };
 
 const StrokeWidth = () => {
+  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
   const selector = useSelector(
     (state: RootState) => state.app.toolBarProperties,
   );
@@ -207,7 +259,9 @@ const StrokeWidth = () => {
   const handleValueChange = (width: IStrokeWidth) => {
     valueChangerHandler(dispatch, {
       strokeWidth: width,
-    });
+    },
+      selectedIds
+    );
   };
 
   return (
@@ -233,6 +287,7 @@ const StrokeWidth = () => {
 };
 
 const EdgeStyle = () => {
+  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
   const selector = useSelector(
     (state: RootState) => state.app.toolBarProperties,
   );
@@ -241,7 +296,9 @@ const EdgeStyle = () => {
   const handleValueChange = (style: IEdgeStyle) => {
     valueChangerHandler(dispatch, {
       edgeStyle: style,
-    });
+    },
+      selectedIds
+    );
   };
 
   return (
@@ -249,7 +306,7 @@ const EdgeStyle = () => {
       <ToggleGroup
         type="single"
         className={"gap-2"}
-        value={selector.edgeStyle}
+        value={selector?.edgeStyle}
         onValueChange={handleValueChange}
       >
         {ToolBarActions.edgeRounded.map(({ path, style }, index) => (
@@ -267,6 +324,7 @@ const EdgeStyle = () => {
 };
 
 const Opacity: React.FC = () => {
+  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
   const selector = useSelector(
     (state: RootState) => state.app.toolBarProperties,
   );
@@ -277,7 +335,9 @@ const Opacity: React.FC = () => {
 
     valueChangerHandler(dispatch, {
       opacity: opacityValue,
-    });
+    },
+      selectedIds
+    );
   };
 
   return (
@@ -296,6 +356,8 @@ const Opacity: React.FC = () => {
 };
 
 const EraserRadius: React.FC = () => {
+
+  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
   const selector = useSelector(
     (state: RootState) => state.app.toolBarProperties,
   );
@@ -304,7 +366,9 @@ const EraserRadius: React.FC = () => {
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     valueChangerHandler(dispatch, {
       eraserRadius: parseInt(e.target.value, 10),
-    });
+    },
+      selectedIds
+    );
   };
 
   return (
@@ -322,6 +386,7 @@ const EraserRadius: React.FC = () => {
 };
 
 const FontSize: React.FC = () => {
+  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
   const selector = useSelector(
     (state: RootState) => state.app.toolBarProperties,
   );
@@ -330,7 +395,9 @@ const FontSize: React.FC = () => {
   const handleValueChange = (size: IFontSize) => {
     valueChangerHandler(dispatch, {
       fontSize: size,
-    });
+    },
+      selectedIds
+    );
   };
 
   return (

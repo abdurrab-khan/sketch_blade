@@ -32,7 +32,7 @@ export interface FourCoordinates {
 export interface Proximity {
   shapeId: string | null;
   isNear: boolean;
-  arrowProps: ArrowProps | null;
+  arrowProps: Omit<ArrowProps, "_id"> | null;
 }
 
 export interface ArrowProps {
