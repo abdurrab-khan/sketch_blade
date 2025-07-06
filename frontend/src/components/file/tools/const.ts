@@ -7,101 +7,88 @@ import {
   StrokeStyle,
   StrokeWidth,
 } from "../../../types/shapes";
+import { ToolBarProperties } from "@/types/tools/tool";
 
-interface IToolActionProperties {
-  strokeColors: string[];
-  backgroundColors: string[];
-  fillStyles: {
-    path: string;
-    color: FillStyle;
-  }[];
-  strokeWidth: {
-    path: string;
-    width: StrokeWidth;
-  }[];
-  strokeStyles: {
-    path: string;
-    style: StrokeStyle;
-  }[];
-  edgeRounded: {
-    path: string;
-    style: EdgeStyle;
-  }[];
-  fontSize: {
-    Icon: IconType;
-    size: FontSize;
-  }[];
+export interface IToolBarPropertiesValue {
+  icon: IconType | string;
+  value: FillStyle | StrokeWidth | StrokeStyle | EdgeStyle | FontSize;
 }
+
+export type ToolActionsPropertiesT = {
+  [K in Exclude<keyof ToolBarProperties, "opacity" | "eraserRadius">]:
+    | IToolBarPropertiesValue[]
+    | string[];
+};
 
 const BASE_URL = "/assets/icons/";
 
-const ToolActionsProperties: IToolActionProperties = {
-  strokeColors: ["#BBE1FA", "#3282B8", "#0F8C79", "#F0F0F0", "#FFD700"],
-  backgroundColors: ["#0A1F2C", "#1C3A4B", "#3F4E5B", "#3F5F6B", "#506F7B"],
-  fillStyles: [
+const ToolActionsProperties: ToolActionsPropertiesT = {
+  stroke: ["#BBE1FA", "#3282B8", "#0F8C79", "#F0F0F0", "#FFD700"],
+  fill: ["#0A1F2C", "#1C3A4B", "#3F4E5B", "#3F5F6B", "#506F7B"],
+  fillStyle: [
     {
-      path: BASE_URL + "solid.svg",
-      color: "SOLID",
+      icon: BASE_URL + "solid.svg",
+      value: "SOLID",
     },
     {
-      path: BASE_URL + "hachure.svg",
-      color: "HACHURE",
+      icon: BASE_URL + "hachure.svg",
+      value: "HACHURE",
     },
     {
-      path: BASE_URL + "crosshatch.svg",
-      color: "CROSSHATCH",
+      icon: BASE_URL + "crosshatch.svg",
+      value: "CROSSHATCH",
     },
   ],
   strokeWidth: [
     {
-      path: BASE_URL + "solid-line.svg",
-      width: "THIN",
+      icon: BASE_URL + "solid-line.svg",
+      value: "THIN",
     },
     {
-      path: BASE_URL + "medium-line.svg",
-      width: "MEDIUM",
+      icon: BASE_URL + "medium-line.svg",
+      value: "MEDIUM",
     },
     {
-      path: BASE_URL + "thick-line.svg",
-      width: "THICK",
-    },
-  ],
-  strokeStyles: [
-    {
-      path: BASE_URL + "solid-line.svg",
-      style: "SOLID",
-    },
-    {
-      path: BASE_URL + "dashed-line.svg",
-      style: "DASHED",
-    },
-    {
-      path: BASE_URL + "dotted-line.svg",
-      style: "DOTTED",
+      icon: BASE_URL + "thick-line.svg",
+      value: "THICK",
     },
   ],
-  edgeRounded: [
+  strokeStyle: [
     {
-      path: BASE_URL + "rounded-edge.svg",
-      style: "ROUNDED",
+      icon: BASE_URL + "solid-line.svg",
+      value: "SOLID",
     },
     {
-      path: BASE_URL + "sharp-edge.svg",
-      style: "SHARP",
+      icon: BASE_URL + "dashed-line.svg",
+      value: "DASHED",
+    },
+    {
+      icon: BASE_URL + "dotted-line.svg",
+      value: "DOTTED",
+    },
+  ],
+  edgeStyle: [
+    {
+      icon: BASE_URL + "rounded-edge.svg",
+      value: "ROUNDED",
+    },
+    {
+      icon: BASE_URL + "sharp-edge.svg",
+      value: "SHARP",
     },
   ],
   fontSize: [
     {
-      Icon: TbLetterS,
-      size: "SMALL",
+      icon: TbLetterS,
+      value: "SMALL",
     },
     {
-      Icon: TbLetterM,
-      size: "MEDIUM",
+      icon: TbLetterM,
+      value: "MEDIUM",
     },
     {
-      Icon: TbLetterL,
-      size: "LARGE",
+      icon: TbLetterL,
+      value: "LARGE",
     },
   ],
 };

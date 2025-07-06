@@ -1,19 +1,12 @@
-import React from "react";
-import ToolBarActions from "./const.ts";
+import React, { useCallback, useMemo } from "react";
+import ToolActionsProperties, { IToolBarPropertiesValue } from "./const.ts";
 import { ToggleGroup, ToggleGroupItem } from "../../ui/toggle-group.tsx";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../../redux/store.ts";
-import { changeToolBarPropertiesValue } from "../../../redux/slices/appSlice.ts";
-import {
-  EdgeStyle as IEdgeStyle,
-  FillStyle as IFillStyle,
-  FontSize as IFontSize,
-  StrokeStyle as IStrokeStyle,
-  StrokeWidth as IStrokeWidth,
-} from "../../../types/shapes/common.ts";
-import { updateShapes } from "@/services/shape.api.ts";
-import { Shape } from "@/types/shapes/shape-union.ts";
+import { RootState } from "../../../redux/store.ts";
+import { changeToolBarPropertiesValue, updateExistingShapes } from "../../../redux/slices/appSlice.ts";
+import { debounce } from "lodash"
 import { ToolBarProperties } from "@/types/tools/tool.ts";
+import { getShapeProperties } from "@/utils/ShapeUtils.ts";
 
 interface ContainerProps {
   children: React.ReactNode;
@@ -21,14 +14,8 @@ interface ContainerProps {
 }
 
 interface MainToggleGroup {
-  children: React.ReactNode,
-  key: keyof ToolBarProperties
+  toolKey: keyof ToolBarProperties
 }
-
-// Containers for the different tool properties
-const ColorContainer = ({ color }: { color: string }) => {
-  return <div className={"size-full"} style={{ backgroundColor: color }} />;
-};
 
 const Container: React.FC<ContainerProps> = ({ children, label }) => {
   return (
@@ -41,397 +28,156 @@ const Container: React.FC<ContainerProps> = ({ children, label }) => {
   );
 };
 
-const IconContainer = ({ icon, value }: { icon: string; value: string }) => {
-  return <img src={icon} className={"size-full object-cover"} alt={value} />;
-};
-
-
-const MainToggleGroup: React.FC<MainToggleGroup> = ({ children, key }) => {
-  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
-  const selector = useSelector(
-    (state: RootState) => state.app.toolBarProperties,
-  );
-  const dispatch = useDispatch();
-
-  const handleValueChange = (v: string) => {
-    if (!v) return;
-
-    if (typeof v === "number") {
-
-    }
-  }
+const ToolItem = ({ propsValue }: { propsValue: IToolBarPropertiesValue | string }) => {
+  const value = typeof propsValue === "string" ? propsValue : propsValue.value
 
   return (
-    <ToggleGroup
-      type="single"
-      className="gap-2"
-      value={((selector ?? {})[key] ?? "") as string}
-      onValueChange={handleValueChange}
+    <ToggleGroupItem
+      value={value}
+      aria-label={`Toggle ${value}`}
+      className={"p-0"}
     >
       {
-        children
+        typeof propsValue === "string" ? (
+          <div className={"size-full"} style={{ backgroundColor: propsValue }} />
+        ) : typeof propsValue.icon === "string" ? (
+          <img src={propsValue.icon} className={"size-full object-cover"} alt={value} />
+        ) : (
+          <propsValue.icon className={"size-full object-cover"} />
+        )
       }
-    </ToggleGroup>
+    </ToggleGroupItem>
   )
 }
 
-// Define function that handles value changes and dispatches the new value to the Redux store
-const valueChangerHandler = async (
-  dispatch: AppDispatch,
-  dispatchValue: Partial<Shape>,
-  selectedShapeId: string | string[] | undefined
-) => {
-  const key = Object.keys(dispatchValue)[0];
-  const value = dispatchValue[key as keyof Shape];
+const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
+  const selector = useSelector(
+    (state: RootState) => state.app.toolBarProperties,
+  );
+  const selectedShapeId = useSelector((state: RootState) => state.app.selectedShapesId?._id);
 
-  if (!value) return;
-  if (typeof value === "number") {
+  const dispatch = useDispatch();
 
+  // Handler Function --
+  const updateShapeProperties = useCallback((updatedValue: Partial<ToolBarProperties>) => {
+    // Check --  The give property exits on the shape or not.
+    const updatedProperties = getShapeProperties(
+      [toolKey],
+      updatedValue,
+    );
+
+    return {
+      customProperties: {
+        [toolKey]: updatedValue
+      },
+      ...updatedProperties
+    }
+  }, [toolKey]);
+
+  // Handler Function --
+  const updatePropertiesAPI = useCallback((props) => {
+    return debounce(async () => {
+      console.log("Updated Props")
+    }, 100);
+  }, [])
+
+  // Handler function -- 
+  const handleValueChange = async (v: string | number) => {
+    if (!v) return;
+
+    if (toolKey === "opacity" || toolKey === "eraserRadius") {
+      const isOpacity = toolKey === "opacity";
+
+      if (isOpacity) {
+        v = Number.parseFloat(v as string);
+      } else {
+        v = parseInt(v as string)
+      }
+
+      const min = isOpacity ? 0.15 : 10;
+      const max = isOpacity ? 1 : 100;
+
+      if (v as number <= min || v as number > max) return;
+    }
+
+    // Update the "ToolBarProperties" value 
+    dispatch(changeToolBarPropertiesValue({ [toolKey]: v }));
+
+    if (selectedShapeId) {
+      if (Array.isArray(selectedShapeId) && selectedShapeId?.length === 0) return;
+
+      const ids = Array.isArray(selectedShapeId) ? selectedShapeId : [selectedShapeId];
+      const generateUpdatedProps = ids.map((i) => {
+        const updatedValue = updateShapeProperties({ [toolKey]: v });
+
+        return {
+          shapeId: i,
+          shapeValue: updatedValue
+        }
+      })
+
+      // Calling API to update shape properties
+      await updatePropertiesAPI(generateUpdatedProps);
+      dispatch(updateExistingShapes(generateUpdatedProps));
+    }
   }
 
-  // API calling to update the value in the backend
-  if (selectedShapeId) {
-    const ids = Array.isArray(selectedShapeId) ? selectedShapeId : [selectedShapeId];
-    await updateShapes(ids, dispatchValue);
-  }
-
-  dispatch(changeToolBarPropertiesValue(dispatchValue));
-};
-
-// Define the components for each tool property
-const Fill = () => {
-  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
-  const selector = useSelector(
-    (state: RootState) => state.app.toolBarProperties,
-  );
-  const dispatch = useDispatch();
-
-  const handleValueChange = (color: string) => {
-    valueChangerHandler(dispatch, {
-      fill: color,
-    },
-      selectedIds
-    );
-  };
+  const label = useMemo(() => {
+    switch (toolKey) {
+      case "fill":
+        return "Background";
+      case "fillStyle":
+        return "Fill";
+      case "stroke":
+        return "Stroke";
+      case "strokeStyle":
+        return "Stroke Style";
+      case "strokeWidth":
+        return "Stroke Width";
+      case "edgeStyle":
+        return "Edge Style";
+      case "opacity":
+        return "Opacity";
+      case "eraserRadius":
+        return "Radius";
+      case "fontSize":
+        return "Font Size"
+    }
+  }, [toolKey])
 
   return (
-    <Container label={"Background"}>
-      <ToggleGroup
-        type="single"
-        className={"gap-2"}
-        value={selector?.fill}
-        onValueChange={handleValueChange}
-      >
-        {ToolBarActions.backgroundColors.map((color, index) => (
-          <ToggleGroupItem
-            key={index}
-            value={color}
-            aria-label={`Toggle ${color}`}
-            className={"p-0"}
+    <Container label={label}>
+      {
+        toolKey === "opacity" || toolKey === "eraserRadius" ? (
+          <input
+            type="range"
+            className={"w-full"}
+            value={((selector ?? {})[toolKey] ?? 0)}
+            min={toolKey === "eraserRadius" ? 10 : 0.15}
+            max={toolKey === "eraserRadius" ? 100 : 1}
+            step={toolKey === "eraserRadius" ? 1 : 0.01}
+            onChange={(e) => handleValueChange(e.target.value)}
+          />
+        ) : (
+          <ToggleGroup
+            type="single"
+            className="gap-2"
+            value={((selector ?? {})[toolKey] ?? "") as string}
+            onValueChange={handleValueChange}
           >
-            <ColorContainer color={color} />
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
+            {
+              ToolActionsProperties[toolKey].map((value, index) => {
+                return (
+                  <ToolItem key={index} propsValue={value} />
+                )
+              })
+            }
+          </ToggleGroup>
+        )
+      }
+
     </Container>
-  );
-};
+  )
+}
 
-const Stroke = () => {
-  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
-  const selector = useSelector(
-    (state: RootState) => state.app.toolBarProperties,
-  );
-  const dispatch = useDispatch();
-
-  const handleValueChange = (color: string) => {
-    valueChangerHandler(dispatch, {
-      stroke: color,
-    },
-      selectedIds
-    );
-  };
-
-  return (
-    <Container label={"Stroke"}>
-      <ToggleGroup
-        type="single"
-        className={"gap-2"}
-        value={selector?.stroke || ""}
-        onValueChange={handleValueChange}
-      >
-        {ToolBarActions.strokeColors.map((color, index) => (
-          <ToggleGroupItem
-            key={index}
-            value={color}
-            aria-label={`Toggle ${color}`}
-            className={"p-0"}
-          >
-            <ColorContainer color={color} />
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
-    </Container>
-  );
-};
-
-const FillStyle = () => {
-  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
-  const selector = useSelector(
-    (state: RootState) => state.app.toolBarProperties,
-  );
-  const dispatch = useDispatch();
-
-  const handleValueChange = (style: IFillStyle) => {
-    valueChangerHandler(dispatch, {
-      fill: style,
-    },
-      selectedIds
-    );
-  };
-
-  return (
-    <Container label={"Fill"}>
-      <ToggleGroup
-        type="single"
-        className={"gap-2"}
-        value={selector?.fillStyle || ""}
-        onValueChange={handleValueChange}
-      >
-        {ToolBarActions.fillStyles.map(({ path, color }, index) => (
-          <ToggleGroupItem
-            key={index}
-            value={color}
-            aria-label={`Toggle ${color}`}
-          >
-            <IconContainer icon={path} value={color} />
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
-    </Container>
-  );
-};
-
-const StrokeStyle = () => {
-  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
-  const selector = useSelector(
-    (state: RootState) => state.app.toolBarProperties,
-  );
-  const dispatch = useDispatch();
-
-  const handleValueChange = (style: IStrokeStyle) => {
-    valueChangerHandler(dispatch, {
-      strokeStyle: style,
-    },
-      selectedIds
-    );
-  };
-
-  return (
-    <Container label={"Stroke style"}>
-      <ToggleGroup
-        type="single"
-        className={"gap-2"}
-        value={selector?.strokeStyle || ""}
-        onValueChange={handleValueChange}
-      >
-        {ToolBarActions.strokeStyles.map(({ style, path }, index) => (
-          <ToggleGroupItem
-            key={index}
-            value={style}
-            aria-label={`Toggle ${style}`}
-          >
-            <IconContainer icon={path} value={style} />
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
-    </Container>
-  );
-};
-
-const StrokeWidth = () => {
-  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
-  const selector = useSelector(
-    (state: RootState) => state.app.toolBarProperties,
-  );
-  const dispatch = useDispatch();
-
-  const handleValueChange = (width: IStrokeWidth) => {
-    valueChangerHandler(dispatch, {
-      strokeWidth: width,
-    },
-      selectedIds
-    );
-  };
-
-  return (
-    <Container label={"Stroke width"}>
-      <ToggleGroup
-        type="single"
-        className={"gap-2"}
-        value={selector?.strokeWidth || ""}
-        onValueChange={handleValueChange}
-      >
-        {ToolBarActions.strokeWidth.map(({ width, path }, index) => (
-          <ToggleGroupItem
-            key={index}
-            value={width}
-            aria-label={`Toggle ${width}`}
-          >
-            <IconContainer icon={path} value={width} />
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
-    </Container>
-  );
-};
-
-const EdgeStyle = () => {
-  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
-  const selector = useSelector(
-    (state: RootState) => state.app.toolBarProperties,
-  );
-  const dispatch = useDispatch();
-
-  const handleValueChange = (style: IEdgeStyle) => {
-    valueChangerHandler(dispatch, {
-      edgeStyle: style,
-    },
-      selectedIds
-    );
-  };
-
-  return (
-    <Container label={"Edge Style"}>
-      <ToggleGroup
-        type="single"
-        className={"gap-2"}
-        value={selector?.edgeStyle}
-        onValueChange={handleValueChange}
-      >
-        {ToolBarActions.edgeRounded.map(({ path, style }, index) => (
-          <ToggleGroupItem
-            key={index}
-            value={style}
-            aria-label={`Toggle ${style}`}
-          >
-            <IconContainer icon={path} value={style} />
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
-    </Container>
-  );
-};
-
-const Opacity: React.FC = () => {
-  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
-  const selector = useSelector(
-    (state: RootState) => state.app.toolBarProperties,
-  );
-  const dispatch = useDispatch();
-
-  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const opacityValue = Number.parseFloat(e.target.value);
-
-    valueChangerHandler(dispatch, {
-      opacity: opacityValue,
-    },
-      selectedIds
-    );
-  };
-
-  return (
-    <Container label="Opacity">
-      <input
-        type="range"
-        min="0.15"
-        max="1"
-        step="0.01"
-        value={selector?.opacity || 0}
-        onChange={handleValueChange}
-        className={"w-full"}
-      />
-    </Container>
-  );
-};
-
-const EraserRadius: React.FC = () => {
-
-  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
-  const selector = useSelector(
-    (state: RootState) => state.app.toolBarProperties,
-  );
-  const dispatch = useDispatch();
-
-  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    valueChangerHandler(dispatch, {
-      eraserRadius: parseInt(e.target.value, 10),
-    },
-      selectedIds
-    );
-  };
-
-  return (
-    <Container label={"Radius"}>
-      <input
-        type="range"
-        min="10"
-        max="100"
-        value={selector?.eraserRadius}
-        onChange={handleValueChange}
-        className={"w-full"}
-      />
-    </Container>
-  );
-};
-
-const FontSize: React.FC = () => {
-  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId?._id)
-  const selector = useSelector(
-    (state: RootState) => state.app.toolBarProperties,
-  );
-  const dispatch = useDispatch();
-
-  const handleValueChange = (size: IFontSize) => {
-    valueChangerHandler(dispatch, {
-      fontSize: size,
-    },
-      selectedIds
-    );
-  };
-
-  return (
-    <Container label={"Font Size"}>
-      <ToggleGroup
-        type="single"
-        className={"gap-2"}
-        value={selector?.fontSize || ""}
-        onValueChange={handleValueChange}
-      >
-        {ToolBarActions.fontSize.map(({ Icon, size }) => {
-          return (
-            <ToggleGroupItem
-              key={size}
-              value={size}
-              aria-label={`Toggle ${size}`}
-            >
-              <Icon className="size-full object-cover" />
-            </ToggleGroupItem>
-          );
-        })}
-      </ToggleGroup>
-    </Container>
-  );
-};
-
-export {
-  Fill,
-  Stroke,
-  FillStyle,
-  StrokeStyle,
-  StrokeWidth,
-  EdgeStyle,
-  Opacity,
-  EraserRadius,
-  FontSize,
-};
+export default AllActions;

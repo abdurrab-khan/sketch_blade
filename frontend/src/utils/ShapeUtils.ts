@@ -7,11 +7,7 @@ import {
   Ellipse,
   Shape,
 } from "../types/shapes";
-import {
-  DrawingToolTypeLiteral,
-  ToolBarProperties,
-  ToolType,
-} from "../types/tools/tool";
+import { ToolBarProperties, ToolType } from "../types/tools/tool";
 import {
   ArrowSupportedShapes as ShapesThatSupportArrow,
   MAX_ARROW_LIMIT,
@@ -40,12 +36,10 @@ export interface DeletedShapeProps {
 // <----------------------------------> SHAPE UTILS <------------------------------------------>
 /**
  * Utility function to get the shape properties based on the current selector and tool bar properties.
- * @param currentSelector {ToolType}
  * @param key {keyof ToolBarProperties}[]
  * @param toolBarProperties {Partial<ToolBarProperties>}
  */
 export function getShapeProperties(
-  currentSelector: DrawingToolTypeLiteral,
   key: (keyof ToolBarProperties)[],
   toolBarProperties: Partial<ToolBarProperties>,
 ) {
@@ -57,17 +51,12 @@ export function getShapeProperties(
     switch (key) {
       case "edgeStyle": {
         const property = toolBarProperties.edgeStyle;
-        const key =
-          currentSelector === ToolType.PointArrow ? "tension" : "cornerRadius";
+
         const radiusValue = {
-          [key]:
-            currentSelector === ToolType.PointArrow
-              ? property === "SHARP"
-                ? 0
-                : 0.15
-              : property === "SHARP"
-                ? 0
-                : 32,
+          customEdgeRadius: {
+            tension: property === "SHARP" ? 0 : 0.15,
+            cornerRadius: property === "SHARP" ? 0 : 32,
+          },
         };
 
         properties = {
@@ -137,12 +126,19 @@ export function getUpdatedProps(
     }
   }
 
-  if (activeTool !== "cursor") {
+  if (activeTool !== ToolType.Cursor) {
     shape["draggable"] = false;
   } else {
     shape["draggable"] = true;
   }
 
+  if (activeTool === ToolType.PointArrow) {
+    shape["tension"] = shape["customEdgeRadius"]["tension"];
+  } else {
+    shape["cornerRadius"] = shape["customEdgeRadius"]["cornerRadius"];
+  }
+
+  delete (shape as any)["customEdgeRadius"];
   return shape;
 }
 

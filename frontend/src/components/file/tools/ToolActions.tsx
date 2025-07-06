@@ -1,18 +1,9 @@
 import { useSelector } from "react-redux";
-import {
-  Fill,
-  Stroke,
-  FillStyle,
-  StrokeStyle,
-  StrokeWidth,
-  EdgeStyle,
-  FontSize,
-  EraserRadius,
-  Opacity,
-} from "./AllActions";
+
 import { RootState } from "../../../redux/store";
 import Container from "./Container";
 import { ToolBarProperties } from "../../../types/tools/tool";
+import AllActions from "./AllActions";
 
 const ToolActions = () => {
   const toolBarProperties = useSelector(
@@ -21,29 +12,23 @@ const ToolActions = () => {
 
   if (!toolBarProperties) return <></>;
 
-  const propertiesElement = {
-    fill: <Fill />,
-    stroke: <Stroke />,
-    fillStyle: <FillStyle />,
-    strokeStyle: <StrokeStyle />,
-    strokeWidth: <StrokeWidth />,
-    edgeStyle: <EdgeStyle />,
-    fontSize: <FontSize />,
-    eraserRadius: <EraserRadius />,
-    opacity: <Opacity />,
-  };
+  const propertiesElement: (keyof ToolBarProperties)[] = [
+    "fill",
+    "stroke",
+    "fillStyle",
+    "strokeStyle",
+    "strokeWidth",
+    "edgeStyle",
+    "fontSize",
+    "eraserRadius",
+    "opacity",
+  ];
 
   return (
     <Container>
-      {Object.keys(propertiesElement).map((key, index) =>
+      {propertiesElement.map((key, index) =>
         toolBarProperties[key as keyof ToolBarProperties] ? (
-          <span key={index}>
-            {
-              propertiesElement[
-                key as keyof typeof propertiesElement
-              ] as React.ReactNode
-            }
-          </span>
+          <AllActions key={index} toolKey={key} />
         ) : null,
       )}
     </Container>

@@ -1,10 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 // Utils
-import {
-  DeletedShapeProps,
-  getShapeProperties,
-} from "../../utils/ShapeUtils.ts";
+import { DeletedShapeProps } from "../../utils/ShapeUtils.ts";
 import { getCombineShapeProps } from "../../utils/Tool.ts";
 
 // Common
@@ -29,6 +26,11 @@ type AppState = {
   selectedShapesId: SelectedShapesId | null;
   selectedShapeToAddArrow: ArrowProps | null;
 };
+
+interface UpdateExistingShapesProps {
+  shapeId: string;
+  shapeValue: Partial<Shape>;
+}
 
 const initialState: AppState = {
   clerkId: null,
@@ -72,59 +74,6 @@ export const appSlice = createSlice({
     changeToolBarPropertiesValue: (state, action) => {
       const payload = action.payload;
       if (!payload) return;
-
-      // Update Shape Properties Handler Function
-      const updateShapeProperties = (shapeIndex: number) => {
-        // Shape is not present
-        if (shapeIndex === -1) return;
-
-        const propertyKey: keyof ToolBarProperties = Object.keys(
-          action.payload,
-        )[0] as keyof ToolBarProperties;
-        const shape = state.shapes[shapeIndex];
-
-        // Return -- If Shape is not exist
-        if (!shape) return;
-
-        // Check --  The give property exits on the shape or not.
-        if ((toolBarProperties[shape?.type] ?? {})[propertyKey]) {
-          const updatedProperties = getShapeProperties(
-            shape.type,
-            [propertyKey],
-            action.payload,
-          );
-
-          state.shapes[shapeIndex] = {
-            ...state.shapes[shapeIndex],
-            customProperties: {
-              ...state.shapes[shapeIndex].customProperties,
-              ...payload,
-            },
-            ...updatedProperties,
-          };
-        }
-      };
-
-      // Handling if Selected is List of Shapes
-      if (Array.isArray(state.selectedShapesId?._id)) {
-        //  Checking -- Whether SelectedShapesId are present or not.
-        if (state.selectedShapesId?._id?.length === 0) return;
-
-        state.selectedShapesId?._id.forEach((_id) => {
-          const shapeIndex = state.shapes.findIndex(
-            (shape) => shape._id === _id,
-          );
-
-          updateShapeProperties(shapeIndex);
-        });
-      } else {
-        // Handling if Selected is Single Shapes
-        const shapeIndex = state.shapes.findIndex(
-          (shape) => shape._id === state.selectedShapesId?._id,
-        );
-
-        updateShapeProperties(shapeIndex);
-      }
 
       state.toolBarProperties = {
         ...state.toolBarProperties,
@@ -186,10 +135,31 @@ export const appSlice = createSlice({
           );
         }
 
+        debugger;
+
         if (index !== -1) {
+          const updatedShapeValues: Partial<Shape> = {};
+
+          for (const key in update.shapeValue) {
+            debugger;
+            const k = key as keyof Partial<Shape>;
+
+            if (k in state.shapes[index]) {
+              updatedShapeValues[k] =
+                typeof updatedShapeValues[k] === "object" &&
+                updatedShapeValues[k] !== null
+                  ? {
+                      ...(state.shapes[index][k] as any),
+                      ...update.shapeValue[k],
+                    }
+                  : update.shapeValue[k];
+            }
+            debugger;
+          }
+
           state.shapes[index] = {
             ...state.shapes[index],
-            ...update.shapeValue,
+            ...updatedShapeValues,
           } as Shape;
         }
       });

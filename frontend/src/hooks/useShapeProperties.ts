@@ -22,7 +22,6 @@ const useShapeProperties = (): Shape | null => {
 
     if (ToolBarArr.includes(activeTool)) {
       const allProperties = getShapeProperties(
-        activeTool as DrawingToolTypeLiteral,
         Object.keys(properties) as (keyof ToolBarProperties)[],
         properties,
       );
