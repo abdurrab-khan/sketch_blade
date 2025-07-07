@@ -10,7 +10,11 @@ import { SelectionPurpose } from "../../types/shapes/common.ts";
 // Types
 import { Arrow, AttachedShape } from "../../types/shapes/arrow.ts";
 import { ArrowProps, SelectedShapesId } from "../../types/index.ts";
-import { ArrowSupportedShapes, Shape } from "../../types/shapes/shape-union.ts";
+import {
+  ArrowSupportedShapes,
+  Shape,
+  UpdateShape,
+} from "../../types/shapes/shape-union.ts";
 import {
   ActiveTool,
   ToolBarProperties,
@@ -26,11 +30,6 @@ type AppState = {
   selectedShapesId: SelectedShapesId | null;
   selectedShapeToAddArrow: ArrowProps | null;
 };
-
-interface UpdateExistingShapesProps {
-  shapeId: string;
-  shapeValue: Partial<Shape>;
-}
 
 const initialState: AppState = {
   clerkId: null,
@@ -113,11 +112,11 @@ export const appSlice = createSlice({
           | {
               shapeId?: string;
               shapeIndex?: number;
-              shapeValue: Partial<Shape>;
+              shapeValue: Partial<UpdateShape>;
             }
           | {
               shapeId: string;
-              shapeValue: Partial<Shape>;
+              shapeValue: Partial<UpdateShape>;
             }[];
       },
     ) => {
@@ -135,32 +134,40 @@ export const appSlice = createSlice({
           );
         }
 
-        debugger;
-
         if (index !== -1) {
-          const updatedShapeValues: Partial<Shape> = {};
+          const updatedShapeValues: Record<string, unknown> = {};
 
           for (const key in update.shapeValue) {
-            debugger;
-            const k = key as keyof Partial<Shape>;
+            const k = key as keyof Partial<UpdateShape>;
 
-            if (k in state.shapes[index]) {
-              updatedShapeValues[k] =
-                typeof updatedShapeValues[k] === "object" &&
-                updatedShapeValues[k] !== null
-                  ? {
-                      ...(state.shapes[index][k] as any),
-                      ...update.shapeValue[k],
-                    }
-                  : update.shapeValue[k];
+            // Checking Whether given key properties are exists or not in the shape.
+            if (k in state.shapes[index] || k === "customEdgeRadius") {
+              // Check where updatedShapeValue is object, which mean it is customProperties or customEdgeRadius.
+              if (typeof update.shapeValue[k] === "object") {
+                if (k === "customEdgeRadius") {
+                  if (state.shapes[index].type === "point arrow") {
+                    updatedShapeValues["tension"] =
+                      update.shapeValue[k]["tension"];
+                  } else {
+                    updatedShapeValues["cornerRadius"] =
+                      update.shapeValue[k]["cornerRadius"];
+                  }
+                } else if (k === "customProperties") {
+                  updatedShapeValues[k] = {
+                    ...state.shapes[index][k],
+                    ...update.shapeValue[k],
+                  };
+                }
+              } else {
+                updatedShapeValues[k] = update.shapeValue[k];
+              }
             }
-            debugger;
-          }
 
-          state.shapes[index] = {
-            ...state.shapes[index],
-            ...updatedShapeValues,
-          } as Shape;
+            state.shapes[index] = {
+              ...state.shapes[index],
+              ...updatedShapeValues,
+            } as Shape;
+          }
         }
       });
     },

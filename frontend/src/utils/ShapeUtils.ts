@@ -42,6 +42,7 @@ export interface DeletedShapeProps {
 export function getShapeProperties(
   key: (keyof ToolBarProperties)[],
   toolBarProperties: Partial<ToolBarProperties>,
+  activeTool?: ToolType,
 ) {
   if (key.length <= 0 || !Array.isArray(key)) return {};
 
@@ -52,12 +53,21 @@ export function getShapeProperties(
       case "edgeStyle": {
         const property = toolBarProperties.edgeStyle;
 
-        const radiusValue = {
-          customEdgeRadius: {
-            tension: property === "SHARP" ? 0 : 0.15,
-            cornerRadius: property === "SHARP" ? 0 : 32,
-          },
-        };
+        const tension = property === "SHARP" ? 0 : 0.15;
+        const cornerRadius = property === "SHARP" ? 0 : 32;
+
+        const radiusValue = !activeTool
+          ? {
+              customEdgeRadius: {
+                tension,
+                cornerRadius,
+              },
+            }
+          : activeTool === ToolType.PointArrow
+            ? {
+                tension,
+              }
+            : { cornerRadius };
 
         properties = {
           ...properties,
@@ -132,13 +142,6 @@ export function getUpdatedProps(
     shape["draggable"] = true;
   }
 
-  if (activeTool === ToolType.PointArrow) {
-    shape["tension"] = shape["customEdgeRadius"]["tension"];
-  } else {
-    shape["cornerRadius"] = shape["customEdgeRadius"]["cornerRadius"];
-  }
-
-  delete (shape as any)["customEdgeRadius"];
   return shape;
 }
 

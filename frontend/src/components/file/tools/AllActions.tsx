@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import ToolActionsProperties, { IToolBarPropertiesValue } from "./const.ts";
 import { ToggleGroup, ToggleGroupItem } from "../../ui/toggle-group.tsx";
 import { useDispatch, useSelector } from "react-redux";
@@ -59,7 +59,7 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
   const dispatch = useDispatch();
 
   // Handler Function --
-  const updateShapeProperties = useCallback((updatedValue: Partial<ToolBarProperties>) => {
+  const getUpdatedShapeProps = useCallback((updatedValue: Partial<ToolBarProperties>) => {
     // Check --  The give property exits on the shape or not.
     const updatedProperties = getShapeProperties(
       [toolKey],
@@ -67,19 +67,11 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
     );
 
     return {
-      customProperties: {
-        [toolKey]: updatedValue
-      },
+      customProperties: { ...updatedValue },
       ...updatedProperties
     }
   }, [toolKey]);
 
-  // Handler Function --
-  const updatePropertiesAPI = useCallback((props) => {
-    return debounce(async () => {
-      console.log("Updated Props")
-    }, 100);
-  }, [])
 
   // Handler function -- 
   const handleValueChange = async (v: string | number) => {
@@ -100,7 +92,7 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
       if (v as number <= min || v as number > max) return;
     }
 
-    // Update the "ToolBarProperties" value 
+    // Update the "ToolBarProperties" value
     dispatch(changeToolBarPropertiesValue({ [toolKey]: v }));
 
     if (selectedShapeId) {
@@ -108,7 +100,7 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
 
       const ids = Array.isArray(selectedShapeId) ? selectedShapeId : [selectedShapeId];
       const generateUpdatedProps = ids.map((i) => {
-        const updatedValue = updateShapeProperties({ [toolKey]: v });
+        const updatedValue = getUpdatedShapeProps({ [toolKey]: v });
 
         return {
           shapeId: i,
@@ -117,7 +109,7 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
       })
 
       // Calling API to update shape properties
-      await updatePropertiesAPI(generateUpdatedProps);
+      // await debounceHandleChange(generateUpdatedProps);
       dispatch(updateExistingShapes(generateUpdatedProps));
     }
   }
