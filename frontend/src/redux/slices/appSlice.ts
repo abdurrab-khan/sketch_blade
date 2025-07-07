@@ -135,15 +135,17 @@ export const appSlice = createSlice({
         }
 
         if (index !== -1) {
-          const updatedShapeValues: Record<string, unknown> = {};
-
           for (const key in update.shapeValue) {
             const k = key as keyof Partial<UpdateShape>;
+            const updatedShapeValues: Record<string, unknown> = {};
 
             // Checking Whether given key properties are exists or not in the shape.
             if (k in state.shapes[index] || k === "customEdgeRadius") {
               // Check where updatedShapeValue is object, which mean it is customProperties or customEdgeRadius.
-              if (typeof update.shapeValue[k] === "object") {
+              if (
+                update.shapeValue[k] &&
+                (k === "customEdgeRadius" || k === "customProperties")
+              ) {
                 if (k === "customEdgeRadius") {
                   if (state.shapes[index].type === "point arrow") {
                     updatedShapeValues["tension"] =

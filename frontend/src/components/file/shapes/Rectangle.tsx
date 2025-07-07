@@ -73,8 +73,9 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
         <Rect
           id={props._id}
           ref={reactRef}
-          {...props}
+          lineCap="round"
           name={"shape"}
+          {...props}
         />
       </ShapeGroup>
 

@@ -85,6 +85,7 @@ const useStageHandler = ({
 
   const createNewShape = useCallback(
     (customizedCurrentShape?: Shape) => {
+
       if (currentShape?.isAddable) {
         dispatch(setShapes(customizedCurrentShape ?? { ...currentShape, isDrawing: false }));
 
@@ -95,9 +96,11 @@ const useStageHandler = ({
             }),
           );
         }
+
+        insertNewShape(customizedCurrentShape ?? { ...currentShape, isDrawing: false })
       }
 
-      insertNewShape(customizedCurrentShape ?? { ...currentShape, isDrawing: false })
+
 
       setIsDrawing(false);
       setCurrentShape(null);

@@ -97,7 +97,7 @@ export function getShapeProperties(
         } else if (property === "DASHED") {
           dash = [10, 15];
         } else {
-          dash = [0, 10];
+          dash = [3, 10];
         }
         properties = { ...properties, dash };
         break;

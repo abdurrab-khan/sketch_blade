@@ -1,10 +1,9 @@
-import React, { useCallback, useMemo, useRef } from "react";
+import React, { useCallback, useMemo } from "react";
 import ToolActionsProperties, { IToolBarPropertiesValue } from "./const.ts";
 import { ToggleGroup, ToggleGroupItem } from "../../ui/toggle-group.tsx";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store.ts";
 import { changeToolBarPropertiesValue, updateExistingShapes } from "../../../redux/slices/appSlice.ts";
-import { debounce } from "lodash"
 import { ToolBarProperties } from "@/types/tools/tool.ts";
 import { getShapeProperties } from "@/utils/ShapeUtils.ts";
 

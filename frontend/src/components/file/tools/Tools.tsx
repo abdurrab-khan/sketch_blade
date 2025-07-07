@@ -16,7 +16,7 @@ const Tools = () => {
   const handleToolLock = () => {
     dispatch(
       changeActiveTool({
-        isLocked: true,
+        isLocked: !activeTool.isLocked,
       }),
     );
   };
