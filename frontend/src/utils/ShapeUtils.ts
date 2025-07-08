@@ -392,6 +392,7 @@ export function updateAttachedArrowPosition(
   for (const s of shapes) {
     if (s.type !== "point arrow" || arrowProps.some((a) => a._id !== s._id))
       continue;
+
     const arrow = s as Arrow;
 
     const attachedShape = arrow?.attachedShape;
@@ -416,19 +417,22 @@ export function updateAttachedArrowPosition(
       // Create an array of points for the arrow
       const points = [from?.x ?? x, from?.y ?? y, to?.x ?? x, to?.y ?? y];
 
+      // Create a new points array instead of mutating the existing one
+      const newPoints = [...arrow.points]; // Create a copy
+
       // Update start point of the arrow
-      arrow.points[0] = points[0];
-      arrow.points[1] = points[1];
+      newPoints[0] = points[0];
+      newPoints[1] = points[1];
 
       // Update end point of the arrow
-      const lastIndex = arrow.points.length - 2;
-      arrow.points[lastIndex] = points[2];
-      arrow.points[lastIndex + 1] = points[3];
+      const lastIndex = newPoints.length - 2;
+      newPoints[lastIndex] = points[2];
+      newPoints[lastIndex + 1] = points[3];
 
       updatedArrowPosition.push({
         shapeId: arrow._id,
         shapeValue: {
-          points: arrow.points,
+          points: newPoints, // Use the new array
         },
       });
     }

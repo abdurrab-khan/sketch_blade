@@ -91,9 +91,10 @@ const Ellipse: React.FC<Shape> = ({ ...props }) => {
     <ShapeGroup trRef={trRef} _id={props._id} type={ToolType.Ellipse}>
       <KonvaEllipse
         id={props._id}
-        {...props}
         strokeScaleEnabled={false}
         name={"shape"}
+        lineCap="round"
+        {...props}
       />
     </ShapeGroup>
     <Transformer

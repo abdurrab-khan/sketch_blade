@@ -40,47 +40,6 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
 
   const dispatch = useDispatch();
 
-  // Helper functions
-  // const resizeShape = (node: Node<NodeConfig>) => {
-  //   // Handle Resize of Rect or Ellipse
-  //   if (ArrowSupportedShapes.includes(node.attrs.type)) {
-  //     const shapeUpdatedValue = getResizeShape(node);
-  //     if (!shapeUpdatedValue) return;
-
-  //     updatedValue.push({
-  //       shapeId: node.attrs._id,
-  //       shapeValue: shapeUpdatedValue
-  //     })
-  //   } else if (node.attrs.type === "point arrow") {
-  //     // Handle Resize of Arrow
-  //     const arrow = node.attrs as Arrow;
-  //     const newPoints = updatePointsAfterTransformation((node.attrs as ArrowType).points, group);
-
-  //     // Reset group transformation
-  //     group.x(0);
-  //     group.y(0);
-  //     group.scaleX(1);
-  //     group.scaleY(1);
-  //     group.rotation(0);
-  //     group.skewX(0);
-  //     group.skewY(0);
-
-  //     // Checking whether arrow has a attach shape or not.
-  //     const attachedProps = getUpdatedAttachProps(arrow, shapes);
-  //     if (attachedProps) {
-  //       updatedValue.concat(attachedProps);
-  //     }
-
-  //     // Always update arrow points (ensure arrow entry exists)
-  //     updatedValue[0].shapeValue = {
-  //       ...(updatedValue[0].shapeValue ?? {}),
-  //       points: newPoints
-  //     };
-  //   }
-
-  //   dispatch(updateExistingShapes(updatedValue));
-  // };
-
   const dragShape = (attrs: Konva.NodeConfig) => {
     const { x, y, arrowProps = null, } = attrs;
     if (!x || !y) return;

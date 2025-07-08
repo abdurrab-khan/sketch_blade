@@ -40,12 +40,18 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
 
   const handleDragMove = (e: KonvaEventObject<MouseEvent>) => {
     // handle logic when going to beyond canvas x or y position || and attached arrow also.
-    if (!e.currentTarget?.attrs) return;
-    const { x, y, arrowProps } = e.currentTarget.attrs as Konva.RectConfig;
-    if (!x || !y || !arrowProps || arrowProps?.length === 0) return;
+    if (!(e.target instanceof Konva.Transformer)) return;
+
+    const nodes = (e.target as Konva.Transformer).nodes();
+    const { x, y, arrowProps } = nodes[0].attrs;
+
+
+    if (!(arrowProps && arrowProps.length > 0)) return;
+
 
     // Logic to change the position of the arrow based on movement.
     const updatedArrowPosition = updateAttachedArrowPosition(x, y, shapes, arrowProps);
+
     if (updateAttachedArrowPosition.length > 0) {
       dispatch(updateExistingShapes(updatedArrowPosition))
     }
