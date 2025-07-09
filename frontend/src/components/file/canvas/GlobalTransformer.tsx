@@ -47,10 +47,10 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
     // Update the position of ArrowSupportedShape during movements
     if (ArrowSupportedShapes.includes((attrs as Shape).type)) {
       if (!arrowProps?.length) return;
-      const updatedArrowPosition = updateAttachedArrowPosition(x, y, shapes, arrowProps)
+      const updatedArrowPosition = updateAttachedArrowPosition(shapes, arrowProps)
 
 
-      if (updateAttachedArrowPosition.length > 0) {
+      if (updatedArrowPosition.length > 0) {
         dispatch(updateExistingShapes(updatedArrowPosition))
       }
     }

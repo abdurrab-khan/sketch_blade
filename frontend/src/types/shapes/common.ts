@@ -10,7 +10,7 @@ export type FontSize = "SMALL" | "MEDIUM" | "LARGE";
 export type ArrowPosition = "START" | "END";
 export type TextHorizontalAlign = "LEFT" | "CENTER" | "RIGHT";
 export type TextVerticalAlign = "TOP" | "MIDDLE" | "BOTTOM";
-export type ArrowDirection = "LEFT" | "RIGHT" | "TOP" | "BOTTOM";
+export type ArrowDirection = "LEFT" | "RIGHT" | "TOP" | "BOTTOM" | "CENTER";
 export type FontFamily = "NORMAL" | "CODE" | "JO BHI HAI";
 
 export type SelectionPurpose = "FOR_EDITING" | "FOR_DELETING" | "DEFAULT";
@@ -28,7 +28,7 @@ export interface BoundedShapeProperties {
   customProperties: ToolBarProperties;
   text: CommonText | null;
   fillPatternImage: string | null;
-  arrowProps: ArrowProps[] | null;
+  arrowProps: ArrowProps[];
 }
 
 export interface CommonText {

@@ -39,27 +39,40 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
   }
 
   const handleDragMove = (e: KonvaEventObject<MouseEvent>) => {
-    // handle logic when going to beyond canvas x or y position || and attached arrow also.
-    if (!(e.target instanceof Konva.Transformer)) return;
+    if (!(e.currentTarget instanceof Konva.Transformer)) return;
 
-    const nodes = (e.target as Konva.Transformer).nodes();
-    const { x, y, arrowProps } = nodes[0].attrs;
+    const transformer = e.currentTarget;
+    const shapeNode = transformer.nodes()[0];
 
+    if (!shapeNode) return;
 
-    if (!(arrowProps && arrowProps.length > 0)) return;
+    const { arrowProps, id } = shapeNode.attrs;
+    const { x, y } = transformer.attrs;
 
+    if (!arrowProps || arrowProps?.length === 0) return;
+    if (x === undefined || y === undefined) return;
 
-    // Logic to change the position of the arrow based on movement.
-    const updatedArrowPosition = updateAttachedArrowPosition(x, y, shapes, arrowProps);
+    const updatedShapes = shapes.map(shape =>
+      shape._id === id ? { ...shape, x, y } : shape
+    );
 
-    if (updateAttachedArrowPosition.length > 0) {
+    const updatedArrowPosition = updateAttachedArrowPosition(updatedShapes, arrowProps);
+
+    if (updatedArrowPosition.length > 0) {
       dispatch(updateExistingShapes(updatedArrowPosition))
     }
   }
 
   const handleDragEnd = (e: KonvaEventObject<MouseEvent>) => {
-    if (!e.currentTarget?.attrs) return;
-    const { id, x, y } = e.currentTarget.attrs as Konva.RectConfig;
+    if (!(e.currentTarget instanceof Konva.Group)) return;
+
+    const group = e.currentTarget;
+    const shapeNode = group.findOne('.shape');
+
+    if (!shapeNode) return;
+
+    const { id } = shapeNode.attrs;
+    const { x, y } = group.attrs;
 
     dispatch(
       updateExistingShapes(
@@ -75,11 +88,15 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
 
   return (
     <>
-      <ShapeGroup _id={props._id} trRef={trRef} type={ToolType.Rectangle}>
+      <ShapeGroup
+        _id={props._id}
+        trRef={trRef}
+        type={ToolType.Rectangle}
+      >
         <Rect
           id={props._id}
           ref={reactRef}
-          lineCap="round"
+          strokeScaleEnabled={false}
           name={"shape"}
           {...props}
         />

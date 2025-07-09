@@ -26,6 +26,18 @@ interface PropsToAddArrow {
   attachedShape: AttachedShape | null;
 }
 
+interface UpdateArrowPoints {
+  arrowPoints: number[];
+  from?: {
+    x: number;
+    y: number;
+  };
+  to?: {
+    x: number;
+    y: number;
+  };
+}
+
 export interface DeletedShapeProps {
   updatedShapes: {
     [shapeId: string]: ArrowProps[] | AttachedShape | null;
@@ -372,15 +384,11 @@ export function getUpdatedAttachProps(
 /**
  * Utility function to update the position of an attached arrow. Based on the
  * current position of the shape, it will update the arrow position.
- * @param x {number}
- * @param y {number}
  * @param shapes {Shape[]}
  * @param arrowProps {ArrowProps}
  * @returns {shapeId: string, shapeValue: { points: number[] }}[]
  */
 export function updateAttachedArrowPosition(
-  x: number,
-  y: number,
   shapes: Shape[],
   arrowProps: ArrowProps[],
 ): { shapeId: string; shapeValue: { points: number[] } }[] {
@@ -389,15 +397,54 @@ export function updateAttachedArrowPosition(
     shapeValue: { points: number[] };
   }[] = [];
 
-  for (const s of shapes) {
-    if (s.type !== "point arrow" || arrowProps.some((a) => a._id !== s._id))
-      continue;
+  // Update arrow points
+  const updateArrowPoints = ({
+    arrowPoints,
+    from,
+    to,
+  }: UpdateArrowPoints): number[] => {
+    const copyArrowPoints = [...arrowPoints];
 
-    const arrow = s as Arrow;
+    if (from || to) {
+      const secondLast = copyArrowPoints.length - 2;
 
-    const attachedShape = arrow?.attachedShape;
-    if (!attachedShape) continue;
+      if (from && to) {
+        // Update for start point
+        copyArrowPoints[0] = from.x;
+        copyArrowPoints[1] = from.y;
 
+        // Update for end points
+        copyArrowPoints[secondLast] = to.x;
+        copyArrowPoints[secondLast + 1] = to.y;
+      } else {
+        const position = from ? "from" : "to";
+
+        // Index
+        const startIndex = position === "from" ? 0 : secondLast;
+        const endIndex = position === "from" ? 1 : secondLast + 1;
+
+        // Values
+        const values = position === "from" ? from : to;
+
+        if (values?.x !== undefined && values.y !== undefined) {
+          copyArrowPoints[startIndex] = values.x;
+          copyArrowPoints[endIndex] = values.y;
+        }
+      }
+    }
+
+    return copyArrowPoints;
+  };
+
+  // Process each arrow that's attached to the moving shape
+  arrowProps.forEach((arrowProp) => {
+    const arrow = shapes.find(
+      (s) => s._id === arrowProp._id && s.type === "point arrow",
+    ) as Arrow;
+
+    if (!arrow?.attachedShape) return;
+
+    const attachedShape = arrow.attachedShape;
     const sourceShape = shapes.find(
       (s) => s._id === attachedShape.START,
     ) as ArrowSupportedShapes;
@@ -406,37 +453,28 @@ export function updateAttachedArrowPosition(
     ) as ArrowSupportedShapes;
 
     const newPointPosition = findBestConnectionPoints(
-      x,
-      y,
       sourceShape,
       targetShape,
+      arrow.points,
     );
 
     if (newPointPosition) {
       const { from, to } = newPointPosition;
-      // Create an array of points for the arrow
-      const points = [from?.x ?? x, from?.y ?? y, to?.x ?? x, to?.y ?? y];
 
-      // Create a new points array instead of mutating the existing one
-      const newPoints = [...arrow.points]; // Create a copy
-
-      // Update start point of the arrow
-      newPoints[0] = points[0];
-      newPoints[1] = points[1];
-
-      // Update end point of the arrow
-      const lastIndex = newPoints.length - 2;
-      newPoints[lastIndex] = points[2];
-      newPoints[lastIndex + 1] = points[3];
+      const newPoints = updateArrowPoints({
+        from,
+        to,
+        arrowPoints: arrow.points,
+      });
 
       updatedArrowPosition.push({
         shapeId: arrow._id,
         shapeValue: {
-          points: newPoints, // Use the new array
+          points: newPoints,
         },
       });
     }
-  }
+  });
 
   return updatedArrowPosition;
 }

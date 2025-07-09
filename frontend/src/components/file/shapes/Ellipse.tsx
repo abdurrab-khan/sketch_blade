@@ -44,15 +44,20 @@ const Ellipse: React.FC<Shape> = ({ ...props }) => {
   const handleDragMove = (e: KonvaEventObject<MouseEvent>) => {
     // handle logic when going to beyond canvas x or y position || and attached arrow also.
 
-
     if (!e.currentTarget?.attrs) return;
-    const { x, y, arrowProps } = e.currentTarget.attrs as Konva.RectConfig;
-    if (!x || !y || !arrowProps || arrowProps?.length === 0) return;
+    const { arrowProps, x, y, id } = e.currentTarget.attrs as Konva.RectConfig;
+    if (!arrowProps || arrowProps?.length === 0) return;
+    if (x === undefined || y === undefined) return;
+
+    // Update the current shape position in the shapes array for accurate arrow calculations
+    const updatedShapes = shapes.map(shape =>
+      shape._id === id ? { ...shape, x, y } : shape
+    );
 
     // Logic to change the position of the arrow based on movement.
-    const updatedArrowPosition = updateAttachedArrowPosition(x, y, shapes, arrowProps);
+    const updatedArrowPosition = updateAttachedArrowPosition(updatedShapes, arrowProps);
 
-    if (updateAttachedArrowPosition.length > 0) {
+    if (updatedArrowPosition.length > 0) {
       dispatch(updateExistingShapes(updatedArrowPosition))
     }
   }
@@ -93,7 +98,7 @@ const Ellipse: React.FC<Shape> = ({ ...props }) => {
         id={props._id}
         strokeScaleEnabled={false}
         name={"shape"}
-        lineCap="round"
+        lineCap={"round"}
         {...props}
       />
     </ShapeGroup>

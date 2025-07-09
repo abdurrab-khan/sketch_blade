@@ -79,13 +79,12 @@ function isMouseNearShapeEdge(
  * @returns
  */
 function getAnchorPoint(
-  x: number,
-  y: number,
   shape: ArrowSupportedShapes,
   anchorPosition: ArrowDirection,
 ): Coordinates {
+  const { x, y, width, height } = shape;
+
   if (shape.type === "rectangle") {
-    const { width, height } = shape as ArrowSupportedShapes;
     switch (anchorPosition) {
       case "TOP":
         return { x: x + width / 2, y };
@@ -99,18 +98,22 @@ function getAnchorPoint(
         return { x: x + width / 2, y: y + height / 2 };
     }
   } else if (shape.type === "ellipse") {
-    const { radiusX, radiusY } = shape as Ellipse;
+    const centerX = shape.x;
+    const centerY = shape.y;
+    const radiusX = shape.width / 2;
+    const radiusY = shape.height / 2;
+
     switch (anchorPosition) {
       case "TOP":
-        return { x, y: y - radiusY };
+        return { x: centerX, y: centerY - radiusY };
       case "RIGHT":
-        return { x: x + radiusX, y };
+        return { x: centerX + radiusX, y: centerY };
       case "BOTTOM":
-        return { x, y: y + radiusY };
+        return { x: centerX, y: centerY + radiusY };
       case "LEFT":
-        return { x: x - radiusX, y };
+        return { x: centerX - radiusX, y: centerY };
       default:
-        return { x, y };
+        return { x: centerX, y: centerY };
     }
   }
   return { x: 0, y: 0 };
@@ -124,56 +127,92 @@ function getAnchorPoint(
  * @returns
  */
 export const findBestConnectionPoints = (
-  x: number,
-  y: number,
-  sourceShape?: ArrowSupportedShapes,
-  targetShape?: ArrowSupportedShapes,
+  sourceShape: ArrowSupportedShapes | undefined,
+  targetShape: ArrowSupportedShapes | undefined,
+  arrowPoints: number[],
 ): {
   from?: Coordinates;
   to?: Coordinates;
 } | null => {
   if (!sourceShape && !targetShape) return null;
 
-  const positions = ["TOP", "RIGHT", "BOTTOM", "LEFT"] as ArrowDirection[];
-  let shortestDistance = Infinity;
-  let bestSourceAnchor = "CENTER" as ArrowDirection;
-  let bestTargetAnchor = "CENTER" as ArrowDirection;
+  const positions: ArrowDirection[] = ["TOP", "RIGHT", "BOTTOM", "LEFT"];
+
+  let bestSourceAnchor: ArrowDirection = "CENTER";
+  let bestTargetAnchor: ArrowDirection = "CENTER";
 
   if (sourceShape && !targetShape) {
-    return {
-      from: getAnchorPoint(x, y, sourceShape, bestSourceAnchor),
+    const targetPoint = {
+      x: arrowPoints[arrowPoints.length - 2],
+      y: arrowPoints[arrowPoints.length - 1],
     };
-  }
+    let shortestDistance = Infinity;
 
-  if (!sourceShape && targetShape) {
-    return {
-      to: getAnchorPoint(x, y, targetShape, bestTargetAnchor),
-    };
-  }
-
-  positions.forEach((sourcePos) => {
-    const sourcePoint = getAnchorPoint(x, y, sourceShape!, sourcePos);
-
-    positions.forEach((targetPos) => {
-      const targetPoint = getAnchorPoint(x, y, targetShape!, targetPos);
-
-      // Calculate distance
-      const dx = targetPoint.x - sourcePoint.x;
-      const dy = targetPoint.y - sourcePoint.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+    positions.forEach((sourcePos) => {
+      const sourcePoint = getAnchorPoint(sourceShape, sourcePos);
+      const distance = Math.hypot(
+        targetPoint.x - sourcePoint.x,
+        targetPoint.y - sourcePoint.y,
+      );
 
       if (distance < shortestDistance) {
         shortestDistance = distance;
         bestSourceAnchor = sourcePos;
+      }
+    });
+
+    return { from: getAnchorPoint(sourceShape, bestSourceAnchor) };
+  }
+
+  if (!sourceShape && targetShape) {
+    const sourcePoint = { x: arrowPoints[0], y: arrowPoints[1] };
+    let shortestDistance = Infinity;
+
+    positions.forEach((targetPos) => {
+      const targetPoint = getAnchorPoint(targetShape, targetPos);
+      const distance = Math.hypot(
+        targetPoint.x - sourcePoint.x,
+        targetPoint.y - sourcePoint.y,
+      );
+
+      if (distance < shortestDistance) {
+        shortestDistance = distance;
         bestTargetAnchor = targetPos;
       }
     });
-  });
 
-  return {
-    from: getAnchorPoint(x, y, sourceShape!, bestSourceAnchor),
-    to: getAnchorPoint(x, y, targetShape!, bestTargetAnchor),
-  };
+    return { to: getAnchorPoint(targetShape, bestTargetAnchor) };
+  }
+
+  if (sourceShape && targetShape) {
+    let shortestDistance = Infinity;
+
+    positions.forEach((sourcePos) => {
+      const sourcePoint = getAnchorPoint(sourceShape, sourcePos);
+
+      positions.forEach((targetPos) => {
+        const targetPoint = getAnchorPoint(targetShape, targetPos);
+
+        // Calculate distance
+        const dx = targetPoint.x - sourcePoint.x;
+        const dy = targetPoint.y - sourcePoint.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < shortestDistance) {
+          shortestDistance = distance;
+          bestSourceAnchor = sourcePos;
+          bestTargetAnchor = targetPos;
+        }
+      });
+    });
+
+    return {
+      from: getAnchorPoint(sourceShape, bestSourceAnchor),
+      to: getAnchorPoint(targetShape, bestTargetAnchor),
+    };
+  }
+
+  return null;
 };
 
 // <-------------------------------> SHAPE TRANSFORMATION VALUE <------------------------->
@@ -199,9 +238,15 @@ export const getRectangleResizeValue = (
   return updatedValue;
 };
 
-export const getEllipseResizeValue = (node: Node<NodeConfig>) => {};
+export const getEllipseResizeValue = (node: Node<NodeConfig>) => {
+  // TODO: Implement ellipse resize logic
+  node.scaleX(1);
+};
 
-export const getFreeHandResizeValue = (node: Node<NodeConfig>) => {};
+export const getFreeHandResizeValue = (node: Node<NodeConfig>) => {
+  // TODO: Implement free hand resize logic
+  node.scaleX(1);
+};
 
 // <-------------------------------> HELPER FUNCTIONS <--------------------------------->
 /**
