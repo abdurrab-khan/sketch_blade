@@ -82,9 +82,8 @@ function getAnchorPoint(
   shape: ArrowSupportedShapes,
   anchorPosition: ArrowDirection,
 ): Coordinates {
-  const { x, y, width, height } = shape;
-
   if (shape.type === "rectangle") {
+    const { x, y, width, height } = shape;
     switch (anchorPosition) {
       case "TOP":
         return { x: x + width / 2, y };
@@ -98,22 +97,21 @@ function getAnchorPoint(
         return { x: x + width / 2, y: y + height / 2 };
     }
   } else if (shape.type === "ellipse") {
-    const centerX = shape.x;
-    const centerY = shape.y;
-    const radiusX = shape.width / 2;
-    const radiusY = shape.height / 2;
+    const { x, y, width, height } = shape;
+    const radiusX = width / 2;
+    const radiusY = height / 2;
 
     switch (anchorPosition) {
       case "TOP":
-        return { x: centerX, y: centerY - radiusY };
+        return { x, y: y - radiusY };
       case "RIGHT":
-        return { x: centerX + radiusX, y: centerY };
+        return { x: x + radiusX, y };
       case "BOTTOM":
-        return { x: centerX, y: centerY + radiusY };
+        return { x, y: y + radiusY };
       case "LEFT":
-        return { x: centerX - radiusX, y: centerY };
+        return { x: x - radiusX, y };
       default:
-        return { x: centerX, y: centerY };
+        return { x, y };
     }
   }
   return { x: 0, y: 0 };

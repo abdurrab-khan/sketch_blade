@@ -42,14 +42,19 @@ const Ellipse: React.FC<Shape> = ({ ...props }) => {
   }
 
   const handleDragMove = (e: KonvaEventObject<MouseEvent>) => {
-    // handle logic when going to beyond canvas x or y position || and attached arrow also.
+    if (!(e.currentTarget instanceof Konva.Transformer)) return;
 
-    if (!e.currentTarget?.attrs) return;
-    const { arrowProps, x, y, id } = e.currentTarget.attrs as Konva.RectConfig;
+    const transformer = e.currentTarget;
+    const shapeNode = transformer.nodes()[0];
+
+    if (!shapeNode) return;
+
+    const { arrowProps, id } = shapeNode.attrs;
+    const { x, y } = transformer.attrs;
+
     if (!arrowProps || arrowProps?.length === 0) return;
     if (x === undefined || y === undefined) return;
 
-    // Update the current shape position in the shapes array for accurate arrow calculations
     const updatedShapes = shapes.map(shape =>
       shape._id === id ? { ...shape, x, y } : shape
     );
@@ -96,9 +101,9 @@ const Ellipse: React.FC<Shape> = ({ ...props }) => {
     <ShapeGroup trRef={trRef} _id={props._id} type={ToolType.Ellipse}>
       <KonvaEllipse
         id={props._id}
-        strokeScaleEnabled={false}
         name={"shape"}
-        lineCap={"round"}
+        lineCap={"square"}
+        strokeScaleEnabled={false}
         {...props}
       />
     </ShapeGroup>

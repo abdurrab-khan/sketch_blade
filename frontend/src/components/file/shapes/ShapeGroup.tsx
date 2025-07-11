@@ -25,8 +25,11 @@ export default function ShapeGroup({ _id, groupRef, type, trRef, children, ...pr
     const handleMouseDown = (e: KonvaEventObject<MouseEvent>) => {
         e.evt.preventDefault();
 
-        // Return -- If the target is not a shape or the eraser tool is active or drawing is happening 
-        if (e.target.attrs.isDrawing || e.target.attrs.name !== "shape" || activeTool?.type === "eraser") return;
+        // Only select -- When activeTool is cursor
+        if (activeTool.type !== ToolType.Cursor) return;
+
+        // Return -- If the target is not a shape or drawing is happening 
+        if (e.target.attrs.isDrawing || e.target.attrs.name !== "shape") return;
 
         const metaPressed = e.evt.ctrlKey || e.evt.shiftKey || e.evt.metaKey;
         if (!metaPressed) {
@@ -60,8 +63,10 @@ export default function ShapeGroup({ _id, groupRef, type, trRef, children, ...pr
     const handleMouseClick = (e: KonvaEventObject<MouseEvent>) => {
         e.evt.preventDefault();
 
-        // Return -- If active tool is eraser 
-        if (e.target.attrs.isDrawing || activeTool.type === "eraser") return;
+        if (activeTool.type !== ToolType.Cursor) return;
+
+        // Return -- If the target is not a shape or drawing is happening 
+        if (e.target.attrs.isDrawing || e.target.attrs.name !== "shape") return;
 
         const metaPressed = e.evt.ctrlKey || e.evt.shiftKey || e.evt.metaKey;
         if (!metaPressed) {
