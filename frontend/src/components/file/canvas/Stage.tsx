@@ -1,7 +1,7 @@
 import Konva from "konva";
 import { useSelector } from "react-redux";
 import { Stage as KonvaStage, Layer } from "react-konva";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import GlobalTransformer from "./GlobalTransformer";
 
 // Hooks
@@ -57,7 +57,6 @@ export const Stage: React.FC<StageProps> = ({
   );
   const shapes = useSelector((state: RootState) => state.app.shapes);
 
-
   return (
     <KonvaStage
       ref={stageRef}
@@ -76,11 +75,8 @@ export const Stage: React.FC<StageProps> = ({
             <GetDynamicShape key={index} {...props} />
           )
           )}
-
         {currentShape && <GetDynamicShape {...currentShape} />}
-
         {children}
-
         <GlobalTransformer
           ref={transformerRef}
           isDragging={isDragging}

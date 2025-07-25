@@ -177,25 +177,26 @@ export const appSlice = createSlice({
         payload: DeletedShapeProps;
       },
     ) => {
+      const updatedShapeProps = Object.entries(action.payload?.updatedShapes);
+
       // Updated if delete "Shape" is "Arrow", "Rectangle", "Ellipse" ...
-      Object.entries(action.payload.updatedShapes).forEach(([id, props]) => {
-        const shapeIndex = state.shapes.findIndex((s) => s._id === id);
-        const shape = state.shapes[shapeIndex];
-        const updatedValue: Partial<Arrow | ArrowSupportedShapes> = {};
+      if (updatedShapeProps.length > 0) {
+        updatedShapeProps.forEach(([id, props]) => {
+          const shapeIndex = state.shapes.findIndex((s) => s._id === id);
 
-        if (shape.type === "point arrow") {
-          (updatedValue as Partial<Arrow>)["attachedShape"] =
-            props as AttachedShape | null;
-        } else {
-          (updatedValue as Partial<ArrowSupportedShapes>)["arrowProps"] =
-            props as ArrowProps[] | null;
-        }
+          if (shapeIndex !== -1) {
+            const key =
+              state.shapes[shapeIndex].type === "point arrow"
+                ? "attachedShape"
+                : "arrowProps";
 
-        state.shapes[shapeIndex] = {
-          ...state.shapes[shapeIndex],
-          ...updatedValue,
-        } as Shape;
-      });
+            state.shapes[shapeIndex] = {
+              ...state.shapes[shapeIndex],
+              [key]: props,
+            } as Shape;
+          }
+        });
+      }
 
       state.shapes = state.shapes.filter(
         (s) => !action.payload.deletedShapes.includes(s._id),

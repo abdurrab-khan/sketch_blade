@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import Konva from "konva";
 import { Rect } from "react-konva";
 import { KonvaEventObject } from "konva/lib/Node";
@@ -19,6 +19,8 @@ import { ToolType } from "@/types/tools/tool";
 const Rectangle: React.FC<Shape> = ({ ...props }) => {
   const dispatch = useDispatch();
   const shapes = useSelector((state: RootState) => state.app.shapes)
+  const selectedShapesIds = useSelector((state: RootState) => state.app.selectedShapeToAddArrow)
+  const isSelected = useMemo(() => selectedShapesIds?._id === props._id, [props._id, selectedShapesIds?._id])
 
   const reactRef = React.useRef(null);
   const trRef = useRef<Konva.Transformer>(null)
@@ -87,9 +89,13 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
   }
 
   return (
-    <>
+    <React.Fragment>
       <ShapeGroup
         _id={props._id}
+        x={props.x}
+        y={props.y}
+        height={props.height}
+        width={props.width}
         trRef={trRef}
         type={ToolType.Rectangle}
       >
@@ -100,6 +106,12 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
           strokeScaleEnabled={false}
           lineCap="round"
           {...props}
+          x={0}
+          y={0}
+          offsetX={props.width / 2}
+          offsetY={props.height / 2}
+          draggable={false}
+          opacity={isSelected ? 0.3 : props.opacity}
         />
       </ShapeGroup>
 
@@ -110,7 +122,7 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
         handleDragMove={handleDragMove}
         handleDragEnd={handleDragEnd}
       />
-    </>
+    </React.Fragment>
   );
 };
 

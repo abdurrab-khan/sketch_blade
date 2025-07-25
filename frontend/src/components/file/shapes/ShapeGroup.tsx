@@ -4,11 +4,13 @@ import { ToolType } from '@/types/tools/tool'
 import Konva from 'konva'
 import { KonvaEventObject } from 'konva/lib/Node'
 import { RefObject, useEffect } from 'react'
-import { Group } from 'react-konva'
+import { Group, Rect } from 'react-konva'
 import { useDispatch, useSelector } from 'react-redux'
 
 interface ShapeGroupProps {
     _id: string,
+    x: number,
+    y: number,
     type: ToolType,
     children: React.ReactNode,
     trRef: RefObject<Konva.Transformer>,
@@ -16,7 +18,7 @@ interface ShapeGroupProps {
     [key: string]: any
 }
 
-export default function ShapeGroup({ _id, groupRef, type, trRef, children, ...props }: ShapeGroupProps) {
+export default function ShapeGroup({ _id, x, y, groupRef, type, trRef, children, ...props }: ShapeGroupProps) {
     const activeTool = useSelector((state: RootState) => state.app.activeTool);
     const selectedShapes = useSelector((state: RootState) => state.app.selectedShapesId)
     const dispatch = useDispatch();
@@ -111,8 +113,11 @@ export default function ShapeGroup({ _id, groupRef, type, trRef, children, ...pr
     return (
         <Group
             ref={groupRef}
+            x={x}
+            y={y}
             onClick={handleMouseClick}
             onMouseDown={handleMouseDown}
+            draggable
         >
             {children}
         </Group>

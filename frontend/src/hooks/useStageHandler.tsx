@@ -466,21 +466,20 @@ const useStageHandler = ({
         ids = Array.isArray(selectedShapesId?._id) ? selectedShapesId._id : [selectedShapesId._id];
       }
 
-      if (!(ids && ids.length > 0)) return;
+      // Delete -- If selected ids are there. 
+      if (ids && ids.length > 0) {
+        const deletedShapeProps = getDeletedShapeProps(ids, shapes);
 
-      // Delete -- From the local state 
-      const deletedShapeProps = getDeletedShapeProps(ids, shapes);
+        dispatch(deleteShapes(
+          deletedShapeProps
+        ));
 
-      dispatch(deleteShapes(
-        deletedShapeProps
-      ));
+        deleteShapesAPI(ids)
 
-
-      deleteShapesAPI(ids)
-
-      tr?.nodes([]);
-      dispatch(handleSelectedIds(null));
-      dispatch(changeToolBarProperties(null));
+        tr?.nodes([]);
+        dispatch(handleSelectedIds(null));
+        dispatch(changeToolBarProperties(null));
+      };
     };
 
     document.addEventListener("keydown", handleshapedelete);

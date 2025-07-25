@@ -1,7 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import Container from "./Container.tsx";
 import { ApiResponse } from "../../types/index.ts";
 import { useToast } from "../../hooks/use-toast.ts";
 import { Nav } from "../../components/file/Nav.tsx";
@@ -49,16 +48,18 @@ const File = () => {
   return (
     <main
       className={
-        "size-screen relative bg-primary px-2 py-2 text-quaternary md:px-6 lg:px-10"
+        "size-screen relative bg-primary text-quaternary"
       }
     >
-      <Container>
-        <Nav fileId={fileId as string} />
-        <ToolActions />
-        <Canvas />
-        <Footer />
-      </Container>
+      <Nav fileId={fileId as string} />
+      <ToolActions />
+      <Footer />
+
+      {/* Konva -- Canvas */}
+      <Canvas />
     </main>
   );
 };
 export default File;
+
+// "px-2 py-2 text-quaternary md:px-6 lg:px-10"

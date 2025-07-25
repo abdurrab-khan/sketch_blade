@@ -7,6 +7,7 @@ import { Stage } from "./Stage";
 import Eraser from "../shapes/Eraser";
 import { setShapes } from "../../../redux/slices/appSlice";
 import { getAllShapes } from "@/services/shape.api";
+import TextHandler from "./TextHandler";
 
 function Canvas() {
   const stageRef = useRef<Konva.Stage>(null)
@@ -30,24 +31,23 @@ function Canvas() {
   // TODO : SO I WANT TO USE INDEX DB WHEN THE USE DOES NOT LOGGED IN AND WHEN USER FINALLY WANT TO LOGGED IN AND MAKE SOME FILE THEN WE CAN SHOW ALL THE ELEMENTS WHICH USER MAKE WHEN THEY DOES NOT LOGGED IN. WE SHOW POP UP AND SAY IT DO YOU WANT TO MERGE IT. IF YES CAN WE CAN MERGE PREVIOUS ONE DATA.
 
   return (
-    <div className={"relative size-full flex-1"}>
-      <div className="fixed right-1/2 top-0 z-20 size-full translate-x-1/2">
-        <Stage
-          stageRef={stageRef}
-          selectionRectRef={selectionRectRef}
-          transformerRef={transformerRef}
-        >
-          <Rect
-            ref={selectionRectRef}
-            fill={"rgba(147,146,146,0.22)"}
-            stroke={"#bdbcf4"}
-            strokeWidth={1}
-            visible={false}
-            listening={false}
-          />
-          {activeTool === "eraser" && <Eraser stageRef={stageRef} />}
-        </Stage>
-      </div>
+    <div className="fixed right-1/2 top-0 z-2 size-full translate-x-1/2">
+      <Stage
+        stageRef={stageRef}
+        selectionRectRef={selectionRectRef}
+        transformerRef={transformerRef}
+      >
+        <Rect
+          ref={selectionRectRef}
+          fill={"rgba(147,146,146,0.22)"}
+          stroke={"#bdbcf4"}
+          strokeWidth={1}
+          visible={false}
+          listening={false}
+        />
+        {activeTool === "eraser" && <Eraser stageRef={stageRef} />}
+      </Stage>
+      <TextHandler stageRef={stageRef} />
     </div>
   );
 }

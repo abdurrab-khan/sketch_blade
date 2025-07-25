@@ -28,7 +28,7 @@ export interface BoundedShapeProperties {
   customProperties: ToolBarProperties;
   text: CommonText | null;
   fillPatternImage: string | null;
-  arrowProps: ArrowProps[];
+  arrowProps?: ArrowProps[];
 }
 
 export interface CommonText {
