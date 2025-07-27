@@ -26,6 +26,7 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
   const trRef = useRef<Konva.Transformer>(null)
 
   const handleTransforming = (e: KonvaEventObject<MouseEvent>) => {
+    console.log("Hello world")
     if (!e.target) return;
     const node = e.target;
 
@@ -41,6 +42,7 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
   }
 
   const handleDragMove = (e: KonvaEventObject<MouseEvent>) => {
+    console.log("Movement happen on local rect one")
     if (!(e.currentTarget instanceof Konva.Transformer)) return;
 
     const transformer = e.currentTarget;
@@ -57,6 +59,7 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
     const updatedShapes = shapes.map(shape =>
       shape._id === id ? { ...shape, x, y } : shape
     );
+
 
     const updatedArrowPosition = updateAttachedArrowPosition(updatedShapes, arrowProps);
 

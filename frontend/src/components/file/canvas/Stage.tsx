@@ -1,7 +1,7 @@
 import Konva from "konva";
 import { useSelector } from "react-redux";
 import { Stage as KonvaStage, Layer } from "react-konva";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import GlobalTransformer from "./GlobalTransformer";
 
 // Hooks

@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { Rect } from "react-konva";
 import Konva from "konva";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
@@ -8,6 +7,7 @@ import Eraser from "../shapes/Eraser";
 import { setShapes } from "../../../redux/slices/appSlice";
 import { getAllShapes } from "@/services/shape.api";
 import TextHandler from "./TextHandler";
+import Selector from "../tools/Selector";
 
 function Canvas() {
   const stageRef = useRef<Konva.Stage>(null)
@@ -37,14 +37,7 @@ function Canvas() {
         selectionRectRef={selectionRectRef}
         transformerRef={transformerRef}
       >
-        <Rect
-          ref={selectionRectRef}
-          fill={"rgba(147,146,146,0.22)"}
-          stroke={"#bdbcf4"}
-          strokeWidth={1}
-          visible={false}
-          listening={false}
-        />
+        <Selector stageRef={stageRef} trRef={transformerRef} />
         {activeTool === "eraser" && <Eraser stageRef={stageRef} />}
       </Stage>
       <TextHandler stageRef={stageRef} />

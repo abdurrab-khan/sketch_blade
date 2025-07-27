@@ -21,7 +21,7 @@ const extractShape = (e: KonvaEventObject<MouseEvent>): { x: number, y: number, 
         height = shape.height();
         width = shape.width();
     } else {
-        console.log(parent)
+        // console.log(parent)
         return null
     }
 
@@ -43,7 +43,7 @@ export default function TextHandler({ stageRef }: TextHandlerProps) {
             const { x, y, height, width } = shape;
 
             setProps({ x, y });
-            console.log({ x, y, height, width })
+            // console.log({ x, y, height, width })
         }
     }, []);
 

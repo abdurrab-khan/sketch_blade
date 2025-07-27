@@ -86,10 +86,12 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
     if (!(e.target instanceof Konva.Transformer) || activeTool !== "cursor")
       return;
 
+
     const nodes = (e.currentTarget as Konva.Transformer).nodes();
     isDragging.current = true;
 
     if (!nodes.length) return;
+    console.log("Movement happen on global one")
     if (nodes.length === 1) {
       const currentShapeAttrs = nodes[0]?.attrs;
 
