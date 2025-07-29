@@ -1,7 +1,7 @@
 import React from "react";
-import EditFile from "./canvas/others/EditFile";
+import EditFile from "./whiteboard/others/EditFile";
 import Tools from "./tools/Tools";
-import ShareSection from "./canvas/others/ShareSection";
+import ShareSection from "./whiteboard/others/ShareSection";
 
 interface Props {
   fileId: string;

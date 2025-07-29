@@ -3,7 +3,7 @@ import React, { useRef } from "react";
 import { Line } from "react-konva";
 import { Shape } from "../../../types/shapes";
 import ShapeGroup from "./ShapeGroup";
-import Transformer from "../canvas/Transformer";
+import Transformer from "../whiteboard/Transformer";
 import { ToolType } from "@/types/tools/tool";
 
 const FreeHand: React.FC<Shape> = ({ ...props }) => {

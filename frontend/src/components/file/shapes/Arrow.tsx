@@ -10,7 +10,7 @@ import { Arrow as ArrowType, Shape } from "../../../types/shapes";
 import { RootState } from "../../../redux/store";
 import { updateExistingShapes } from "../../../redux/slices/appSlice";
 
-import Transformer from "../canvas/Transformer";
+import Transformer from "../whiteboard/Transformer";
 
 import { getUpdatedAttachProps } from "../../../utils/ShapeUtils";
 import { checkRefValue } from "../../../utils/AppUtils";

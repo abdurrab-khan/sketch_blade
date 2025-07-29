@@ -10,7 +10,7 @@ import { Shape } from "../../../types/shapes";
 import { RootState } from "../../../redux/store";
 import { updateExistingShapes } from "../../../redux/slices/appSlice";
 
-import Transformer from "../canvas/Transformer";
+import Transformer from "../whiteboard/Transformer";
 
 import { updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
 import ShapeGroup from "./ShapeGroup";
@@ -26,7 +26,6 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
   const trRef = useRef<Konva.Transformer>(null)
 
   const handleTransforming = (e: KonvaEventObject<MouseEvent>) => {
-    console.log("Hello world")
     if (!e.target) return;
     const node = e.target;
 

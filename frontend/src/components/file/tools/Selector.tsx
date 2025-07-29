@@ -12,9 +12,11 @@ import { useDispatch, useSelector } from 'react-redux';
 interface SelectorProps {
     stageRef: React.RefObject<Konva.Stage>
     trRef: React.RefObject<Konva.Transformer>
+    isHovered: boolean,
+    setIsHovered: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const Selector: React.FC<SelectorProps> = ({ stageRef, trRef }) => {
+const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHovered }) => {
     const dispatch = useDispatch();
 
     const { activeTool: { type: activeTool }, selectedShapesId } = useSelector((state: RootState) => state.app);
@@ -28,7 +30,7 @@ const Selector: React.FC<SelectorProps> = ({ stageRef, trRef }) => {
         dispatch(changeToolBarProperties(null));
     }, [dispatch]);
 
-    // Handle Shape Selection via Selector or Click
+    // <===================> Shape Selection via Selector or Click <========================>
     const handleShapeSelectionBySelector = useCallback((tr: Konva.Transformer, stage: Stage, selector: Konva.Rect) => {
         const shapes = stage.find(".shape");
         const box = selector.getClientRect();
@@ -90,7 +92,7 @@ const Selector: React.FC<SelectorProps> = ({ stageRef, trRef }) => {
         }
     }, [dispatch, selectedShapesId, stageRef])
 
-    // Handle Mouse Events i.e mousedown, mouseup, mousemove
+    // <===================> Handle Mouse Events <========================>
     const handleMouseDown = useCallback((e: KonvaEventObject<MouseEvent, Stage>) => {
         const selector = selectorRef.current;
         const stage = stageRef.current;
@@ -137,30 +139,41 @@ const Selector: React.FC<SelectorProps> = ({ stageRef, trRef }) => {
         }
     }, [activeTool]);
 
-    const handleMouseMove = useCallback(() => {
+    const handleMouseMove = useCallback((e: KonvaEventObject<MouseEvent, Stage>) => {
         const stage = stageRef.current;
         const selector = selectorRef.current;
         const tr = trRef.current;
         const startingMousePos = mouseStartPos.current;
 
-        if (!(selector && stage && startingMousePos && tr)) return;
+        if (activeTool === ToolType.Cursor) {
+            // Set hover if target is shape
+            if (e.target.hasName("shape") && !isHovered) {
+                setIsHovered(true);
+            } else if (!e.target.hasName("shape") && isHovered) {
+                setIsHovered(false);
+            }
 
-        const transformedPos = getTransformedPos(stage);
-        if (!transformedPos) return;
+            // Handling selector size.
+            if (!(selector && stage && startingMousePos && tr)) return;
 
-        if (activeTool === ToolType.Cursor && selectorRef.current?.visible()) {
-            // Set selector rect attrs
-            selector?.setAttrs({
-                x: Math.min(startingMousePos.x, transformedPos.x),
-                y: Math.min(startingMousePos.y, transformedPos.y),
-                width: Math.abs(transformedPos.x - startingMousePos.x),
-                height: Math.abs(transformedPos.y - startingMousePos.y),
-            });
+            const transformedPos = getTransformedPos(stage);
+            if (!transformedPos) return;
 
-            // Handle selected shape based on selection rect interaction
-            handleShapeSelectionBySelector(tr, stage, selector)
+            if (selectorRef.current?.visible()) {
+                // Set selector rect attrs
+                selector?.setAttrs({
+                    x: Math.min(startingMousePos.x, transformedPos.x),
+                    y: Math.min(startingMousePos.y, transformedPos.y),
+                    width: Math.abs(transformedPos.x - startingMousePos.x),
+                    height: Math.abs(transformedPos.y - startingMousePos.y),
+                });
+
+                // Handle selected shape based on selection rect interaction
+                handleShapeSelectionBySelector(tr, stage, selector)
+            }
         }
-    }, [activeTool, handleShapeSelectionBySelector, stageRef, trRef]);
+
+    }, [activeTool, handleShapeSelectionBySelector, isHovered, setIsHovered, stageRef, trRef]);
 
     useEffect(() => {
         const stage = stageRef?.current;

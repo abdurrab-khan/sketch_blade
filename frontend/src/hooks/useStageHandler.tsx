@@ -86,8 +86,6 @@ const useStageHandler = ({
         insertNewShape(customizedCurrentShape ?? { ...currentShape, isDrawing: false })
       }
 
-
-
       setIsDrawing(false);
       setCurrentShape(null);
       setStartingMousePos({ x: 0, y: 0 });
@@ -163,8 +161,7 @@ const useStageHandler = ({
   }, [activeTool, isHovered, setIsHovered])
 
 
-  // <---------------------------> Event Handler <--------------------------->
-
+  // <===================> Handle Mouse Events <========================>
   const handleMouseDown = useCallback(
     (e: KonvaEventObject<MouseEvent>): void => {
       e.evt.preventDefault();

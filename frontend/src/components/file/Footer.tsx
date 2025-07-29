@@ -1,6 +1,6 @@
 import React from "react";
-import ZoomBtn from "./canvas/others/ZoomBtn";
-import UndoBtn from "./canvas/others/UndoBtn";
+import ZoomBtn from "./whiteboard/others/ZoomBtn";
+import UndoBtn from "./whiteboard/others/UndoBtn";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { MenuIcon } from "lucide-react";

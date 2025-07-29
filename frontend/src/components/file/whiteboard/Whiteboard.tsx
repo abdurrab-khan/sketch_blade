@@ -7,12 +7,10 @@ import Eraser from "../shapes/Eraser";
 import { setShapes } from "../../../redux/slices/appSlice";
 import { getAllShapes } from "@/services/shape.api";
 import TextHandler from "./TextHandler";
-import Selector from "../tools/Selector";
 
-function Canvas() {
+function Whiteboard() {
   const stageRef = useRef<Konva.Stage>(null)
   const transformerRef = useRef<Konva.Transformer>(null)
-  const selectionRectRef = useRef<Konva.Rect>(null);
 
   const dispatch = useDispatch();
 
@@ -34,10 +32,8 @@ function Canvas() {
     <div className="fixed right-1/2 top-0 z-2 size-full translate-x-1/2">
       <Stage
         stageRef={stageRef}
-        selectionRectRef={selectionRectRef}
         transformerRef={transformerRef}
       >
-        <Selector stageRef={stageRef} trRef={transformerRef} />
         {activeTool === "eraser" && <Eraser stageRef={stageRef} />}
       </Stage>
       <TextHandler stageRef={stageRef} />
@@ -45,4 +41,4 @@ function Canvas() {
   );
 }
 
-export default Canvas;
+export default Whiteboard;

@@ -7,7 +7,7 @@ import { Nav } from "../../components/file/Nav.tsx";
 import { Footer } from "../../components/file/Footer.tsx";
 import { useResponse } from "../../hooks/useResponse.tsx";
 import ToolActions from "../../components/file/tools/ToolActions.tsx";
-import Canvas from "../../components/file/canvas/Canvas.tsx";
+import Whiteboard from "../../components/file/whiteboard/Whiteboard.tsx";
 
 const File = () => {
   const fileId = useParams().id;
@@ -56,7 +56,7 @@ const File = () => {
       <Footer />
 
       {/* Konva -- Canvas */}
-      <Canvas />
+      <Whiteboard />
     </main>
   );
 };
