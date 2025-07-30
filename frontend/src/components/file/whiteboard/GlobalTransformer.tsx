@@ -29,8 +29,6 @@ interface GlobalTransformerProps {
 const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(({ isDragging, isTransforming }, tr) => {
   const groupRef = useRef<Konva.Group>(null)
 
-  const selectedShapeIds = useSelector((state: RootState) => state.app.selectedShapesId)
-
   const { type: activeTool } = useSelector(
     (state: RootState) => state.app.activeTool,
   );
@@ -83,15 +81,16 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
 
   // Event handler functions
   const handleDragMove = (e: KonvaEventObject<MouseEvent>) => {
+    console.log("From Drag --> Global Transformer")
+
     if (!(e.target instanceof Konva.Transformer) || activeTool !== "cursor")
       return;
-
 
     const nodes = (e.currentTarget as Konva.Transformer).nodes();
     isDragging.current = true;
 
     if (!nodes.length) return;
-    console.log("Movement happen on global one")
+
     if (nodes.length === 1) {
       const currentShapeAttrs = nodes[0]?.attrs;
 
@@ -142,15 +141,6 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
       }
     }
   }
-
-  useEffect(() => {
-    const trRef = (tr as MutableRefObject<Konva.Transformer>)?.current;
-    if (!trRef || trRef.nodes().length === 0) return; // Return -- Whether we does not have any shape in transformer.
-
-    if (Array.isArray(selectedShapeIds?._id)) return;
-    trRef.nodes([])
-
-  }, [selectedShapeIds, tr, isDragging])
 
   return (
     <Group ref={groupRef}>

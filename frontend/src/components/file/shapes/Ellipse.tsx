@@ -97,7 +97,7 @@ const Ellipse: React.FC<Shape> = ({ ...props }) => {
     }
   }, [props._id, selectedShapes])
 
-  return <>
+  return (
     <ShapeGroup trRef={trRef} _id={props._id} type={ToolType.Ellipse}>
       <KonvaEllipse
         id={props._id}
@@ -107,12 +107,6 @@ const Ellipse: React.FC<Shape> = ({ ...props }) => {
         {...props}
       />
     </ShapeGroup>
-    <Transformer
-      ref={trRef}
-      handleTransformingEnd={handleTransformingEnd}
-      handleDragMove={handleDragMove}
-      handleDragEnd={handleDragEnd}
-    />
-  </>;
+  )
 };
 export default Ellipse;

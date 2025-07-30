@@ -13,10 +13,12 @@ interface SelectorProps {
     stageRef: React.RefObject<Konva.Stage>
     trRef: React.RefObject<Konva.Transformer>
     isHovered: boolean,
-    setIsHovered: React.Dispatch<React.SetStateAction<boolean>>
+    setIsHovered: React.Dispatch<React.SetStateAction<boolean>>,
+    isDragging: boolean,
+    isTransforming: boolean
 }
 
-const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHovered }) => {
+const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHovered, isDragging, isTransforming }) => {
     const dispatch = useDispatch();
 
     const { activeTool: { type: activeTool }, selectedShapesId } = useSelector((state: RootState) => state.app);
@@ -56,29 +58,26 @@ const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHo
         }
     }, [dispatch, selectedShapesId?._id.length]);
 
-    const handleShapeSelectionByClick = useCallback((e: KonvaEventObject<MouseEvent>, tr: Konva.Transformer, metaPressed: boolean) => {
+    // <===================> Handle Mouse Events <========================>
+    const handleShapeSelectionByClick = useCallback((e: KonvaEventObject<MouseEvent>) => {
+        const tr = trRef.current;
+        if (!tr || e.target.nodeType !== "Shape") return;
+
+        const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
         const isSelected = tr.nodes().indexOf(e.target) >= 0;
 
-        // Only works --- Already have selectedShapesId and meta-pressed
-        if (!(metaPressed && selectedShapesId)) return;
+        if (!metaPressed) {
+            tr.nodes([e.target]);
+        } else {
+            let nodes = [];
 
-
-        if (selectedShapesId?._id && !Array.isArray(selectedShapesId?._id)) {
-            const node = stageRef.current?.findOne(`#${selectedShapesId._id}`);
-
-            if (node) {
-                tr.nodes([node]);
+            if (isSelected) {
+                nodes = tr.nodes().slice();
+                nodes.splice(nodes.indexOf(e.target), 1);
+            } else {
+                nodes = tr.nodes().slice();
+                nodes.push(e.target);
             }
-        }
-
-        if (isSelected) {
-            const nodes = tr.nodes().slice();
-            nodes.splice(nodes.indexOf(e.target), 1);
-
-            tr.nodes(nodes);
-        } else if (!isSelected) {
-            const nodes = tr.nodes().slice();
-            nodes.push(e.target)
 
             tr.nodes(nodes);
         }
@@ -90,9 +89,8 @@ const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHo
             dispatch(changeToolBarProperties(nodesAttr));
             dispatch(handleSelectedIds({ _id: ids, purpose: "FOR_EDITING" }));
         }
-    }, [dispatch, selectedShapesId, stageRef])
+    }, [dispatch, trRef]);
 
-    // <===================> Handle Mouse Events <========================>
     const handleMouseDown = useCallback((e: KonvaEventObject<MouseEvent, Stage>) => {
         const selector = selectorRef.current;
         const stage = stageRef.current;
@@ -102,8 +100,9 @@ const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHo
         const transformedPos = getTransformedPos(stage);
         if (!transformedPos) return;
 
-        const nodeType = e.target.nodeType;
+
         const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
+        const nodeType = e.target.nodeType;
 
         if (activeTool === ToolType.Cursor) {
             // Handle mouse down whether nodeType is "Stage" and "Shape".
@@ -122,14 +121,51 @@ const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHo
                     selector?.visible(true);
                 }
 
-                if (isNodesTheir && !metaPressed) {
+                if (isNodesTheir) {
                     clearSelection(tr);
                 }
             } else if (nodeType === "Shape") {
-                handleShapeSelectionByClick(e, tr, metaPressed)
+                const isSelected = tr.nodes().indexOf(e.target) >= 0;
+                if (!isSelected && !metaPressed) {
+                    tr.nodes([e.target]);
+                }
+
+                if (Array.isArray(tr.nodes()) && tr.nodes().length > 0) {
+                    const nodesAttr = tr.nodes().map((shape) => shape.attrs);
+                    const ids = nodesAttr.map((attr) => attr.id);
+
+                    dispatch(changeToolBarProperties(nodesAttr));
+                    dispatch(handleSelectedIds({ _id: ids, purpose: "FOR_EDITING" }));
+                }
+                // handleShapeSelectionByClick(e);
             }
         }
-    }, [activeTool, clearSelection, handleShapeSelectionByClick, stageRef, trRef]);
+    }, [activeTool, clearSelection, dispatch, stageRef, trRef]);
+
+    const handleMouseClick = useCallback((e: KonvaEventObject<MouseEvent, Stage>) => {
+        if (e.target.nodeType !== "Shape") return;
+
+        const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
+        const tr = trRef.current;
+        const selectedIds = selectedShapesId?._id
+        if (!tr || !selectedIds) return;
+
+        const isSelected = tr.nodes().indexOf(e.target) >= 0;
+        if (metaPressed) {
+            let nodes = tr.nodes().slice();
+            if (!isSelected) {
+                nodes.push(e.target);
+            } else {
+                nodes = tr.nodes().slice();
+                nodes.splice(nodes.indexOf(e.target), 1);
+            }
+
+            tr.nodes(nodes);
+        } else {
+            tr.nodes([e.target]);
+        }
+
+    }, [selectedShapesId?._id, trRef]);
 
     const handleMouseUp = useCallback(() => {
         const selector = selectorRef.current;
@@ -180,18 +216,20 @@ const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHo
         if (!stage) return;
 
         // Attach event listeners to the document
+        stage.on("click", handleMouseClick)
         stage.on("mousedown", handleMouseDown);
         stage.on("mouseup", handleMouseUp);
         stage.on("mousemove", handleMouseMove)
 
         return () => {
             // Clean up event listeners on component unmount
-            stage.off("mousemove", handleMouseMove);
+            stage.off("click", handleMouseClick);
             stage.off("mousedown", handleMouseDown);
+            stage.off("mousemove", handleMouseMove);
             stage.off("mouseup", handleMouseUp);
         }
 
-    }, [handleMouseDown, handleMouseMove, handleMouseUp, stageRef]);
+    }, [handleMouseClick, handleMouseDown, handleMouseMove, handleMouseUp, stageRef]);
 
     return (
         <Rect

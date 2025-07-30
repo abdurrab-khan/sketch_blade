@@ -30,8 +30,8 @@ export const Stage: React.FC<StageProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
-  const isDragging = useRef(false);
-  const isTransforming = useRef(false);
+  const isDragging = useRef<boolean>(false);
+  const isTransforming = useRef<boolean>(false);
 
   const activeTool = useSelector(
     (state: RootState) => state.app.activeTool.type,
@@ -65,6 +65,8 @@ export const Stage: React.FC<StageProps> = ({
           trRef={transformerRef}
           isHovered={isHovered}
           setIsHovered={setIsHovered}
+          isDragging={isDragging.current}
+          isTransforming={isTransforming.current}
         />
       </Layer>
     </KonvaStage>

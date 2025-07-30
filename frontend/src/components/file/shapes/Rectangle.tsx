@@ -91,40 +91,30 @@ const Rectangle: React.FC<Shape> = ({ ...props }) => {
   }
 
   return (
-    <React.Fragment>
-      <ShapeGroup
-        _id={props._id}
-        x={props.x}
-        y={props.y}
-        height={props.height}
-        width={props.width}
-        trRef={trRef}
-        type={ToolType.Rectangle}
-      >
-        <Rect
-          id={props._id}
-          name={"shape"}
-          ref={reactRef}
-          strokeScaleEnabled={false}
-          lineCap="round"
-          {...props}
-          x={0}
-          y={0}
-          offsetX={props.width / 2}
-          offsetY={props.height / 2}
-          draggable={false}
-          opacity={isSelected ? 0.3 : props.opacity}
-        />
-      </ShapeGroup>
-
-      <Transformer
-        ref={trRef}
-        handleTransforming={handleTransforming}
-        handleTransformingEnd={handleTransformingEnd}
-        handleDragMove={handleDragMove}
-        handleDragEnd={handleDragEnd}
+    <ShapeGroup
+      _id={props._id}
+      x={props.x}
+      y={props.y}
+      height={props.height}
+      width={props.width}
+      trRef={trRef}
+      type={ToolType.Rectangle}
+    >
+      <Rect
+        id={props._id}
+        name={"shape"}
+        ref={reactRef}
+        strokeScaleEnabled={false}
+        lineCap="round"
+        {...props}
+        x={0}
+        y={0}
+        offsetX={props.width / 2}
+        offsetY={props.height / 2}
+        draggable={false}
+        opacity={isSelected ? 0.3 : props.opacity}
       />
-    </React.Fragment>
+    </ShapeGroup>
   );
 };
 

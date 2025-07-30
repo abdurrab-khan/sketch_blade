@@ -2,15 +2,13 @@ import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { ArrowConfig } from "konva/lib/shapes/Arrow";
 import { useDispatch, useSelector } from "react-redux";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Circle, Arrow as KonvaArrow } from "react-konva";
 
 import { Arrow as ArrowType, Shape } from "../../../types/shapes";
 
 import { RootState } from "../../../redux/store";
 import { updateExistingShapes } from "../../../redux/slices/appSlice";
-
-import Transformer from "../whiteboard/Transformer";
 
 import { getUpdatedAttachProps } from "../../../utils/ShapeUtils";
 import { checkRefValue } from "../../../utils/AppUtils";
@@ -143,53 +141,44 @@ const Arrow: React.FC<Shape> = ({ ...props }) => {
 
 
   return (
-    <React.Fragment>
-      <ShapeGroup
-        _id={props._id}
-        trRef={trRef}
-        groupRef={groupRef}
-        type={ToolType.PointArrow}
-        setIsClicked={setIsClicked}
-        isClicked={isClicked}
-      >
-        <KonvaArrow ref={arrowRef} {...props} lineCap="round" name={"shape"} />
-        {
-          isClicked && (props as ArrowConfig).points.map((_, i) => {
-            if (i % 2 === 0) return null;
+    <ShapeGroup
+      _id={props._id}
+      trRef={trRef}
+      groupRef={groupRef}
+      type={ToolType.PointArrow}
+      setIsClicked={setIsClicked}
+      isClicked={isClicked}
+    >
+      <KonvaArrow ref={arrowRef} {...props} lineCap="round" name={"shape"} />
+      {
+        isClicked && (props as ArrowConfig).points.map((_, i) => {
+          if (i % 2 === 0) return null;
 
-            const points = (props as ArrowConfig).points;
-            const x = points[i - 1];
-            const y = points[i];
-            const pointIndex = i / 2;
+          const points = (props as ArrowConfig).points;
+          const x = points[i - 1];
+          const y = points[i];
+          const pointIndex = i / 2;
 
-            return (
-              <Circle
-                key={i}
-                ref={(node) => {
-                  if (node) {
-                    circleRefs.current[pointIndex] = node;
-                  }
-                }}
-                x={x}
-                y={y}
-                radius={ARROW_CIRCLE_RADIUS}
-                stroke="lightgray"
-                onDragMove={(e) => handlePointDrag(pointIndex, e)}
-                onDragEnd={handleCircleDragEnd}
-                draggable
-              />
-            )
-          })
-        }
-      </ShapeGroup>
-      <Transformer
-        ref={trRef}
-        handleTransforming={handleTransforming}
-        handleTransformingEnd={handleMovementEnd}
-        handleDragMove={handleDragMove}
-        handleDragEnd={handleMovementEnd}
-      />
-    </React.Fragment>
+          return (
+            <Circle
+              key={i}
+              ref={(node) => {
+                if (node) {
+                  circleRefs.current[pointIndex] = node;
+                }
+              }}
+              x={x}
+              y={y}
+              radius={ARROW_CIRCLE_RADIUS}
+              stroke="lightgray"
+              onDragMove={(e) => handlePointDrag(pointIndex, e)}
+              onDragEnd={handleCircleDragEnd}
+              draggable
+            />
+          )
+        })
+      }
+    </ShapeGroup>
   );
 };
 
