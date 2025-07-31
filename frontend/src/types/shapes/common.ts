@@ -32,7 +32,7 @@ export interface BoundedShapeProperties {
 }
 
 export interface CommonText {
-  text: string;
+  text: string[];
   fontSize: FontSize;
   fontFamily: FontFamily;
   color: string;

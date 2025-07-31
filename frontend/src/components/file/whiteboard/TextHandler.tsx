@@ -1,3 +1,5 @@
+import { CommonText } from '@/types/shapes';
+import { getTextAreaHeight, getTextAreaWidth } from '@/utils/TextUtils';
 import Konva from 'konva'
 import { KonvaEventObject } from 'konva/lib/Node';
 import React, { useCallback, useEffect, useState } from 'react'
@@ -6,9 +8,19 @@ interface TextHandlerProps {
     stageRef: React.RefObject<Konva.Stage>
 }
 
+interface TextProps {
+    textAreaX: number,
+    textAreaY: number,
+    textAreaHeight: number,
+    textAreaWidth: number,
+    text: CommonText | null
+}
 
-const extractShape = (e: KonvaEventObject<MouseEvent>): { x: number, y: number, height: number, width: number } | null => {
-    let x, y, height, width;
+const DEFAULT_FONT_SIZE = 18;
+const DEFAULT_FONT_FAMILY = "roman";
+
+const extractShapeProps = (e: KonvaEventObject<MouseEvent>): TextProps | null => {
+    let textAreaX, textAreaY, textAreaHeight, textAreaWidth, text;
     const target = e.target;
     const parent = target.nodeType !== "Stage" ? target.getParent() : target;
 
@@ -16,34 +28,39 @@ const extractShape = (e: KonvaEventObject<MouseEvent>): { x: number, y: number, 
         const shape = (parent as Konva.Group).findOne(".shape");
         if (!shape) return null;
 
-        x = parent.x();
-        y = parent.y();
-        height = shape.height();
-        width = shape.width();
+        const x = parent.x();
+        const y = parent.y();
+        text = shape?.attrs?.text ?? null;
+
+        const fontSize = text ? text.fontSize : DEFAULT_FONT_SIZE;
+        const fontFamily = text ? text.fontFamily : DEFAULT_FONT_FAMILY;
+
+        // Calculate text size based on text size and other factors
+        textAreaHeight = getTextAreaHeight(text, fontSize);
+        textAreaWidth = getTextAreaWidth(text, fontSize, fontFamily);
+        textAreaX = x - (textAreaHeight / 2);
+        textAreaY = y - (textAreaWidth / 2);
     } else {
-        // console.log(parent)
         return null
     }
 
     return {
-        x,
-        y,
-        height,
-        width
+        textAreaX,
+        textAreaY,
+        textAreaHeight,
+        textAreaWidth,
+        text
     };
 }
 
 export default function TextHandler({ stageRef }: TextHandlerProps) {
-    const [props, setProps] = useState(null);
+    const [textProps, setTextProps] = useState<TextProps | null>(null);
 
     const handleStageDblClick = useCallback((e: KonvaEventObject<MouseEvent>) => {
-        const shape = extractShape(e);
+        const shape = extractShapeProps(e);
 
         if (shape) {
-            const { x, y, height, width } = shape;
-
-            setProps({ x, y });
-            // console.log({ x, y, height, width })
+            setTextProps(shape)
         }
     }, []);
 
@@ -58,13 +75,26 @@ export default function TextHandler({ stageRef }: TextHandlerProps) {
     }, [handleStageDblClick, stageRef])
 
     return (
-        props && (
+        textProps ? (
             <div
-                style={{ left: props.x, top: props.y }}
-                className={`absolute bg-yellow-500 m-0 p-0 h-20 w-20 z-50`}
+                style={{
+                    top: textProps.textAreaY,
+                    left: textProps.textAreaX,
+                    height: textProps.textAreaHeight,
+                    width: textProps.textAreaWidth
+                }}
+                className={`absolute z-50`}
             >
-
+                <textarea
+                    wrap='off'
+                    autoFocus
+                    style={{
+                        fontSize: textProps?.text ? textProps.text.fontSize : DEFAULT_FONT_SIZE,
+                        lineHeight: textProps?.text ? textProps.text.fontSize : DEFAULT_FONT_SIZE
+                    }}
+                    className='size-full bg-blue-500 m-0 p-0 resize-none border-none outline-none text-center box-content'
+                />
             </div>
-        )
+        ) : null
     )
 }

@@ -10,7 +10,6 @@ import { updateExistingShapes } from "../../../redux/slices/appSlice";
 
 // Canvas
 import Konva from "konva";
-import Transformer from "../whiteboard/Transformer";
 import { Ellipse as KonvaEllipse } from "react-konva";
 import { KonvaEventObject } from "konva/lib/Node";
 

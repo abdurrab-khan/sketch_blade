@@ -1,10 +1,9 @@
 import Konva from "konva";
-import { Group } from "react-konva";
+import { Group, Transformer } from "react-konva";
 import { KonvaEventObject } from "konva/lib/Node";
-import { forwardRef, MutableRefObject, useEffect, useRef } from "react";
+import { forwardRef, MutableRefObject, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import Transformer from "./Transformer";
 
 // Redux
 import { RootState } from "../../../redux/store";
@@ -146,10 +145,38 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
     <Group ref={groupRef}>
       <Transformer
         ref={tr}
-        handleTransforming={handleTransforming}
-        handleTransformingEnd={handleTransformingEnd}
-        handleDragMove={handleDragMove}
-        handleDragEnd={handleDragEnd}
+        anchorCornerRadius={1.5}
+        anchorSize={9}
+        rotateLineVisible={false}
+        anchorFill={"#1b262c"}
+        ignoreStroke={true}
+        anchorStyleFunc={(anchor) => {
+          const node = anchor?.getParent();
+
+          if (!node) return;
+
+          if (anchor.hasName("top-center") || anchor.hasName("bottom-center")) {
+            anchor.height(6);
+            anchor.width(30);
+            anchor.opacity(0);
+          }
+
+          // For middle anchors - full height
+          if (anchor.hasName("middle-left") || anchor.hasName("middle-right")) {
+            anchor.height(30);
+            anchor.width(6);
+            anchor.opacity(0);
+          }
+
+          // For rotating anchor (top-right corner)
+          if (anchor.hasName("rotater")) {
+            anchor.cornerRadius(8);
+          }
+        }}
+        onTransform={handleTransforming}
+        onTransformEnd={handleTransformingEnd}
+        onDragMove={handleDragMove}
+        onDragEnd={handleDragEnd}
       />
     </Group>
   );

@@ -1,4 +1,3 @@
-import React from "react";
 import ZoomBtn from "./whiteboard/others/ZoomBtn";
 import UndoBtn from "./whiteboard/others/UndoBtn";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -9,7 +8,7 @@ import { Input } from "../ui/input";
 
 export const Footer = () => {
   return (
-    <div className={"relative z-50 h-12 w-full"}>
+    <div className={"relative z-50 h-12 w-full pointer-events-none"}>
       <div
         className={"hidden size-full items-center justify-end gap-4 md:flex"}
       >

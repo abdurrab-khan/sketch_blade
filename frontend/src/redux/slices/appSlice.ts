@@ -8,13 +8,8 @@ import { getCombineShapeProps } from "../../utils/Tool.ts";
 import { SelectionPurpose } from "../../types/shapes/common.ts";
 
 // Types
-import { Arrow, AttachedShape } from "../../types/shapes/arrow.ts";
 import { ArrowProps, SelectedShapesId } from "../../types/index.ts";
-import {
-  ArrowSupportedShapes,
-  Shape,
-  UpdateShape,
-} from "../../types/shapes/shape-union.ts";
+import { Shape, UpdateShape } from "../../types/shapes/shape-union.ts";
 import {
   ActiveTool,
   ToolBarProperties,

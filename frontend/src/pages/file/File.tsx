@@ -51,10 +51,11 @@ const File = () => {
         "size-screen relative bg-primary text-quaternary"
       }
     >
-      <Nav fileId={fileId as string} />
-      <ToolActions />
-      <Footer />
-
+      <div className="size-full flex flex-col justify-between">
+        <Nav fileId={fileId as string} />
+        <ToolActions />
+        <Footer />
+      </div>
       {/* Konva -- Canvas */}
       <Whiteboard />
     </main>
