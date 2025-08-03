@@ -1,3 +1,4 @@
+import { TextToolProps } from "../tools/tool";
 import { CommonShapeType, CommonText } from "./common";
 
 export interface Text extends CommonShapeType, CommonText {
@@ -5,4 +6,5 @@ export interface Text extends CommonShapeType, CommonText {
   y: number;
   height: number;
   width: number;
+  customProperties: TextToolProps;
 }

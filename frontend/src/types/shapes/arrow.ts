@@ -1,4 +1,4 @@
-import { ToolBarProperties } from "../tools/tool";
+import { PointArrowToolProps } from "../tools/tool";
 import { CommonShapeType, ArrowPosition } from "./common";
 
 export type AttachedShape = Record<ArrowPosition, string>;
@@ -11,5 +11,5 @@ export interface Arrow extends CommonShapeType {
   tension: number;
   isDrawingArrow: boolean;
   attachedShape: AttachedShape | null;
-  customProperties: Partial<ToolBarProperties>;
+  customProperties: PointArrowToolProps;
 }

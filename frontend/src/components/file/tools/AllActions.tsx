@@ -3,9 +3,10 @@ import ToolActionsProperties, { IToolBarPropertiesValue } from "./const.ts";
 import { ToggleGroup, ToggleGroupItem } from "../../ui/toggle-group.tsx";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store.ts";
-import { changeToolBarPropertiesValue, updateExistingShapes } from "../../../redux/slices/appSlice.ts";
-import { ToolBarProperties } from "@/types/tools/tool.ts";
+import { updateToolBarProperties, updateExistingShapes } from "../../../redux/slices/appSlice.ts";
+import { AllToolBarProperties } from "@/types/tools/tool.ts";
 import { getShapeProperties } from "@/utils/ShapeUtils.ts";
+import { AllToolBarPropertiesKeys } from "@/types/tools/common.ts";
 
 interface ContainerProps {
   children: React.ReactNode;
@@ -13,7 +14,7 @@ interface ContainerProps {
 }
 
 interface MainToggleGroup {
-  toolKey: keyof ToolBarProperties
+  toolKey: AllToolBarPropertiesKeys
 }
 
 const Container: React.FC<ContainerProps> = ({ children, label }) => {
@@ -32,6 +33,7 @@ const ToolItem = ({ propsValue }: { propsValue: IToolBarPropertiesValue | string
 
   return (
     <ToggleGroupItem
+      name="tools"
       value={value}
       aria-label={`Toggle ${value}`}
       className={"p-0"}
@@ -58,7 +60,7 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
   const dispatch = useDispatch();
 
   // Handler Function --
-  const getUpdatedShapeProps = useCallback((updatedValue: Partial<ToolBarProperties>) => {
+  const getUpdatedShapeProps = useCallback((updatedValue: Partial<AllToolBarProperties>) => {
     // Check --  The give property exits on the shape or not.
     const updatedProperties = getShapeProperties(
       [toolKey],
@@ -92,7 +94,7 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
     }
 
     // Update the "ToolBarProperties" value
-    dispatch(changeToolBarPropertiesValue({ [toolKey]: v }));
+    dispatch(updateToolBarProperties({ [toolKey]: v }));
 
     if (selectedShapeId) {
       if (Array.isArray(selectedShapeId) && selectedShapeId?.length === 0) return;

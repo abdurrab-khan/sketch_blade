@@ -94,18 +94,16 @@ const Rectangle: React.FC<RectType> = ({ ...props }) => {
       _id={props._id}
       x={props.x}
       y={props.y}
-      trRef={trRef}
-      type={ToolType.Rectangle}
     >
       <Rect
         id={props._id}
         name={"shape"}
         ref={reactRef}
-        strokeScaleEnabled={false}
-        lineCap="round"
         {...props}
         x={0}
         y={0}
+        strokeScaleEnabled={false}
+        lineCap="round"
         offsetX={props.width / 2}
         offsetY={props.height / 2}
         draggable={false}

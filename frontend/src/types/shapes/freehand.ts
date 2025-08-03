@@ -1,4 +1,4 @@
-import { ToolBarProperties } from "../tools/tool";
+import { FreeHandToolProps } from "../tools/tool";
 import { CommonShapeType } from "./common";
 
 export interface FreeHand extends CommonShapeType {
@@ -7,5 +7,5 @@ export interface FreeHand extends CommonShapeType {
   stroke: string;
   strokeWidth: number;
   tension: number;
-  customProperties: Partial<ToolBarProperties>;
+  customProperties: FreeHandToolProps;
 }

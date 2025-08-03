@@ -7,7 +7,12 @@ import {
   Ellipse,
   Shape,
 } from "../types/shapes";
-import { ToolBarProperties, ToolType } from "../types/tools/tool";
+import {
+  AllToolBarProperties,
+  AllToolTypeObj,
+  ToolBarProperties,
+  ToolType,
+} from "../types/tools/tool";
 import {
   ArrowSupportedShapes as ShapesThatSupportArrow,
   MAX_ARROW_LIMIT,
@@ -20,6 +25,7 @@ import {
   findBestConnectionPoints,
   getArrowPointsForPosition,
 } from "./Helper";
+import { AllToolBarPropertiesKeys } from "@/types/tools/common";
 
 interface PropsToAddArrow {
   arrowProps: ArrowProps[];
@@ -52,8 +58,8 @@ export interface DeletedShapeProps {
  * @param toolBarProperties {Partial<ToolBarProperties>}
  */
 export function getShapeProperties(
-  key: (keyof ToolBarProperties)[],
-  toolBarProperties: Partial<ToolBarProperties>,
+  key: AllToolBarPropertiesKeys[],
+  toolBarProperties: AllToolBarProperties,
   activeTool?: ToolType,
 ) {
   if (key.length <= 0 || !Array.isArray(key)) return {};
@@ -112,6 +118,27 @@ export function getShapeProperties(
           dash = [3, 10];
         }
         properties = { ...properties, dash };
+        break;
+      }
+      case "fontSize": {
+        const fontSize = toolBarProperties?.fontSize;
+        let size;
+
+        if (fontSize === "SMALL") {
+          size = 22;
+        } else if (fontSize === "MEDIUM") {
+          size = 24;
+        } else {
+          size = 28;
+        }
+
+        properties = { ...properties, fontSize: size };
+        break;
+      }
+      case "textAlign": {
+        const textAlign = toolBarProperties.textAlign;
+
+        properties = { ...properties, textAlign: textAlign?.toLowerCase() };
         break;
       }
       default: {

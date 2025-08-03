@@ -19,9 +19,27 @@ export function getTextAreaHeight(
 export function getTextAreaWidth(
   text: string[] | null,
   fontSize: number,
-  fontFamily: number,
+  fontFamily: string,
 ): number {
   const textSize = getMaxText(text);
 
   return textSize * (fontSize * 0.6);
+}
+
+export function calculateTextAreaProps(
+  x: number,
+  y: number,
+  text: string[] | null,
+  fontSize: number,
+  fontFamily: string,
+) {
+  const textAreaHeight = getTextAreaHeight(text, fontSize);
+  const textAreaWidth = getTextAreaWidth(text, fontSize, fontFamily);
+
+  return {
+    textAreaHeight,
+    textAreaWidth,
+    textAreaX: x - textAreaWidth / 2,
+    textAreaY: y - textAreaHeight / 2,
+  };
 }

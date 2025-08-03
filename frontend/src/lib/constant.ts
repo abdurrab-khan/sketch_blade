@@ -1,4 +1,5 @@
-import { ToolType } from "../types/tools/tool";
+import { CommonToolProperties } from "@/types/tools/common";
+import { AllToolTypeObj } from "@/types/tools/tool";
 
 export const MAX_ARROW_LIMIT = 15;
 export const ARROW_CIRCLE_RADIUS = 4;
@@ -13,7 +14,7 @@ export const ToolBarArr = [
 
 export const ArrowSupportedShapes = ["rectangle", "ellipse", "text"];
 
-const commonProperties = {
+const commonProperties: CommonToolProperties = {
   stroke: "#3282B8",
   strokeStyle: "SOLID",
   strokeWidth: "THIN",
@@ -21,14 +22,10 @@ const commonProperties = {
   draggable: true,
 };
 
-export const toolBarProperties: {
-  [key in ToolType]: Record<string, string | number | any> | null;
-} = {
-  cursor: null,
+export const toolBarProperties: AllToolTypeObj = {
   "free hand": {
     ...commonProperties,
   },
-  hand: null,
   ellipse: {
     fill: "#0A1F2C",
     fillStyle: "SOLID",
@@ -41,15 +38,16 @@ export const toolBarProperties: {
     ...commonProperties,
   },
   text: {
-    stroke: "#3282B8",
+    stroke: "#ffffff",
     fontSize: "MEDIUM",
+    fontFamily: "NORMAL",
+    textAlign: "CENTER",
     opacity: 1,
   },
   eraser: {
     eraserRadius: 15,
   },
   "point arrow": { ...commonProperties, edgeStyle: "ROUNDED" },
-  upload: null,
 };
 
 export const LOCALSTORAGE_KEY = "canvas_all_shapes";

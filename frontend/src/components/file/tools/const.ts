@@ -7,7 +7,7 @@ import {
   StrokeStyle,
   StrokeWidth,
 } from "../../../types/shapes";
-import { ToolBarProperties } from "@/types/tools/tool";
+import { AllToolBarProperties } from "@/types/tools/tool";
 
 export interface IToolBarPropertiesValue {
   icon: IconType | string;
@@ -15,7 +15,7 @@ export interface IToolBarPropertiesValue {
 }
 
 export type ToolActionsPropertiesT = {
-  [K in Exclude<keyof ToolBarProperties, "opacity" | "eraserRadius">]:
+  [K in Exclude<keyof AllToolBarProperties, "opacity" | "eraserRadius">]:
     | IToolBarPropertiesValue[]
     | string[];
 };

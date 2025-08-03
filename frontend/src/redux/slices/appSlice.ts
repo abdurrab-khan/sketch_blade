@@ -65,14 +65,23 @@ export const appSlice = createSlice({
       }
     },
 
-    changeToolBarPropertiesValue: (state, action) => {
+    removeUpdateToolBarProperties: (state, action) => {
       const payload = action.payload;
-      if (!payload) return;
 
-      state.toolBarProperties = {
-        ...state.toolBarProperties,
-        ...payload,
-      };
+      state.toolBarProperties = payload;
+    },
+
+    updateToolBarProperties: (state, action) => {
+      const payload = action.payload;
+
+      if (payload === null) {
+        state.toolBarProperties = null;
+      } else {
+        state.toolBarProperties = {
+          ...state.toolBarProperties,
+          ...payload,
+        };
+      }
     },
 
     changeToolBarProperties: (state, action) => {
@@ -235,7 +244,8 @@ export const appSlice = createSlice({
 
 export const {
   changeActiveTool,
-  changeToolBarPropertiesValue,
+  removeUpdateToolBarProperties,
+  updateToolBarProperties,
   changeToolBarProperties,
   setShapes,
   handleSelectedIds,

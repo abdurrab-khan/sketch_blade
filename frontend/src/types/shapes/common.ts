@@ -12,6 +12,7 @@ export type TextHorizontalAlign = "LEFT" | "CENTER" | "RIGHT";
 export type TextVerticalAlign = "TOP" | "MIDDLE" | "BOTTOM";
 export type ArrowDirection = "LEFT" | "RIGHT" | "TOP" | "BOTTOM" | "CENTER";
 export type FontFamily = "NORMAL" | "CODE" | "JO BHI HAI";
+export type TextAlign = "LEFT" | "CENTER" | "RIGHT";
 
 export type SelectionPurpose = "FOR_EDITING" | "FOR_DELETING" | "DEFAULT";
 
