@@ -3,21 +3,33 @@ import { TbLetterS, TbLetterM, TbLetterL } from "react-icons/tb";
 import {
   EdgeStyle,
   FillStyle,
+  FontFamily,
   FontSize,
   StrokeStyle,
   StrokeWidth,
+  TextAlign,
 } from "../../../types/shapes";
 import { AllToolBarProperties } from "@/types/tools/tool";
+import { FaAlignCenter, FaAlignLeft, FaAlignRight } from "react-icons/fa";
+import { CiText } from "react-icons/ci";
 
 export interface IToolBarPropertiesValue {
   icon: IconType | string;
-  value: FillStyle | StrokeWidth | StrokeStyle | EdgeStyle | FontSize;
+  value:
+    | FillStyle
+    | StrokeWidth
+    | StrokeStyle
+    | EdgeStyle
+    | FontSize
+    | FontFamily
+    | TextAlign;
 }
 
 export type ToolActionsPropertiesT = {
-  [K in Exclude<keyof AllToolBarProperties, "opacity" | "eraserRadius">]:
-    | IToolBarPropertiesValue[]
-    | string[];
+  [K in Exclude<
+    keyof AllToolBarProperties,
+    "opacity" | "eraserRadius" | "type" | "draggable"
+  >]: IToolBarPropertiesValue[] | string[];
 };
 
 const BASE_URL = "/assets/icons/";
@@ -89,6 +101,34 @@ const ToolActionsProperties: ToolActionsPropertiesT = {
     {
       icon: TbLetterL,
       value: "LARGE",
+    },
+  ],
+  fontFamily: [
+    {
+      icon: CiText,
+      value: "NORMAL",
+    },
+    {
+      icon: CiText,
+      value: "CODE",
+    },
+    {
+      icon: CiText,
+      value: "JO BHI HAI",
+    },
+  ],
+  textAlign: [
+    {
+      icon: FaAlignLeft,
+      value: "LEFT",
+    },
+    {
+      icon: FaAlignCenter,
+      value: "CENTER",
+    },
+    {
+      icon: FaAlignRight,
+      value: "RIGHT",
     },
   ],
 };

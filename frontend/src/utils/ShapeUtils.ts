@@ -60,7 +60,6 @@ export interface DeletedShapeProps {
 export function getShapeProperties(
   key: AllToolBarPropertiesKeys[],
   toolBarProperties: AllToolBarProperties,
-  activeTool?: ToolType,
 ) {
   if (key.length <= 0 || !Array.isArray(key)) return {};
 
@@ -74,14 +73,8 @@ export function getShapeProperties(
         const tension = property === "SHARP" ? 0 : 0.15;
         const cornerRadius = property === "SHARP" ? 0 : 32;
 
-        const radiusValue = !activeTool
-          ? {
-              customEdgeRadius: {
-                tension,
-                cornerRadius,
-              },
-            }
-          : activeTool === ToolType.PointArrow
+        const radiusValue =
+          toolBarProperties.type === "point arrow"
             ? {
                 tension,
               }

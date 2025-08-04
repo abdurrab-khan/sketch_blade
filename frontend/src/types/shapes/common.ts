@@ -1,6 +1,7 @@
 import { Collaborator } from "../user";
-import { DrawingToolTypeLiteral, ToolBarProperties } from "../tools/tool";
+import { DrawingToolTypeLiteral, AllToolBarProperties } from "../tools/tool";
 import { ArrowProps } from "..";
+import { Text } from "./text";
 
 export type StrokeStyle = "SOLID" | "DOTTED" | "DASHED";
 export type FillStyle = "SOLID" | "CROSSHATCH" | "HACHURE";
@@ -26,20 +27,10 @@ export interface BoundedShapeProperties {
   strokeWidth: number;
   dash: number[];
   lineCap: EdgeStyle;
-  customProperties: ToolBarProperties;
-  text: CommonText | null;
+  customProperties: AllToolBarProperties;
+  text: Text | null;
   fillPatternImage: string | null;
   arrowProps?: ArrowProps[];
-}
-
-export interface CommonText {
-  text: string[];
-  fontSize: FontSize;
-  fontFamily: FontFamily;
-  color: string;
-  horizontalAlign: TextHorizontalAlign;
-  verticalAlign: TextVerticalAlign;
-  customProperties: Partial<ToolBarProperties>;
 }
 
 export interface CommonShapeType {

@@ -1,33 +1,16 @@
+import Konva from 'konva'
 import { toolBarProperties as toolBarProps } from '@/lib/constant';
 import { removeUpdateToolBarProperties } from '@/redux/slices/appSlice';
 import { RootState } from '@/redux/store';
-import { TextToolProps, ToolBarProperties } from '@/types/tools/tool';
-import { getShapeProperties } from '@/utils/ShapeUtils';
-import { calculateTextAreaProps } from '@/utils/TextUtils';
-import Konva from 'konva'
+import { Texts } from '@/types/shapes';
 import { KonvaEventObject } from 'konva/lib/Node';
-import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import useShapeProperties from '@/hooks/useShapeProperties';
+import { TextToolProps, ToolType } from '@/types/tools/tool';
 
 interface TextHandlerProps {
     stageRef: React.RefObject<Konva.Stage>
-}
-
-interface Text {
-    stroke: string,
-    text: string[] | null,
-    fontSize: number,
-    fontFamily: string,
-    textAlign: "left" | "center" | "right",
-    opacity: number
-}
-
-interface TextProps {
-    textAreaX: number,
-    textAreaY: number,
-    textAreaHeight: number,
-    textAreaWidth: number,
-    text: Text
 }
 
 interface ShapeProps {
@@ -86,10 +69,14 @@ const extractShapeProps = (e: KonvaEventObject<MouseEvent>): ExtractShapeProps |
 
 export default function TextHandler({ stageRef }: TextHandlerProps) {
     const shapeProps = useRef<ShapeProps | null>(null);
-    const [textProps, setTextProps] = useState<TextProps | null>(null);
+    const [textProps, setTextProps] = useState<Texts | null>(null);
 
     const dispatch = useDispatch();
+    const activeTool = useSelector((state: RootState) => state.app.activeTool.type);
     const toolBarProperties = useSelector((state: RootState) => state.app.toolBarProperties);
+    const newShapeProps = useShapeProperties();
+
+    // <===================> HELPER FUNCTIONS <===================>  
 
 
     // <===================> MOUSE EVENT HANDLER <===================>  
@@ -97,8 +84,15 @@ export default function TextHandler({ stageRef }: TextHandlerProps) {
         return "";
     }
 
+    const handleStageClick = useCallback((e: KonvaEventObject<MouseEvent>) => {
+        if (activeTool !== ToolType.Text && newShapeProps) return;
+
+        console.log(e)
+
+    }, [activeTool, newShapeProps])
+
     const handleStageDblClick = useCallback((e: KonvaEventObject<MouseEvent>) => {
-        const textToolProps = toolBarProps["text"] as ToolBarProperties;
+        const textToolProps = toolBarProps["text"] as TextToolProps;
 
         const shape = extractShapeProps(e);
         if (shape) {
@@ -121,34 +115,37 @@ export default function TextHandler({ stageRef }: TextHandlerProps) {
         if (!stage) return;
 
         stage.on("dblclick", handleStageDblClick);
+        stage.on("click", handleStageClick)
+
         return () => {
             stage.off("dblclick", handleStageDblClick)
+            stage.off("click", handleStageClick)
         }
-    }, [handleStageDblClick, stageRef]);
+    }, [stageRef, handleStageClick, handleStageDblClick]);
 
-    useEffect(() => {
-        if (shapeProps.current === null) return;
+    // useEffect(() => {
+    //     if (shapeProps.current === null) return;
 
-        const textToolProps = toolBarProperties as TextToolProps | null;
-        if (textToolProps && (textToolProps["fontSize"] && textToolProps["fontFamily"])) {
-            const extractTextProps = getShapeProperties(Object.keys(textToolProps) as (keyof ToolBarProperties)[], textToolProps) as Text;
+    //     const textToolProps = toolBarProperties;
+    //     if (textToolProps && (textToolProps["fontSize"] && textToolProps["fontFamily"])) {
+    //         const extractTextProps = getShapeProperties(Object.keys(textToolProps), textToolProps) as TextToolProps;
 
-            const { x, y, text } = shapeProps.current;
+    //         const { x, y, text } = shapeProps.current;
 
-            const textAreaProps = calculateTextAreaProps(x, y, text, (extractTextProps.fontSize as unknown as number), extractTextProps["fontFamily"]);
-            setTextProps({ ...textAreaProps, text: extractTextProps });
-        };
-    }, [toolBarProperties, shapeProps]);
+    //         const textAreaProps = calculateTextAreaProps(x, y, text, (extractTextProps.fontSize as unknown as number), extractTextProps.fontFamily);
+    //     };
+    // }, [toolBarProperties]);
 
+    console.log(newShapeProps)
 
     return (
-        (textProps && toolBarProperties) ? (
+        textProps ? (
             <div
                 style={{
-                    top: textProps.textAreaY,
-                    left: textProps.textAreaX,
-                    height: textProps.textAreaHeight,
-                    width: textProps.textAreaWidth
+                    top: textProps.x,
+                    left: textProps.y,
+                    height: textProps.height,
+                    width: textProps.width
                 }}
                 className={`absolute z-50`}
             >
@@ -157,10 +154,10 @@ export default function TextHandler({ stageRef }: TextHandlerProps) {
                     name='text'
                     autoFocus
                     style={{
-                        fontSize: textProps.text.fontSize,
-                        lineHeight: textProps.text.fontSize + "px",
-                        textAlign: textProps.text.textAlign,
-                        color: textProps.text.stroke
+                        fontSize: textProps.fontSize + "px",
+                        lineHeight: textProps.fontSize + "px",
+                        textAlign: textProps.textAlign,
+                        color: textProps.stroke
                     }}
                     className='size-full bg-blue-500 m-0 p-0 text-center box-content border-none outline-none resize-none overflow-hidden'
                     onChange={handleInput}

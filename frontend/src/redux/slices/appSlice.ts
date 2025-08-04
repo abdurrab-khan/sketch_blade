@@ -12,7 +12,7 @@ import { ArrowProps, SelectedShapesId } from "../../types/index.ts";
 import { Shape, UpdateShape } from "../../types/shapes/shape-union.ts";
 import {
   ActiveTool,
-  ToolBarProperties,
+  AllToolBarProperties,
   ToolType,
 } from "../../types/tools/tool.ts";
 import { toolBarProperties } from "@/lib/constant.ts";
@@ -21,7 +21,7 @@ type AppState = {
   clerkId: string | null;
   shapes: Shape[];
   activeTool: ActiveTool;
-  toolBarProperties: Partial<ToolBarProperties> | null;
+  toolBarProperties: Partial<AllToolBarProperties> | null;
   selectedShapesId: SelectedShapesId | null;
   selectedShapeToAddArrow: ArrowProps | null;
 };

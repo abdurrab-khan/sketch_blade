@@ -1,7 +1,7 @@
 import Konva from "konva";
 import { useSelector } from "react-redux";
 import { Stage as KonvaStage, Layer } from "react-konva";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import GlobalTransformer from "./GlobalTransformer";
 
 // Redux
@@ -65,8 +65,6 @@ export const Stage: React.FC<StageProps> = ({
           trRef={transformerRef}
           isHovered={isHovered}
           setIsHovered={setIsHovered}
-          isDragging={isDragging.current}
-          isTransforming={isTransforming.current}
         />
       </Layer>
     </KonvaStage>

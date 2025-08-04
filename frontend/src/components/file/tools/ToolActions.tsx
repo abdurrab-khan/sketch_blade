@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 
 import { RootState } from "../../../redux/store";
-import { ToolBarProperties } from "../../../types/tools/tool";
+import { AllToolBarProperties } from "../../../types/tools/tool";
 import AllActions from "./AllActions";
 
 interface ContainerProps {
@@ -27,7 +27,7 @@ const ToolActions = () => {
 
   if (!toolBarProperties) return <></>;
 
-  const propertiesElement: (keyof ToolBarProperties)[] = [
+  const propertiesElement: (keyof AllToolBarProperties)[] = [
     "fill",
     "stroke",
     "fillStyle",
@@ -35,6 +35,8 @@ const ToolActions = () => {
     "strokeWidth",
     "edgeStyle",
     "fontSize",
+    "fontFamily",
+    "textAlign",
     "eraserRadius",
     "opacity",
   ];
@@ -42,7 +44,7 @@ const ToolActions = () => {
   return (
     <Container>
       {propertiesElement.map((key, index) =>
-        toolBarProperties[key as keyof ToolBarProperties] ? (
+        toolBarProperties[key as keyof AllToolBarProperties] ? (
           <AllActions key={index} toolKey={key} />
         ) : null,
       )}

@@ -1,39 +1,28 @@
 import { useSelector } from "react-redux";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { RootState } from "../redux/store.ts";
-import { ToolBarArr } from "../lib/constant.ts";
 import { Shape } from "../types/shapes/shape-union.ts";
-import { ToolBarProperties } from "../types/tools/tool.ts";
 import { getShapeProperties } from "../utils/ShapeUtils.ts";
 
 const useShapeProperties = (): Shape | null => {
-  const [shapeProperties, setShapeProperties] = useState<Shape | null>(null);
+  const { toolBarProperties: properties } = useSelector(
+    (state: RootState) => state.app,
+  );
 
-  const {
-    activeTool: { type: activeTool },
-    toolBarProperties: properties,
-  } = useSelector((state: RootState) => state.app);
+  const shapeProperties = useMemo(() => {
+    if (!properties) return null;
 
-  useEffect(() => {
-    if (!properties) return;
+    const allProperties = getShapeProperties(
+      Object.keys(properties),
+      properties,
+    );
 
-    if (ToolBarArr.includes(activeTool)) {
-      const allProperties = getShapeProperties(
-        Object.keys(properties) as (keyof ToolBarProperties)[],
-        properties,
-        activeTool,
-      );
-
-      setShapeProperties({
-        type: activeTool,
-        isAddable: false,
-        customProperties: properties,
-        ...allProperties,
-      } as Shape);
-    } else {
-      setShapeProperties(null);
-    }
-  }, [activeTool, properties]);
+    return {
+      isAddable: false,
+      customProperties: properties,
+      ...allProperties,
+    } as Shape;
+  }, [properties]);
 
   return shapeProperties;
 };

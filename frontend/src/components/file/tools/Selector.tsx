@@ -14,11 +14,9 @@ interface SelectorProps {
     trRef: React.RefObject<Konva.Transformer>
     isHovered: boolean,
     setIsHovered: React.Dispatch<React.SetStateAction<boolean>>,
-    isDragging: boolean,
-    isTransforming: boolean
 }
 
-const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHovered, isDragging, isTransforming }) => {
+const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHovered }) => {
     const dispatch = useDispatch();
 
     const { activeTool: { type: activeTool }, selectedShapesId } = useSelector((state: RootState) => state.app);

@@ -68,11 +68,10 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
     );
 
     return {
+      ...updatedProperties,
       customProperties: { ...updatedValue },
-      ...updatedProperties
     }
   }, [toolKey]);
-
 
   // Handler function -- 
   const handleValueChange = async (v: string | number) => {
@@ -113,7 +112,7 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
       // await debounceHandleChange(generateUpdatedProps);
       dispatch(updateExistingShapes(generateUpdatedProps));
     }
-  }
+  };
 
   const label = useMemo(() => {
     switch (toolKey) {
@@ -136,7 +135,7 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
       case "fontSize":
         return "Font Size"
     }
-  }, [toolKey])
+  }, [toolKey]);
 
   return (
     <Container label={label}>

@@ -28,35 +28,44 @@ export enum DrawingToolType {
 }
 
 export type DrawingToolTypeLiteral = `${DrawingToolType}`;
+export type ToolTypeValue = `${ToolType}`;
 
 export interface ActiveTool {
   type: ToolType;
   isLocked: boolean;
 }
 
-export type FreeHandToolProps = CommonToolProperties;
+export interface FreeHandToolProps extends CommonToolProperties {
+  type: ToolTypeValue;
+}
 
 export interface EllipseToolProps extends CommonToolProperties {
   fill: string;
   fillStyle: FillStyle;
+  type: ToolTypeValue;
 }
 export interface RectangleToolProps extends CommonToolProperties {
   fill: string;
   fillStyle: FillStyle;
   edgeStyle: EdgeStyle;
+  type: ToolTypeValue;
 }
 export interface TextToolProps {
   stroke: string;
   fontSize: FontSize;
   fontFamily: FontFamily;
-  textAlign: TextAlign;
   opacity: number;
+  textAlign: TextAlign;
+  type: ToolTypeValue;
 }
+
 export interface EraserToolProps {
   eraserRadius: number;
+  type: ToolTypeValue;
 }
 export interface PointArrowToolProps extends CommonToolProperties {
   edgeStyle: EdgeStyle;
+  type: ToolTypeValue;
 }
 
 export type AllToolBarProperties = Partial<

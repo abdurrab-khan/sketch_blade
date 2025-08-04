@@ -21,7 +21,7 @@ import {
 import useShapeProperties from "./useShapeProperties";
 import useShapeEdgeDetector from "./useShapeEdgeDetector";
 
-import { ToolBarArr } from "../lib/constant";
+import { TOOLBAR_TOOL_TYPES } from "../lib/constant";
 
 import { getDeletedShapeProps, getUpdatedPropsToAddArrow, recalculatesShapeDimensions } from "../utils/ShapeUtils";
 import { getTransformedPos } from "@/utils/Helper";
@@ -169,7 +169,7 @@ const useStageHandler = ({
       const stage = stageRef.current;
       if (!stage) return;
 
-      if (![...ToolBarArr, "cursor"].includes(activeTool)) return;
+      if (![...TOOLBAR_TOOL_TYPES, "cursor"].includes(activeTool)) return;
 
       const transformedPos = getTransformedPos(stage);
       if (!transformedPos) return;
@@ -180,7 +180,7 @@ const useStageHandler = ({
         y: transformedPos.y,
       });
 
-      if (ToolBarArr.includes(activeTool)) {
+      if (TOOLBAR_TOOL_TYPES.includes(activeTool)) {
         // Not isDrawing -- Handle Initialize Shape
         if (!isDrawing) {
           setIsDrawing(true)
@@ -211,7 +211,7 @@ const useStageHandler = ({
             isTransforming.current = false;
           }
         }
-      } else if (ToolBarArr.includes(activeTool)) {
+      } else if (TOOLBAR_TOOL_TYPES.includes(activeTool)) {
         if (!isDrawing) {
           // 
         } else {
@@ -261,7 +261,7 @@ const useStageHandler = ({
       const transformedPos = getTransformedPos(stage);
       if (!transformedPos) return;
 
-      if (ToolBarArr.includes(activeTool) && currentShape) {
+      if (TOOLBAR_TOOL_TYPES.includes(activeTool) && currentShape) {
         const updatedCoordinates = { ...startingMousePos, x2: transformedPos.x, y2: transformedPos.y } as unknown as FourCoordinates;
 
         const updatedShapeValue =

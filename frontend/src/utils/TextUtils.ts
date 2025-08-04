@@ -27,19 +27,19 @@ export function getTextAreaWidth(
 }
 
 export function calculateTextAreaProps(
-  x: number,
-  y: number,
+  shapeX: number,
+  shapeY: number,
   text: string[] | null,
   fontSize: number,
   fontFamily: string,
-) {
+): { x: number; y: number; height: number; width: number } {
   const textAreaHeight = getTextAreaHeight(text, fontSize);
   const textAreaWidth = getTextAreaWidth(text, fontSize, fontFamily);
 
   return {
-    textAreaHeight,
-    textAreaWidth,
-    textAreaX: x - textAreaWidth / 2,
-    textAreaY: y - textAreaHeight / 2,
+    x: shapeX - textAreaWidth / 2,
+    y: shapeY - textAreaHeight / 2,
+    height: textAreaHeight,
+    width: textAreaWidth,
   };
 }

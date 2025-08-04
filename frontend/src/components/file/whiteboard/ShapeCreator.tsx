@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { Stage } from 'konva/lib/Stage';
 import { KonvaEventObject } from 'konva/lib/Node';
-import { ToolBarArr } from '@/lib/constant';
+import { TOOLBAR_TOOL_TYPES } from '@/lib/constant';
 import { v4 as uuid } from "uuid"
 import { ToolType } from '@/types/tools/tool';
 import { Coordinates, FourCoordinates } from '@/types';
@@ -109,7 +109,7 @@ const ShapeCreator: React.FC<ShapeCreatorProps> = ({ stageRef }) => {
 
         const stage = e.target.getStage();
 
-        if (ToolBarArr.includes(activeTool) && stage) {
+        if (TOOLBAR_TOOL_TYPES.includes(activeTool) && stage) {
             const transformedPos = getTransformedPos(stage)
             if (!transformedPos) return;
 
@@ -136,7 +136,7 @@ const ShapeCreator: React.FC<ShapeCreatorProps> = ({ stageRef }) => {
     const handleMouseUp = useCallback((e: KonvaEventObject<MouseEvent, Stage>) => {
         e.evt.preventDefault();
 
-        if (ToolBarArr.includes(activeTool) && currentShape) {
+        if (TOOLBAR_TOOL_TYPES.includes(activeTool) && currentShape) {
             if (activeTool === ToolType.PointArrow) {
                 const arrow = currentShape as Arrow;
                 if (arrow?.isDrawingArrow) {
@@ -166,7 +166,7 @@ const ShapeCreator: React.FC<ShapeCreatorProps> = ({ stageRef }) => {
         const stage = e.target.getStage();
         if (!stage) return;
 
-        if (ToolBarArr.includes(activeTool) && currentShape) {
+        if (TOOLBAR_TOOL_TYPES.includes(activeTool) && currentShape) {
             const transformedPos = getTransformedPos(stage);
             if (!transformedPos) return;
 
