@@ -114,7 +114,7 @@ const ToolActionsProperties: ToolActionsPropertiesT = {
     },
     {
       icon: CiText,
-      value: "JO BHI HAI",
+      value: "SANS-SERIF",
     },
   ],
   textAlign: [

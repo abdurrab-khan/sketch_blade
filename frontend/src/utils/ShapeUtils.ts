@@ -57,10 +57,9 @@ export interface DeletedShapeProps {
  * @param key {keyof ToolBarProperties}[]
  * @param toolBarProperties {Partial<ToolBarProperties>}
  */
-export function getShapeProperties(
-  key: AllToolBarPropertiesKeys[],
-  toolBarProperties: AllToolBarProperties,
-) {
+export function getShapeProperties(toolBarProperties: AllToolBarProperties) {
+  const key = Object.keys(toolBarProperties);
+
   if (key.length <= 0 || !Array.isArray(key)) return {};
 
   let properties = {};
@@ -132,6 +131,10 @@ export function getShapeProperties(
         const textAlign = toolBarProperties.textAlign;
 
         properties = { ...properties, textAlign: textAlign?.toLowerCase() };
+        break;
+      }
+      case "fontFamily": {
+        properties = { ...properties, fontFamily: "sans-serif" };
         break;
       }
       default: {

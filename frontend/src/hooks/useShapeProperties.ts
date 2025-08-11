@@ -12,10 +12,7 @@ const useShapeProperties = (): Shape | null => {
   const shapeProperties = useMemo(() => {
     if (!properties) return null;
 
-    const allProperties = getShapeProperties(
-      Object.keys(properties),
-      properties,
-    );
+    const allProperties = getShapeProperties(properties);
 
     return {
       isAddable: false,

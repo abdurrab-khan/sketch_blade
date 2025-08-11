@@ -63,7 +63,6 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
   const getUpdatedShapeProps = useCallback((updatedValue: Partial<AllToolBarProperties>) => {
     // Check --  The give property exits on the shape or not.
     const updatedProperties = getShapeProperties(
-      [toolKey],
       updatedValue,
     );
 
@@ -71,7 +70,7 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
       ...updatedProperties,
       customProperties: { ...updatedValue },
     }
-  }, [toolKey]);
+  }, []);
 
   // Handler function -- 
   const handleValueChange = async (v: string | number) => {
