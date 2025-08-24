@@ -6,13 +6,14 @@ export interface Text extends CommonShapeType {
   y: number;
   height: number;
   width: number;
-  shapeId: string;
+  shapeId: string | null;
   stroke: string;
   fontFamily: string;
   fontSize: number;
   opacity: number;
-  text: string | null;
+  text: string;
   textAlign: Lowercase<TextAlign>;
+  isAddable: boolean;
   customProperties: TextToolProps;
 }
 
@@ -22,12 +23,13 @@ export interface ShapeText {
   y: number;
   height: number;
   width: number;
-  shapeId: string;
+  shapeId: string | null;
   stroke: string;
   fontFamily: string;
   fontSize: number;
   opacity: number;
-  text: string | null;
+  text: string;
   textAlign: Lowercase<TextAlign>;
+  isAddable: boolean;
   customProperties: TextToolProps;
 }

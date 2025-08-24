@@ -56,7 +56,6 @@ const ShapeCreator: React.FC<ShapeCreatorProps> = ({ stageRef }) => {
 
     const addNewShape = useCallback(
         (customizedCurrentShape?: Shape) => {
-
             if (currentShape?.isAddable) {
                 dispatch(setShapes(customizedCurrentShape ?? { ...currentShape, isDrawing: false }));
 

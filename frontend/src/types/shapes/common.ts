@@ -1,7 +1,7 @@
 import { Collaborator } from "../user";
 import { DrawingToolTypeLiteral, AllToolBarProperties } from "../tools/tool";
 import { ArrowProps } from "..";
-import { Text } from "./text";
+import { Texts } from "./shape-union";
 
 export type StrokeStyle = "SOLID" | "DOTTED" | "DASHED";
 export type FillStyle = "SOLID" | "CROSSHATCH" | "HACHURE";
@@ -28,7 +28,7 @@ export interface BoundedShapeProperties {
   dash: number[];
   lineCap: EdgeStyle;
   customProperties: AllToolBarProperties;
-  text: Text | null;
+  text: Texts | null;
   fillPatternImage: string | null;
   arrowProps?: ArrowProps[];
 }

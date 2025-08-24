@@ -36,7 +36,7 @@ function Whiteboard() {
       >
         {activeTool === "eraser" && <Eraser stageRef={stageRef} />}
       </Stage>
-      <TextHandler stageRef={stageRef} />
+      <TextHandler stageRef={stageRef} trRef={transformerRef} />
     </div>
   );
 }

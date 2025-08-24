@@ -98,7 +98,6 @@ const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHo
         const transformedPos = getTransformedPos(stage);
         if (!transformedPos) return;
 
-
         const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
         const nodeType = e.target.nodeType;
 
@@ -123,17 +122,19 @@ const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHo
                     clearSelection(tr);
                 }
             } else if (nodeType === "Shape") {
-                const isSelected = tr.nodes().indexOf(e.target) >= 0;
-                if (!isSelected && !metaPressed) {
-                    tr.nodes([e.target]);
-                }
+                if (e.target.hasName("shape")) {
+                    const isSelected = tr.nodes().indexOf(e.target) >= 0;
+                    if (!isSelected && !metaPressed) {
+                        tr.nodes([e.target]);
+                    }
 
-                if (Array.isArray(tr.nodes()) && tr.nodes().length > 0) {
-                    const nodesAttr = tr.nodes().map((shape) => shape.attrs);
-                    const ids = nodesAttr.map((attr) => attr.id);
+                    if (Array.isArray(tr.nodes()) && tr.nodes().length > 0) {
+                        const nodesAttr = tr.nodes().map((shape) => shape.attrs);
+                        const ids = nodesAttr.map((attr) => attr.id);
 
-                    dispatch(changeToolBarProperties(nodesAttr));
-                    dispatch(handleSelectedIds({ _id: ids, purpose: "FOR_EDITING" }));
+                        dispatch(changeToolBarProperties(nodesAttr));
+                        dispatch(handleSelectedIds({ _id: ids, purpose: "FOR_EDITING" }));
+                    }
                 }
                 // handleShapeSelectionByClick(e);
             }
@@ -147,6 +148,8 @@ const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHo
         const tr = trRef.current;
         const selectedIds = selectedShapesId?._id
         if (!tr || !selectedIds) return;
+
+        if (!e.target.hasName("shape")) return; // If clicked element is not shape, return;
 
         const isSelected = tr.nodes().indexOf(e.target) >= 0;
         if (metaPressed) {

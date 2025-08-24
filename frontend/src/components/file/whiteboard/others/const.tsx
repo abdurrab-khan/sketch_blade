@@ -2,7 +2,7 @@ import React, { ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { DrawingToolType } from "../../../../types/tools/tool";
 import { Shape } from "../../../../types/shapes";
-import { Ellipse, FreeHand, Rectangle, Arrow } from "../../shapes";
+import { Ellipse, FreeHand, Rectangle, Arrow, Text } from "../../shapes";
 import { RootState } from "../../../../redux/store";
 import { getUpdatedProps } from "../../../../utils/ShapeUtils";
 
@@ -12,6 +12,7 @@ const ListComponent: { [key in DrawingToolType]: React.ComponentType<Shape> } =
   ellipse: Ellipse,
   "free hand": FreeHand,
   "point arrow": Arrow,
+  text: Text
 };
 
 const GetDynamicShape = ({ ...props }: Shape): ReactNode => {

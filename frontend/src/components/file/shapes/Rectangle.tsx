@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from "react";
 import Konva from "konva";
-import { Rect } from "react-konva";
+import { Rect, Text } from "react-konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { useDispatch, useSelector } from "react-redux";
 import { getRectangleResizeValue, getResizeShape } from "@/utils/Helper";
@@ -13,7 +13,6 @@ import { updateExistingShapes } from "../../../redux/slices/appSlice";
 
 import { updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
 import ShapeGroup from "./ShapeGroup";
-import { ToolType } from "@/types/tools/tool";
 
 const Rectangle: React.FC<RectType> = ({ ...props }) => {
   const dispatch = useDispatch();

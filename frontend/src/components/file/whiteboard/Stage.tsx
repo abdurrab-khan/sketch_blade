@@ -1,7 +1,7 @@
 import Konva from "konva";
 import { useSelector } from "react-redux";
 import { Stage as KonvaStage, Layer } from "react-konva";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import GlobalTransformer from "./GlobalTransformer";
 
 // Redux
@@ -37,6 +37,8 @@ export const Stage: React.FC<StageProps> = ({
     (state: RootState) => state.app.activeTool.type,
   );
   const shapes = useSelector((state: RootState) => state.app.shapes);
+
+  console.log(shapes)
 
   return (
     <KonvaStage

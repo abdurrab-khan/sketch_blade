@@ -33,33 +33,33 @@ export const toolBarProperties: Record<
     ...commonProperties,
   },
   ellipse: {
+    type: "ellipse",
     fill: "#0A1F2C",
     fillStyle: "SOLID",
-    type: "ellipse",
     ...commonProperties,
   },
   rectangle: {
+    type: "rectangle",
     fill: "#0A1F2C",
     fillStyle: "SOLID",
     edgeStyle: "ROUNDED",
-    type: "rectangle",
     ...commonProperties,
   },
   text: {
+    type: "text",
     stroke: "#ffffff",
     fontSize: "MEDIUM",
     fontFamily: "NORMAL",
     textAlign: "CENTER",
     opacity: 1,
-    type: "text",
   },
   eraser: {
-    eraserRadius: 15,
     type: "eraser",
+    eraserRadius: 15,
   },
   "point arrow": {
-    edgeStyle: "ROUNDED",
     type: "point arrow",
+    edgeStyle: "ROUNDED",
     ...commonProperties,
   },
 };

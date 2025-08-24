@@ -32,6 +32,7 @@ import folderRouter from "./routes/folder.route";
 import ErrorMiddleware from "./middlewares/error.middleware";
 import canvasRouter from "./routes/canvas.router";
 import getUserAsCollaborator from "./controllers/user.controller";
+import { fstat } from "node:fs";
 
 const COMMON_ROUTE = "/api/v1/";
 

@@ -1,34 +1,20 @@
+import Konva from 'konva';
+import { v4 as uuid } from "uuid"
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import useShapeProperties from '@/hooks/useShapeProperties';
-import { ToolType } from '@/types/tools/tool';
-import { calTextAreaPosForShape, extractShapeProps, getMaxedString, sliceStringFixed, wrapText, wrapTextSimple } from '@/utils/TextUtils';
-import { v4 as uuid } from "uuid"
+import { AllToolBarProperties, ToolType } from '@/types/tools/tool';
+import { extractTextShapeProps, getMaxedString, ShapeProps, sliceStringFixed, wrapText, wrapTextSimple } from '@/utils/TextUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
-import { FontFamily, Text, Texts } from '@/types/shapes';
+import { Texts } from '@/types/shapes';
 import { KonvaEventObject } from 'konva/lib/Node';
-import Konva from 'konva';
 import { getShapeProperties } from '@/utils/ShapeUtils';
+import { changeActiveTool, handleSelectedIds, removeUpdateToolBarProperties, setShapes, updateExistingShapes } from '@/redux/slices/appSlice';
+import { toolBarProperties } from "@/lib/constant";
 
 interface TextHandlerProps {
     stageRef: React.RefObject<Konva.Stage>
-}
-
-interface ShapeProps {
-    id: string | null,
-    x: number,
-    y: number,
-    height: number,
-    width: number,
-    type: "shape" | "whiteboard",
-}
-
-interface ExtractShapeProps {
-    id?: string,
-    x: number,
-    y: number,
-    height: number,
-    width: number,
+    trRef: React.RefObject<Konva.Transformer>
 }
 
 interface TextWrapResult {
@@ -38,42 +24,84 @@ interface TextWrapResult {
     maxLineWidth: number;
 }
 
-// Utility Functions for Text Wrapping
+const LINE_HEIGHT = 1.2;
 
+// Utility function to get clicked x, y, height, width
+const getTextAreaPos = (x: number, y: number, fontSize: number, fontFamily: string) => {
+    const height = fontSize * LINE_HEIGHT;
+    const width = fontSize * 0.65;
 
-export default function TextHandler({ stageRef }: TextHandlerProps) {
+    return {
+        x: x - (width / 2),
+        y: y - (height / 2),
+        height,
+        width
+    }
+}
+
+export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
+    const [textProps, setTextProps] = useState<Texts | null>(null);
+
     const shapeProps = useRef<ShapeProps | null>(null);
     const shapeHeightLimit = useRef<number | null>(null);
-    const [text, setText] = useState<string>('');
-    const [textProps, setTextProps] = useState<Texts | null>(null);
+    const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
     const dispatch = useDispatch();
     const activeTool = useSelector((state: RootState) => state.app.activeTool.type);
     const toolBarProps = useSelector((state: RootState) => state.app.toolBarProperties);
-    const newShapeProps = useShapeProperties();
+    const newShapeProps = useShapeProperties() as Texts | null;
 
-    // Helper function to generate new text properties
-    const generateNewTextProps = useCallback((behindShape: ShapeProps, fontSize: number, fontFamily: FontFamily, text: string[] | null): Texts | null => {
-        const { id, x, y } = behindShape;
-        const textPos = calTextAreaPosForShape(x, y, text, fontSize, fontFamily);
-        shapeProps.current = behindShape;
+    // Reset all shape/text props
+    const resetTextProps = () => {
+        setTextProps(null);
+        shapeProps.current = null;
+        shapeHeightLimit.current = null;
 
-        // Store initial height limit
-        if (behindShape.height > 0 && behindShape.type === "shape") {
-            shapeHeightLimit.current = behindShape.height;
+        // If we are in text tool, simply so to cursor.
+        if (activeTool === ToolType.Text) dispatch(changeActiveTool({ type: ToolType.Cursor }));
+
+        // If we are in cursor, simply remove the toolbarProps.
+        if (activeTool === ToolType.Cursor) dispatch(removeUpdateToolBarProperties(null));
+    };
+
+    // Update or add new shape after blur.
+    const handleOnBlur = async () => {
+        if (!textProps?.isAddable) {
+            resetTextProps();
+            return; // Blur evt happen but there is not text, Simply reset and return it.
+        };
+
+        const shapeProperties = shapeProps.current;
+
+        if (shapeProperties !== null) {
+            if (shapeProperties.type === "whiteboard") {
+                if (shapeProperties.method === "new") {
+                    textProps["_id"] = uuid();
+                    dispatch(setShapes(textProps));
+                } else {
+                    dispatch(updateExistingShapes(
+                        {
+                            shapeId: textProps._id,
+                            shapeValue: textProps
+                        }
+                    )); // Updating text. 
+                }
+            } else {
+                dispatch(updateExistingShapes(
+                    {
+                        shapeId: shapeProperties.id as string,
+                        shapeValue: { text: textProps }
+                    }
+                )); // Updating text inside shape.
+            }
         }
 
-        return {
-            _id: uuid(),
-            shapeId: id,
-            text: text ?? null,
-            ...textPos,
-            ...newShapeProps
-        } as Text
-    }, [newShapeProps])
+        // Handle Adding into the database.
+        resetTextProps();
+    };
 
     // Main input handler with improved text wrapping
-    const handleInput = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleInputText = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const shapePos = shapeProps.current;
 
         if (!(shapePos && textProps)) return;
@@ -108,97 +136,137 @@ export default function TextHandler({ stageRef }: TextHandlerProps) {
             finalText = wrappedResult.wrappedText;
         }
 
-        // Calculate text area position based on wrapped lines
-        const textAreaPos = calTextAreaPosForShape(
-            shapePos.x,
-            shapePos.y,
-            wrappedResult.lines,
-            fontSize,
-            fontFamily
-        );
-
         // Calculate required shape height with padding
         const requiredShapeHeight = wrappedResult.requiredHeight + (fontSize * 0.5);
         const minHeight = shapeHeightLimit.current || shapePos.height;
         const newShapeHeight = Math.max(minHeight, requiredShapeHeight);
 
         // Update shape height if needed
-        if (Math.abs(newShapeHeight - shapePos.height) > 1) {
+        if (shapePos.id && Math.abs(newShapeHeight - shapePos.height) > 1) {
+            // Updating shapePos in locally. 
             shapeProps.current = {
-                ...(shapeProps.current || {}),
-                height: newShapeHeight
+                ...shapePos,
+                height: newShapeHeight,
             }
 
-            // // Update shape in the state
-            // if (typeof setShape === 'function') {
-            //     setShape((prev: any[]) =>
-            //         prev.map((s) =>
-            //             s.id === (textEditor?.shapeProps?.id || shapePos.id)
-            //                 ? { ...s, height: newShapeHeight }
-            //                 : s
-            //         )
-            //     );
-            // }
+            // Updating shapePos in globally. 
+            dispatch(updateExistingShapes(
+                {
+                    shapeId: shapePos.id,
+                    shapeValue: { height: newShapeHeight }
+                })
+            );
         }
-
-        console.log(wrappedResult)
 
         // Only changes on textArea state whether changes happen on "height" or "width". 
-        if ((textProps.height !== textAreaPos.height) || (textProps.width !== textAreaPos.width)) {
-            setTextProps((prev: Texts | null) => {
-                if (prev === null) return null;
-                return {
-                    ...prev,
-                    height: wrappedResult.requiredHeight,
-                    width: wrappedResult.maxLineWidth
-                };
-            });
+        let updatedTextSize: Partial<Texts> = {};
+        if ((textProps.height !== wrappedResult.requiredHeight) || (textProps.width !== wrappedResult.maxLineWidth)) {
+            const heightDiff = wrappedResult.requiredHeight - textProps.height;
+            const widthDiff = wrappedResult.maxLineWidth - textProps.width;
+
+            updatedTextSize = {
+                x: textProps.x - (widthDiff / 2),
+                y: textProps.y - (heightDiff / 2),
+                height: wrappedResult.requiredHeight,
+                width: wrappedResult.maxLineWidth,
+            };
+        };
+
+        // Making text addable based on input length.
+        if (textProps.isAddable && inputText.length === 0) {
+            updatedTextSize["isAddable"] = false;
+        } else if (!textProps.isAddable && inputText.length > 0) {
+            updatedTextSize["isAddable"] = true;
         }
 
-        setText(finalText);
-    }, [textProps])
+        setTextProps((prev: Texts | null) => {
+            if (prev === null) return null;
+            return {
+                ...prev,
+                ...updatedTextSize,
+                text: finalText,
+            }
+        });
+    }, [dispatch, textProps]);
 
     const handleStageClick = useCallback((e: KonvaEventObject<MouseEvent>) => {
-        if (!(activeTool === ToolType.Text && newShapeProps)) return;
+        if (activeTool !== ToolType.Text) return;
 
-        const target = e.target;
-        const x = e.evt.clientX, y = e.evt.clientY;
-
-        if (target.nodeType === "Text") {
-            const text = e.target;
-            setTextProps(text.attrs);
-        } else if (target.nodeType === "Stage") {
-            const newText = generateNewTextProps(
-                { id: null, x, y, height: target.attrs.height / 5, width: 300, type: "whiteboard" },
-                (newShapeProps as Text).fontSize,
-                (newShapeProps as Text).customProperties.fontFamily,
-                null
-            );
-
-            setTextProps(newText)
+        // Call blur event if clicked on the stage and already textProps is there.
+        if (textProps) {
+            textAreaRef.current?.blur();
+            return;
         }
-    }, [activeTool, generateNewTextProps, newShapeProps])
+
+        const shapeAndTextProps = extractTextShapeProps(e);
+        if (shapeAndTextProps?.oldText) {
+            shapeProps.current = shapeAndTextProps.oldText.shapeProps;
+            setTextProps(shapeAndTextProps.oldText.textProps);
+        } else if (shapeAndTextProps?.newText) {
+            if (!newShapeProps) return;
+
+            const shapeProperties = shapeAndTextProps.newText.shapeProps;
+            shapeProps.current = shapeProperties;
+
+            if (shapeProperties.type !== "whiteboard") {
+                shapeHeightLimit.current = shapeProperties.height;
+            }
+
+            const textPos = getTextAreaPos(
+                shapeProperties.x,
+                shapeProperties.y,
+                newShapeProps.fontSize,
+                newShapeProps.fontFamily
+            )
+            setTextProps({
+                ...newShapeProps,
+                ...textPos,
+                shapeId: shapeProperties.id,
+                text: ""
+            });
+        }
+    }, [activeTool, newShapeProps, textProps])
 
     const handleStageDblClick = useCallback((e: KonvaEventObject<MouseEvent>) => {
-        // const textToolProps = toolBarProps["text"] as TextToolProps;
+        if (activeTool !== ToolType.Cursor) return; // Only double click work for "Cursor"
 
-        const shape = extractShapeProps(e);
-        if (shape) {
-            const { id = null, x, y, height, width } = shape;
+        const shapeAndTextProps = extractTextShapeProps(e);
+        if (shapeAndTextProps?.oldText) {
+            shapeProps.current = shapeAndTextProps.oldText.shapeProps;
+            setTextProps(shapeAndTextProps.oldText.textProps);
+        } else if (shapeAndTextProps?.newText) {
+            const textRawProps = toolBarProperties["text"] as AllToolBarProperties;
+            const newTextProps = getShapeProperties(textRawProps);
+            const textProps = { ...newTextProps, customProperties: textRawProps } as Texts;
 
-            shapeProps.current = {
-                id,
-                x,
-                y,
-                height,
-                width,
-                type: "shape"
-            };
+            // Updating the global toolBarProperties.
+            dispatch(removeUpdateToolBarProperties(textRawProps));
 
-            shapeHeightLimit.current = height;
-            // dispatch(removeUpdateToolBarProperties(textToolProps));
+            // Cleaning the tr nodes and removing all shapes from them.
+            trRef.current?.nodes([]);
+            dispatch(handleSelectedIds(null));
+
+            const shapeProperties = shapeAndTextProps.newText.shapeProps;
+            shapeProps.current = shapeProperties;
+
+            if (shapeProperties.type !== "whiteboard") {
+                shapeHeightLimit.current = shapeProperties.height;
+            }
+
+            const textPos = getTextAreaPos(
+                shapeProperties.x,
+                shapeProperties.y,
+                textProps.fontSize,
+                textProps.fontFamily
+            );
+            setTextProps({
+                ...textProps,
+                ...textPos,
+                shapeId: shapeProperties.id,
+                text: ""
+            });
         }
-    }, []);
+    }, [activeTool, dispatch, trRef]);
 
     // Handle changes on tool bar props
     useEffect(() => {
@@ -206,13 +274,25 @@ export default function TextHandler({ stageRef }: TextHandlerProps) {
 
         setTextProps((prev: Texts | null) => {
             if (prev === null) return null;
+            const hasFontSizeChanged = prev.customProperties.fontSize !== toolBarProps.fontSize;
+            const hasFontFamilyChanged = prev.customProperties.fontFamily !== toolBarProps.fontFamily;
 
-            if (prev.customProperties.fontSize !== toolBarProps.fontSize) {
-                console.log("Change width.....")
+            let wrappedText = {};
+            if (hasFontSizeChanged || hasFontFamilyChanged) {
+                const availableWidth = shapeProps.current?.width as number;
+                const toolProps = getShapeProperties({ fontSize: toolBarProps.fontSize, fontFamily: toolBarProps.fontFamily }) as { fontSize: number, fontFamily: string };
+                const wrappedResult = wrapText(prev.text ?? "", ((availableWidth * 0.98) - 15), toolProps.fontSize, toolProps.fontFamily);
+
+                wrappedText = {
+                    height: wrappedResult.requiredHeight,
+                    width: wrappedResult.maxLineWidth,
+                    text: wrappedResult.wrappedText
+                }
             }
 
             return {
                 ...prev,
+                ...wrappedText,
                 ...getShapeProperties(toolBarProps),
                 customProperties: toolBarProps
             } as Texts;
@@ -246,7 +326,8 @@ export default function TextHandler({ stageRef }: TextHandlerProps) {
                 <textarea
                     wrap='off'
                     name='text'
-                    value={text}
+                    ref={textAreaRef}
+                    value={textProps.text ?? ""}
                     autoFocus
                     style={{
                         fontSize: textProps.fontSize + "px",
@@ -255,18 +336,10 @@ export default function TextHandler({ stageRef }: TextHandlerProps) {
                         textAlign: textProps.textAlign,
                         color: textProps.stroke,
                         opacity: textProps.opacity,
-                        padding: '4px'
                     }}
-                    className='size-full bg-blue-500 m-0 box-content border-none outline-none resize-none overflow-hidden'
-                    onChange={handleInput}
-                    onBlur={(e) => {
-                        console.log("Text editor blur");
-                        if (e.relatedTarget && e.relatedTarget.getAttribute('name') !== "tools") {
-                            setTextProps(null);
-                            shapeProps.current = null;
-                            shapeHeightLimit.current = null;
-                        }
-                    }}
+                    className='size-full bg-transparent m-0 box-content border-none outline-none resize-none overflow-hidden'
+                    onChange={handleInputText}
+                    onBlur={handleOnBlur}
                     onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();

@@ -1,52 +1,6 @@
-import { FontFamily } from "@/types/shapes";
+import { Texts } from "@/types/shapes";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
-
-const getMaxText = (text: string[] | null): number => {
-  if (text === null) return 1;
-
-  return text.reduce((acc, curr) => {
-    if (acc < curr.length) {
-      acc = curr.length;
-    }
-    return acc;
-  }, 0);
-};
-
-export function getTextAreaHeight(
-  text: string[] | null,
-  fontSize: number,
-): number {
-  return text ? text.length * fontSize : fontSize;
-}
-
-export function getTextAreaWidth(
-  text: string[] | null,
-  fontSize: number,
-  fontFamily: FontFamily,
-): number {
-  const textSize = getMaxText(text);
-
-  return textSize * (fontSize * 0.6);
-}
-
-export function calTextAreaPosForShape(
-  shapeX: number,
-  shapeY: number,
-  text: string[] | null,
-  fontSize: number,
-  fontFamily: string,
-): { x: number; y: number; height: number; width: number } {
-  const textAreaHeight = getTextAreaHeight(text, fontSize);
-  const textAreaWidth = getTextAreaWidth(text, fontSize, fontFamily);
-
-  return {
-    x: shapeX - textAreaWidth / 2,
-    y: shapeY - textAreaHeight / 2,
-    height: textAreaHeight * 1.2,
-    width: textAreaWidth,
-  };
-}
 
 interface TextWrapResult {
   wrappedText: string;
@@ -269,47 +223,6 @@ export const getMaxWidth = (arr: string[]): number => {
 };
 
 /**
- * Extract shape properties from Konva event
- */
-export const extractShapeProps = (
-  e: KonvaEventObject<MouseEvent>,
-): ExtractShapeProps | null => {
-  const target = e.target;
-  const parent = target.nodeType !== "Stage" ? target.getParent() : target;
-
-  if (parent?.nodeType === "Group") {
-    const shape = (parent as Konva.Group).findOne(".shape");
-    if (!shape) return null;
-
-    const x = parent.x();
-    const y = parent.y();
-    const text = shape?.attrs?.text ?? null;
-
-    return {
-      id: shape.attrs?._id,
-      x,
-      y,
-      text,
-      height: shape.height(),
-      width: shape.width(),
-    };
-  } else if (parent?.nodeType === "Stage") {
-    const x = e.evt.clientX;
-    const y = e.evt.clientY;
-
-    return {
-      x,
-      y,
-      text: null,
-      height: e.target.height(),
-      width: e.target.width(),
-    };
-  }
-
-  return null;
-};
-
-/**
  * Slice strings that exceed maximum width (fallback for paste)
  */
 export const sliceStringFixed = (
@@ -349,4 +262,112 @@ export const getMaxedString = (str: string[], maxWidth: number): number[] => {
   }
 
   return maxStrings;
+};
+
+interface NewText {
+  shapeProps: ShapeProps;
+}
+
+interface OldText {
+  textProps: Texts;
+  shapeProps: ShapeProps;
+}
+
+interface ExtractTextPropsType {
+  newText?: NewText;
+  oldText?: OldText;
+}
+
+export interface ShapeProps {
+  id: string | null;
+  x: number;
+  y: number;
+  height: number;
+  width: number;
+  type: "whiteboard" | "shape";
+  method: "new" | "update";
+}
+
+const extractShapeProps = (
+  text: Konva.Node | null,
+): ExtractTextPropsType | null => {
+  if (text === null) return null;
+
+  const textGroup = text.getParent()!;
+  const shapeProps = textGroup?.findOne(".shape");
+  const whiteBoard = textGroup?.getParent();
+
+  if (!(shapeProps || whiteBoard)) return null;
+
+  const textProps = text.attrs;
+  textProps["x"] = textGroup.attrs.x;
+  textProps["y"] = textGroup.attrs.y;
+
+  return {
+    oldText: {
+      textProps,
+      shapeProps: {
+        id: shapeProps?.attrs?._id ?? null,
+        x: textGroup.attrs.x,
+        y: textGroup.attrs.y,
+        height: (shapeProps?.height() ?? whiteBoard?.height()) as number,
+        width: (shapeProps?.width() ?? whiteBoard?.width()) as number,
+        type: shapeProps ? "shape" : "whiteboard",
+        method: "update",
+      },
+    },
+  };
+};
+
+/**
+ * Extract shape properties from Konva event
+ */
+export const extractTextShapeProps = (
+  e: KonvaEventObject<MouseEvent>,
+): ExtractTextPropsType | null => {
+  let props: ExtractTextPropsType | null = null;
+  const target = e.target;
+
+  if (target.nodeType === "Shape") {
+    if (target.className === "Text") {
+      props = extractShapeProps(target);
+    } else {
+      const parent = target.getParent()!;
+      const text = parent?.findOne(".text");
+
+      if (text) {
+        props = extractShapeProps(text);
+      } else {
+        props = {
+          newText: {
+            shapeProps: {
+              id: target?.attrs._id,
+              x: parent.attrs.x,
+              y: parent.attrs.y,
+              height: target.height(),
+              width: target.width(),
+              type: "shape",
+              method: "new",
+            },
+          },
+        };
+      }
+    }
+  } else if (target.nodeType === "Stage") {
+    props = {
+      newText: {
+        shapeProps: {
+          id: null,
+          x: e.evt.clientX,
+          y: e.evt.clientY,
+          height: e.target.height() - e.evt.clientY,
+          width: e.target.width() - e.evt.clientX,
+          type: "whiteboard",
+          method: "new",
+        },
+      },
+    };
+  }
+
+  return props;
 };

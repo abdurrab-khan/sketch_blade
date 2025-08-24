@@ -23,4 +23,5 @@ const useShapeProperties = (): Shape | null => {
 
   return shapeProperties;
 };
+
 export default useShapeProperties;
