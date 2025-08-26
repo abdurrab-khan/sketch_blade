@@ -35,14 +35,6 @@ export interface Proximity {
   arrowProps: Omit<ArrowProps, "_id"> | null;
 }
 
-export interface ArrowProps {
-  _id: string;
-  x: number;
-  y: number;
-  arrowPosition: ArrowPosition;
-  arrowDirection?: ArrowDirection;
-}
-
 export interface SelectedShapesId {
   _id: string[] | string;
   purpose?: SelectionPurpose;

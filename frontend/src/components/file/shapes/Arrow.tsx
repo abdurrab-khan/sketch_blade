@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import React, { useRef, useState } from "react";
 import { Circle, Arrow as KonvaArrow } from "react-konva";
 
-import { Arrow as ArrowType, Shape } from "../../../types/shapes";
+import { Arrow as ArrowType, KonvaArrow as KonvaArrowType } from "../../../types/shapes";
 
 import { RootState } from "../../../redux/store";
 import { updateExistingShapes } from "../../../redux/slices/appSlice";
@@ -18,7 +18,7 @@ import { updatePointsAfterTransformation } from "../../../utils/Helper";
 import ShapeGroup from "./ShapeGroup";
 import { ToolType } from "@/types/tools/tool";
 
-const Arrow: React.FC<Shape> = ({ ...props }) => {
+const Arrow: React.FC<KonvaArrowType> = ({ ...props }) => {
   const [isClicked, setIsClicked] = useState<boolean>(false);
 
   const arrowRef = useRef<Konva.Arrow>(null);

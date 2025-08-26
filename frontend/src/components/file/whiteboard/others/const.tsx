@@ -1,12 +1,11 @@
 import React, { ReactNode } from "react";
 import { useSelector } from "react-redux";
-import { DrawingToolType } from "../../../../types/tools/tool";
-import { Shape } from "../../../../types/shapes";
 import { Ellipse, FreeHand, Rectangle, Arrow, Text } from "../../shapes";
 import { RootState } from "../../../../redux/store";
 import { getUpdatedProps } from "../../../../utils/ShapeUtils";
+import { CombineShape, ShapePropsMap } from "@/types/shapes";
 
-const ListComponent: { [key in DrawingToolType]: React.ComponentType<Shape> } =
+const ListComponent: { [K in keyof ShapePropsMap]: React.ComponentType<ShapePropsMap[K]> } =
 {
   rectangle: Rectangle,
   ellipse: Ellipse,
@@ -15,7 +14,7 @@ const ListComponent: { [key in DrawingToolType]: React.ComponentType<Shape> } =
   text: Text
 };
 
-const GetDynamicShape = ({ ...props }: Shape): ReactNode => {
+const GetDynamicShape = ({ ...props }: CombineShape): ReactNode => {
   const {
     activeTool: { type: activeTool },
     selectedShapesId,

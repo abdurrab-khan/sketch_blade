@@ -5,7 +5,7 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { useDispatch, useSelector } from "react-redux";
 import { getRectangleResizeValue, getResizeShape } from "@/utils/Helper";
 
-import { Rectangle as RectType } from "../../../types/shapes";
+import { KonvaRectangle } from "../../../types/shapes";
 
 import { RootState } from "../../../redux/store";
 import { updateExistingShapes } from "../../../redux/slices/appSlice";
@@ -14,7 +14,7 @@ import { updateExistingShapes } from "../../../redux/slices/appSlice";
 import { updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
 import ShapeGroup from "./ShapeGroup";
 
-const Rectangle: React.FC<RectType> = ({ ...props }) => {
+const Rectangle: React.FC<KonvaRectangle> = ({ ...props }) => {
   const dispatch = useDispatch();
   const shapes = useSelector((state: RootState) => state.app.shapes)
   const selectedShapesIds = useSelector((state: RootState) => state.app.selectedShapeToAddArrow)

@@ -1,11 +1,11 @@
 import Konva from "konva";
 import React, { useRef } from "react";
 import { Line } from "react-konva";
-import { Shape } from "../../../types/shapes";
+import { KonvaFreeHand } from "../../../types/shapes";
 import ShapeGroup from "./ShapeGroup";
 import { ToolType } from "@/types/tools/tool";
 
-const FreeHand: React.FC<Shape> = ({ ...props }) => {
+const FreeHand: React.FC<KonvaFreeHand> = ({ ...props }) => {
   const trRef = useRef<Konva.Transformer>(null);
   const lineRef = useRef<Konva.Line>(null);
 

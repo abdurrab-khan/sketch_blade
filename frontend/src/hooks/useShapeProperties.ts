@@ -1,10 +1,10 @@
 import { useSelector } from "react-redux";
 import { useMemo } from "react";
 import { RootState } from "../redux/store.ts";
-import { Shape } from "../types/shapes/shape-union.ts";
 import { getShapeProperties } from "../utils/ShapeUtils.ts";
+import { CombineShape } from "@/types/shapes/shapes.ts";
 
-const useShapeProperties = (): Shape | null => {
+const useShapeProperties = (): CombineShape | null => {
   const { toolBarProperties: properties } = useSelector(
     (state: RootState) => state.app,
   );
@@ -15,10 +15,9 @@ const useShapeProperties = (): Shape | null => {
     const allProperties = getShapeProperties(properties);
 
     return {
-      isAddable: false,
       customProperties: properties,
       ...allProperties,
-    } as Shape;
+    };
   }, [properties]);
 
   return shapeProperties;

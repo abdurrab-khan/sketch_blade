@@ -1,10 +1,10 @@
 import React, { useRef } from "react";
-import { Texts } from "../../../types/shapes";
 import ShapeGroup from "./ShapeGroup";
 import { Text as KonvaText } from "react-konva";
 import Konva from "konva";
+import { KonvaText as KonvaTextType } from "@/types/shapes";
 
-const Text: React.FC<Texts> = ({ ...props }) => {
+const Text: React.FC<KonvaTextType> = ({ ...props }) => {
   const groupRef = useRef<Konva.Group>();
 
   return (

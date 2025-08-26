@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 
 // Types
-import { Shape } from "../../../types/shapes";
+import { KonvaEllipse as KonvaEllipseType } from "../../../types/shapes";
 
 // Redux
 import { RootState } from "../../../redux/store";
@@ -19,7 +19,7 @@ import { getResizeShape } from "@/utils/Helper";
 import ShapeGroup from "./ShapeGroup";
 import { ToolType } from "@/types/tools/tool";
 
-const Ellipse: React.FC<Shape> = ({ ...props }) => {
+const Ellipse: React.FC<KonvaEllipseType> = ({ ...props }) => {
   const dispatch = useDispatch();
   const shapes = useSelector((state: RootState) => state.app.shapes)
   const selectedShapes = useSelector((state: RootState) => state.app.selectedShapesId)

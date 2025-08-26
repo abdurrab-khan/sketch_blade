@@ -38,8 +38,6 @@ export const Stage: React.FC<StageProps> = ({
   );
   const shapes = useSelector((state: RootState) => state.app.shapes);
 
-  console.log(shapes)
-
   return (
     <KonvaStage
       ref={stageRef}
