@@ -1,16 +1,8 @@
-import { ArrowProps, FourCoordinates, SelectedShapesId } from "../types";
-import {
-  Arrow,
-  ArrowPosition,
-  ArrowSupportedShapes,
-  AttachedShape,
-  Ellipse,
-  Shape,
-} from "../types/shapes";
+import { FourCoordinates, SelectedShapesId } from "../types";
+import { Arrow, AttachedShape, Ellipse } from "../types/shapes";
 import {
   AllToolBarProperties,
-  AllToolTypeObj,
-  ToolBarProperties,
+  DrawingToolType,
   ToolType,
 } from "../types/tools/tool";
 import {
@@ -25,7 +17,6 @@ import {
   findBestConnectionPoints,
   getArrowPointsForPosition,
 } from "./Helper";
-import { AllToolBarPropertiesKeys } from "@/types/tools/common";
 
 interface PropsToAddArrow {
   arrowProps: ArrowProps[];
@@ -239,7 +230,7 @@ export function getUpdatedPropsToAddArrow(
  * @returns {Shape}
  */
 export function recalculatesShapeDimensions(
-  tool: ToolType,
+  tool: DrawingToolType,
   coordinates: FourCoordinates,
   shape: Shape,
 ): Shape {

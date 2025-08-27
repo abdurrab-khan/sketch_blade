@@ -1,5 +1,4 @@
 import { StrokeStyle, StrokeWidth } from "../shapes";
-import { ToolBarProperties } from "./tool";
 
 export interface CommonToolProperties {
   stroke: string;

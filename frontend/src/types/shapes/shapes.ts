@@ -1,5 +1,5 @@
 import { DrawingToolTypeLiteral } from "../tools/tool";
-import { ActiveUser, ArrowProps } from "./common";
+import { ActiveUser, ArrowProps, AttachedShape } from "./common";
 import {
   ArrowStyle,
   EllipseStyle,
@@ -11,10 +11,10 @@ import {
 // <========================> RECTANGLE <========================>
 export interface Rectangle {
   _id: string;
-  text: TextStyle;
   type: DrawingToolTypeLiteral;
-  arrowProps: ArrowProps[];
+  text?: TextStyle;
   isLocked: boolean;
+  arrowProps?: ArrowProps[];
   styleProperties: RectangleStyle;
   activeUser?: ActiveUser;
 }
@@ -22,10 +22,10 @@ export interface Rectangle {
 // <========================> ELLIPSE <========================>
 export interface Ellipse {
   _id: string;
-  text: TextStyle;
   type: DrawingToolTypeLiteral;
-  arrowProps: ArrowProps[];
+  text?: TextStyle;
   isLocked: boolean;
+  arrowProps?: ArrowProps[];
   styleProperties: EllipseStyle;
   activeUser?: ActiveUser;
 }
@@ -35,7 +35,7 @@ export interface Text {
   _id: string;
   type: DrawingToolTypeLiteral;
   isLocked: boolean;
-  arrowProps: ArrowProps[];
+  arrowProps?: ArrowProps[];
   styleProperties: TextStyle;
   activeUser?: ActiveUser;
 }
@@ -45,7 +45,6 @@ export interface FreeHand {
   _id: string;
   type: DrawingToolTypeLiteral;
   isLocked: boolean;
-  arrowProps: ArrowProps[];
   styleProperties: FreeHandStyle;
   activeUser?: ActiveUser;
 }
@@ -55,7 +54,7 @@ export interface Arrow {
   _id: string;
   type: DrawingToolTypeLiteral;
   isLocked: boolean;
-  arrowProps: ArrowProps[];
+  attachedShape?: AttachedShape;
   styleProperties: ArrowStyle;
   activeUser?: ActiveUser;
 }

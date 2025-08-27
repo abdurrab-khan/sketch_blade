@@ -1,7 +1,5 @@
 import React, { ReactNode } from "react";
-import { useSelector } from "react-redux";
 import { Ellipse, FreeHand, Rectangle, Arrow, Text } from "../../shapes";
-import { RootState } from "../../../../redux/store";
 import { getUpdatedProps } from "../../../../utils/ShapeUtils";
 import { CombineShape, ShapePropsMap } from "@/types/shapes";
 
@@ -15,17 +13,9 @@ const ListComponent: { [K in keyof ShapePropsMap]: React.ComponentType<ShapeProp
 };
 
 const GetDynamicShape = ({ ...props }: CombineShape): ReactNode => {
-  const {
-    activeTool: { type: activeTool },
-    selectedShapesId,
-  } = useSelector((state: RootState) => state.app);
   const Component = ListComponent[props.type];
 
-  const updatedProps = getUpdatedProps(
-    props,
-    activeTool,
-    selectedShapesId,
-  );
+  const updatedProps = getUpdatedProps(props, null, null);
 
   return <Component {...updatedProps} />;
 };

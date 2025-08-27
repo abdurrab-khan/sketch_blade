@@ -57,6 +57,7 @@ export interface FreeHandStyle {
 
 // <========================> Arrow <========================>
 export interface ArrowStyle {
+  points: number[];
   stroke: string;
   dash: StrokeStyle;
   strokeWidth: StrokeWidth;
@@ -64,6 +65,32 @@ export interface ArrowStyle {
   opacity: number;
 }
 
+// <========================> Eraser <========================>
+export interface EraserStyle {
+  eraserRadius: number;
+}
+
+// <========================> ALL STYLE PROPS MAP <========================>
+export interface StylePropsMap {
+  rectangle: RectangleStyle;
+  ellipse: EllipseStyle;
+  "free hand": FreeHandStyle;
+  "point arrow": ArrowStyle;
+  text: TextStyle;
+  eraser: EraserStyle;
+}
+
+// <========================> Shape Style Partial <========================>
+export type ShapeStylePartial = {
+  [K in keyof StylePropsMap]: Partial<StylePropsMap[K]>;
+}[keyof StylePropsMap];
+
+// <========================> Combine Shape Style <========================>
 export type CombineShapeStyle = Partial<
-  RectangleStyle & EllipseStyle & TextStyle & FreeHandStyle & ArrowStyle
+  RectangleStyle &
+    EllipseStyle &
+    TextStyle &
+    FreeHandStyle &
+    ArrowStyle &
+    EraserStyle
 >;

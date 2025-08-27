@@ -5,23 +5,23 @@ import { DeletedShapeProps } from "../../utils/ShapeUtils.ts";
 import { getCombineShapeProps } from "../../utils/Tool.ts";
 
 // Common
-import { SelectionPurpose } from "../../types/shapes/common.ts";
+import { ArrowProps, SelectionPurpose } from "../../types/shapes/common.ts";
 
 // Types
-import { ArrowProps, SelectedShapesId } from "../../types/index.ts";
-import { Shape, UpdateShape } from "../../types/shapes/shape-union.ts";
+import { ActiveTool, ToolType } from "../../types/tools/tool.ts";
+import { shapeStyleProperties } from "@/lib/constant.ts";
+import { CombineShape as Shape } from "@/types/shapes/shapes.ts";
+import { SelectedShapesId } from "@/types/index.ts";
 import {
-  ActiveTool,
-  AllToolBarProperties,
-  ToolType,
-} from "../../types/tools/tool.ts";
-import { toolBarProperties } from "@/lib/constant.ts";
+  ShapeStylePartial,
+  StylePropsMap,
+} from "@/types/shapes/style-properties.ts";
 
 type AppState = {
   clerkId: string | null;
   shapes: Shape[];
   activeTool: ActiveTool;
-  toolBarProperties: Partial<AllToolBarProperties> | null;
+  shapeStyleProps: ShapeStylePartial | null;
   selectedShapesId: SelectedShapesId | null;
   selectedShapeToAddArrow: ArrowProps | null;
 };
@@ -33,7 +33,7 @@ const initialState: AppState = {
     type: ToolType.Cursor,
     isLocked: false,
   },
-  toolBarProperties: null,
+  shapeStyleProps: null,
   selectedShapesId: null,
   selectedShapeToAddArrow: null,
 };
@@ -58,27 +58,28 @@ export const appSlice = createSlice({
         isLocked: isLocked === null ? state.activeTool.isLocked : isLocked,
       };
 
-      if (type) {
-        state.toolBarProperties = toolBarProperties[type];
+      if (type && type in shapeStyleProperties) {
+        const k = type as keyof StylePropsMap;
+        state.shapeStyleProps = shapeStyleProperties[k];
       } else {
-        state.toolBarProperties = null;
+        state.shapeStyleProps = null;
       }
     },
 
     removeUpdateToolBarProperties: (state, action) => {
       const payload = action.payload;
 
-      state.toolBarProperties = payload;
+      state.shapeStyleProps = payload;
     },
 
     updateToolBarProperties: (state, action) => {
       const payload = action.payload;
 
       if (payload === null) {
-        state.toolBarProperties = null;
+        state.shapeStyleProps = null;
       } else {
-        state.toolBarProperties = {
-          ...state.toolBarProperties,
+        state.shapeStyleProps = {
+          ...state.shapeStyleProps,
           ...payload,
         };
       }
@@ -88,11 +89,11 @@ export const appSlice = createSlice({
       const shapes = action.payload;
 
       if (!shapes || shapes.length === 0) {
-        state.toolBarProperties = null;
+        state.shapeStyleProps = null;
         return;
       }
 
-      state.toolBarProperties = getCombineShapeProps(shapes);
+      state.shapeStyleProps = getCombineShapeProps(shapes);
     },
 
     setShapes: (state, action) => {
@@ -114,13 +115,12 @@ export const appSlice = createSlice({
       action: {
         payload:
           | {
-              shapeId?: string;
-              shapeIndex?: number;
-              shapeValue: Partial<UpdateShape>;
+              shapeId: string;
+              shapeValue: Partial<Shape>;
             }
           | {
               shapeId: string;
-              shapeValue: Partial<UpdateShape>;
+              shapeValue: Partial<Shape>;
             }[];
       },
     ) => {
@@ -129,34 +129,17 @@ export const appSlice = createSlice({
         : [action.payload];
 
       updates.forEach((update) => {
-        let index =
-          (update as unknown as { shapeIndex: number })?.shapeIndex ?? null;
-
-        if (!index) {
-          index = state.shapes.findIndex(
-            (shape) => shape._id === update.shapeId,
-          );
-        }
+        const index = state.shapes.findIndex(
+          (shape) => shape._id === update.shapeId,
+        );
 
         if (index !== -1) {
           for (const key in update.shapeValue) {
-            const k = key as keyof Partial<UpdateShape>;
+            const k = key as keyof Partial<Shape>;
             const updatedShapeValues: Record<string, unknown> = {};
 
-            // Check where updatedShapeValue is object, which mean it is customProperties or customEdgeRadius.
-            if (
-              update.shapeValue[k] &&
-              (k === "customEdgeRadius" || k === "customProperties")
-            ) {
-              if (k === "customEdgeRadius") {
-                if (state.shapes[index].type === "point arrow") {
-                  updatedShapeValues["tension"] =
-                    update.shapeValue[k]["tension"];
-                } else {
-                  updatedShapeValues["cornerRadius"] =
-                    update.shapeValue[k]["cornerRadius"];
-                }
-              } else if (k === "customProperties") {
+            if (update.shapeValue[k]) {
+              if (k === "styleProperties") {
                 updatedShapeValues[k] = {
                   ...state.shapes[index][k],
                   ...update.shapeValue[k],

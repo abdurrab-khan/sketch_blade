@@ -1,15 +1,15 @@
-import { Arrow, Ellipse, Rectangle, Shape } from '@/types/shapes';
 import Konva from 'konva'
+import { Stage } from 'konva/lib/Stage';
+import { RootState } from '@/redux/store';
+import { KonvaEventObject } from 'konva/lib/Node';
+import { useDispatch, useSelector } from 'react-redux';
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+
+import { Arrow, CombineShape as Shape, Ellipse, Rectangle, } from '@/types/shapes';
 import { GetDynamicShape } from './others/const';
 import useShapeProperties from '@/hooks/useShapeProperties';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
-import { Stage } from 'konva/lib/Stage';
-import { KonvaEventObject } from 'konva/lib/Node';
-import { TOOLBAR_TOOL_TYPES } from '@/lib/constant';
-import { v4 as uuid } from "uuid"
-import { ToolType } from '@/types/tools/tool';
+import { CREATOR_TOOLS } from '@/lib/constant';
+import { DrawingToolTypeLiteral, ToolType } from '@/types/tools/tool';
 import { Coordinates, FourCoordinates } from '@/types';
 import { getTransformedPos } from '@/utils/Helper';
 import { getUpdatedPropsToAddArrow, recalculatesShapeDimensions } from '@/utils/ShapeUtils';
@@ -31,28 +31,22 @@ const ShapeCreator: React.FC<ShapeCreatorProps> = ({ stageRef }) => {
     const { proximity } = useShapeEdgeDetector(10, currentShape);
 
     // <===================> Helper functions <========================>
-    const createNewShape = useCallback((transformedPos: Coordinates) => {
-        const shapeProps = {
-            _id: uuid(),
-            isDrawing: true,
-            ...newShapeProps
-        }
+    const createNewShape = useCallback((shapeBase: Shape, shapeType: DrawingToolTypeLiteral, transformedPos: Coordinates) => {
+        if (shapeType === "point arrow" || shapeType === "free hand") {
+            // if (shapeType === "point arrow") {
+            //     ((newShapeProps as Arrow)["isDrawingArrow"]) = true
+            // }
 
-        if (activeTool === ToolType.PointArrow || activeTool === ToolType.FreeHand) {
-            if (activeTool === "point arrow") {
-                ((newShapeProps as Arrow)["isDrawingArrow"]) = true
-            }
-
-            ((newShapeProps as Arrow)["points"]) = [
+            (shapeBase as Arrow)["styleProperties"]["points"] = [
                 ...Object.values(transformedPos),
             ];
         } else {
-            ((shapeProps as Rectangle | Ellipse)["x"]) = transformedPos.x;
-            ((shapeProps as Rectangle | Ellipse)["y"]) = transformedPos.y;
+            ((shapeBase as Rectangle | Ellipse)["styleProperties"]["x"]) = transformedPos.x;
+            ((shapeBase as Rectangle | Ellipse)["styleProperties"]["y"]) = transformedPos.y;
         }
 
-        setCurrentShape(shapeProps as Shape);
-    }, [activeTool, newShapeProps]);
+        setCurrentShape(shapeBase as Shape);
+    }, []);
 
     const addNewShape = useCallback(
         (customizedCurrentShape?: Shape) => {
@@ -107,8 +101,12 @@ const ShapeCreator: React.FC<ShapeCreatorProps> = ({ stageRef }) => {
         e.evt.preventDefault();
 
         const stage = e.target.getStage();
+        const newShapeBase = newShapeProps;
 
-        if (TOOLBAR_TOOL_TYPES.includes(activeTool) && stage) {
+        if (newShapeBase === null) return; // Return if newShapeBase is null.
+        const shapeType = newShapeBase.type;
+
+        if (stage && CREATOR_TOOLS.includes(shapeType)) {
             const transformedPos = getTransformedPos(stage)
             if (!transformedPos) return;
 
@@ -119,53 +117,57 @@ const ShapeCreator: React.FC<ShapeCreatorProps> = ({ stageRef }) => {
             }
 
             if (!currentShape) {
-                // Handle if drawing is not started
-                createNewShape(transformedPos);
+                createNewShape(newShapeBase, shapeType, transformedPos); // Drawing a new Shape.
             } else {
-                // Add new Points to "POINT ARROW" 
-                if (activeTool === ToolType.PointArrow) {
+                if (shapeType === "point arrow") {
                     handleShapeAttachment();
-                    (currentShape as Arrow)?.points?.push(transformedPos.x, transformedPos.y)
+                    currentShape?.styleProperties.points?.push(transformedPos.x, transformedPos.y)
                 }
             }
         }
 
-    }, [activeTool, createNewShape, currentShape, handleShapeAttachment])
+    }, [createNewShape, currentShape, handleShapeAttachment, newShapeProps])
 
     const handleMouseUp = useCallback((e: KonvaEventObject<MouseEvent, Stage>) => {
         e.evt.preventDefault();
 
-        if (TOOLBAR_TOOL_TYPES.includes(activeTool) && currentShape) {
-            if (activeTool === ToolType.PointArrow) {
+        if (currentShape === null) return; // Return if there is not shape
+        const shapeType = currentShape.type;
+
+        if (CREATOR_TOOLS.includes(shapeType)) {
+            if (shapeType === shapeType) {
                 const arrow = currentShape as Arrow;
-                if (arrow?.isDrawingArrow) {
-                    // If user click at the start point drawing arrow.
-                    // We assume -- User want to create pointed arrow.
-                    // Otherwise -- User want to create arrow.
-                    if (arrow?.points.length === 2) {
-                        setCurrentShape(
-                            (prev) => ({
-                                ...prev,
-                                isDrawingArrow: false,
-                            }) as Arrow
-                        );
-                    } else {
-                        addNewShape()
-                    }
-                }
+                // TODO: CHECK ARROW UPDATING DURING MOVE UP
+                // if (arrow?.isDrawingArrow) {
+                //     // If user click at the start point drawing arrow.
+                //     // We assume -- User want to create pointed arrow.
+                //     // Otherwise -- User want to create arrow.
+                //     if (arrow?.points.length === 2) {
+                //         setCurrentShape(
+                //             (prev) => ({
+                //                 ...prev,
+                //                 isDrawingArrow: false,
+                //             }) as Arrow
+                //         );
+                //     } else {
+                //         addNewShape()
+                //     }
+                // }
             } else {
                 addNewShape();
             }
         }
-    }, [activeTool, addNewShape, currentShape])
+    }, [addNewShape, currentShape])
 
     const handleMouseMove = useCallback((e: KonvaEventObject<MouseEvent, Stage>) => {
         e.evt.preventDefault();
 
         const stage = e.target.getStage();
-        if (!stage) return;
+        if (!stage || currentShape === null) return;
 
-        if (TOOLBAR_TOOL_TYPES.includes(activeTool) && currentShape) {
+        const shapeType = currentShape.type;
+
+        if (CREATOR_TOOLS.includes(shapeType)) {
             const transformedPos = getTransformedPos(stage);
             if (!transformedPos) return;
 
@@ -173,17 +175,16 @@ const ShapeCreator: React.FC<ShapeCreatorProps> = ({ stageRef }) => {
 
             const updatedShapeValue =
                 recalculatesShapeDimensions(
-                    activeTool,
+                    shapeType,
                     updatedCoordinates,
                     currentShape,
                 );
 
             setCurrentShape(updatedShapeValue);
         }
-    }, [activeTool, currentShape])
+    }, [currentShape])
 
     useEffect(() => {
-
         const stage = stageRef?.current;
         if (!stage) return;
 

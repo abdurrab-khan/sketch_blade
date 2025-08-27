@@ -5,6 +5,7 @@ import { Line } from "konva/lib/shapes/Line";
 import { Arrow } from "konva/lib/shapes/Arrow";
 import { DrawingToolTypeLiteral } from "../tools/tool";
 import { ActiveUser, ArrowProps, AttachedShape } from "./common";
+import { CombineShape } from "./shapes";
 
 // <========================> RECTANGLE <========================>
 export interface KonvaRectangle {
@@ -12,7 +13,6 @@ export interface KonvaRectangle {
   type: DrawingToolTypeLiteral;
   text?: Partial<KonvaText>;
   isLocked: boolean;
-  isDraggable: boolean;
   arrowProps?: ArrowProps[];
   styleProperties: Partial<Rect>;
   activeUser?: ActiveUser;
@@ -24,7 +24,6 @@ export interface KonvaEllipse {
   type: DrawingToolTypeLiteral;
   text?: Partial<KonvaText>;
   isLocked: boolean;
-  isDraggable: boolean;
   arrowProps?: ArrowProps[];
   styleProperties: Partial<Ellipse>;
   activeUser?: ActiveUser;
@@ -35,7 +34,6 @@ export interface KonvaText {
   _id: string;
   type: DrawingToolTypeLiteral;
   isLocked: boolean;
-  isDraggable: boolean;
   arrowProps?: ArrowProps[];
   styleProperties: Partial<Text>;
   activeUser?: ActiveUser;
@@ -46,7 +44,6 @@ export interface KonvaFreeHand {
   _id: string;
   type: DrawingToolTypeLiteral;
   isLocked: boolean;
-  isDraggable: boolean;
   styleProperties: Partial<Line>;
   activeUser?: ActiveUser;
 }
@@ -56,7 +53,6 @@ export interface KonvaArrow {
   _id: string;
   type: DrawingToolTypeLiteral;
   isLocked: boolean;
-  isDraggable: boolean;
   attachedShape?: AttachedShape;
   styleProperties: Partial<Arrow>;
   activeUser?: ActiveUser;

@@ -13,6 +13,7 @@ export type TextAlign = "LEFT" | "CENTER" | "RIGHT";
 export type SelectionPurpose = "FOR_EDITING" | "FOR_DELETING" | "DEFAULT";
 
 export type AttachedShape = Record<ArrowPosition, string>;
+
 export interface ArrowProps {
   _id: string;
   x: number;
