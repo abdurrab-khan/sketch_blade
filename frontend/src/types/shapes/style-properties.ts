@@ -7,6 +7,7 @@ import {
   StrokeWidth,
   TextAlign,
 } from "./common";
+import { ToolType } from "./shapes";
 
 // <========================> RECTANGLE <========================>
 export interface RectangleStyle {
@@ -15,7 +16,7 @@ export interface RectangleStyle {
   height: number;
   width: number;
   fill: string;
-  fillPattern: FillStyle;
+  fillPatternImage: FillStyle;
   stroke: string;
   dash: StrokeStyle;
   strokeWidth: StrokeWidth;
@@ -30,7 +31,7 @@ export interface EllipseStyle {
   height: number;
   width: number;
   fill: string;
-  fillPattern: FillStyle;
+  fillPatternImage: FillStyle;
   stroke: string;
   dash: StrokeStyle;
   strokeWidth: StrokeWidth;
@@ -39,6 +40,7 @@ export interface EllipseStyle {
 
 // <========================> TEXT <========================>
 export interface TextStyle {
+  text: string;
   stroke: string;
   fontSize: FontSize;
   fontFamily: FontFamily;
@@ -48,7 +50,7 @@ export interface TextStyle {
 
 // <========================> FREE-HAND <========================>
 export interface FreeHandStyle {
-  text: string;
+  points: number[];
   stroke: string;
   dash: StrokeStyle;
   strokeWidth: StrokeWidth;
@@ -75,22 +77,23 @@ export interface StylePropsMap {
   rectangle: RectangleStyle;
   ellipse: EllipseStyle;
   "free hand": FreeHandStyle;
-  "point arrow": ArrowStyle;
+  arrow: ArrowStyle;
   text: TextStyle;
   eraser: EraserStyle;
 }
 
+// <========================> ALL STYLE PROPS MAP <========================>
+
 // <========================> Shape Style Partial <========================>
+export type ShapeStyle = {
+  [K in ToolType]: K extends keyof StylePropsMap ? StylePropsMap[K] : null;
+};
+
 export type ShapeStylePartial = {
-  [K in keyof StylePropsMap]: Partial<StylePropsMap[K]>;
-}[keyof StylePropsMap];
+  [K in ToolType]?: ShapeStyle[K];
+}[ToolType];
 
 // <========================> Combine Shape Style <========================>
 export type CombineShapeStyle = Partial<
-  RectangleStyle &
-    EllipseStyle &
-    TextStyle &
-    FreeHandStyle &
-    ArrowStyle &
-    EraserStyle
+  RectangleStyle & EllipseStyle & TextStyle & FreeHandStyle & ArrowStyle & EraserStyle
 >;

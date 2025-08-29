@@ -13,30 +13,17 @@ import {
 } from "@tanstack/react-table";
 import { Button } from "../ui/button.tsx";
 import { Input } from "../ui/input.tsx";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table.tsx";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table.tsx";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-}: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
@@ -60,17 +47,12 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div
-      className="flex w-full flex-col gap-2"
-      style={{ height: "calc(100% - 3.25rem)" }}
-    >
+    <div className="flex w-full flex-col gap-2" style={{ height: "calc(100% - 3.25rem)" }}>
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter by name..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table?.getColumn("name")?.setFilterValue(event.target.value)
-          }
+          onChange={(event) => table?.getColumn("name")?.setFilterValue(event.target.value)}
           className="max-w-full"
         />
       </div>
@@ -86,16 +68,11 @@ export function DataTable<TData, TValue>({
                         return (
                           <TableHead
                             key={header.id}
-                            className={
-                              "text-center uppercase text-zinc-50 dark:text-zinc-900"
-                            }
+                            className={"text-center uppercase text-zinc-50 dark:text-zinc-900"}
                           >
                             {header.isPlaceholder
                               ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext(),
-                                )}
+                              : flexRender(header.column.columnDef.header, header.getContext())}
                           </TableHead>
                         );
                       })}
@@ -113,10 +90,7 @@ export function DataTable<TData, TValue>({
                         >
                           {row.getVisibleCells().map((cell) => (
                             <TableCell key={cell.id}>
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext(),
-                              )}
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </TableCell>
                           ))}
                         </TableRow>
@@ -124,10 +98,7 @@ export function DataTable<TData, TValue>({
                     })
                   ) : (
                     <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
-                      >
+                      <TableCell colSpan={columns.length} className="h-24 text-center">
                         No results.
                       </TableCell>
                     </TableRow>

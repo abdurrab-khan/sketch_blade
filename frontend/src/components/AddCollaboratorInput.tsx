@@ -1,16 +1,5 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Select,
@@ -44,11 +33,8 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
 }) => {
   const [listColl, setListColl] = useState<ListCollaborator[]>([]);
   const [inputSearch, setInputSearch] = useState("");
-  const [role, setRole] = useState<CollaboratorActions>(
-    "view" as CollaboratorActions,
-  );
-  const [selectedCollaborator, setSelectedCollaborator] =
-    useState<CollaboratorData | null>(null);
+  const [role, setRole] = useState<CollaboratorActions>("view" as CollaboratorActions);
+  const [selectedCollaborator, setSelectedCollaborator] = useState<CollaboratorData | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { email } = useSelector((state: RootState) => state.auth);
   const apiClient = useApiClient();
@@ -57,13 +43,12 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
     () =>
       debounce(async (searchTerm: { email: string; current_email: string }) => {
         try {
-          const response = await apiClient.post("/users", searchTerm) as ApiResponse;
+          const response = (await apiClient.post("/users", searchTerm)) as ApiResponse;
 
           if (response.statusCode === 200) {
             if (Array.isArray(response.data) && response.data.length) {
               setListColl(response.data);
             } else {
-
               setListColl([]);
             }
           }
@@ -86,9 +71,7 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
   );
 
   const handleAddCollaborators = (collaboratorData: CollaboratorData) => {
-    const isAlreadySelected = collaborators.some(
-      (coll) => coll._id === collaboratorData._id,
-    );
+    const isAlreadySelected = collaborators.some((coll) => coll._id === collaboratorData._id);
 
     if (isAlreadySelected) return;
 
@@ -100,18 +83,13 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
 
   const handleChangeRole = (_id: string, role: CollaboratorActions) => {
     setCollaborators((prevColl) =>
-      prevColl.map((coll) =>
-        coll._id === _id ? { ...coll, actions: role } : coll,
-      ),
+      prevColl.map((coll) => (coll._id === _id ? { ...coll, actions: role } : coll)),
     );
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setListColl([]);
       }
     };
@@ -155,8 +133,8 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
                       className={cn(
                         "flex items-center justify-center gap-x-2.5 rounded-full border border-zinc-200 bg-primary px-2 py-1 text-white focus:border-2",
                         selectedCollaborator?._id === collaborator._id &&
-                        selectedCollaborator?._id === collaborator._id &&
-                        "ring-1 ring-offset-1",
+                          selectedCollaborator?._id === collaborator._id &&
+                          "ring-1 ring-offset-1",
                       )}
                       onClick={() => {
                         setSelectedCollaborator(collaborator);
@@ -174,9 +152,7 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
                         onClick={(e) => {
                           e.stopPropagation();
                           setCollaborators((prevColl) =>
-                            prevColl.filter(
-                              (coll) => coll._id !== collaborator._id,
-                            ),
+                            prevColl.filter((coll) => coll._id !== collaborator._id),
                           );
                         }}
                       >
@@ -209,10 +185,7 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
             value={role}
             onValueChange={(value) => {
               if (selectedCollaborator) {
-                handleChangeRole(
-                  selectedCollaborator._id,
-                  value as CollaboratorActions,
-                );
+                handleChangeRole(selectedCollaborator._id, value as CollaboratorActions);
               }
               setRole(value as CollaboratorActions);
             }}
@@ -263,10 +236,7 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
                           />
                           <p className="ml-4">{collaborator.email}</p>
                           <TooltipContent>
-                            <p>
-                              Click to add {collaborator.fullName} as a
-                              collaborator
-                            </p>
+                            <p>Click to add {collaborator.fullName} as a collaborator</p>
                           </TooltipContent>
                         </div>
                       </TooltipTrigger>

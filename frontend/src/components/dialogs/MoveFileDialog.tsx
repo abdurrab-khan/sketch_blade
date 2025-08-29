@@ -25,20 +25,14 @@ interface MoveFileDialogProps {
   existingFolderId?: string;
 }
 
-const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
-  children,
-  _id,
-  existingFolderId,
-}) => {
+const MoveFileDialog: React.FC<MoveFileDialogProps> = ({ children, _id, existingFolderId }) => {
   const [inputSearch, setInputSearch] = useState<string>("");
-  const [selectedFolder, setSelectedFolder] = React.useState<string>(
-    existingFolderId || "",
-  );
+  const [selectedFolder, setSelectedFolder] = React.useState<string>(existingFolderId || "");
   const [listFolders, setListFolders] = useState<FolderDetails[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
 
   const { data, isPending } = useResponse({
-    queryProps: { "uri": "/folder" },
+    queryProps: { uri: "/folder" },
     queryKeys: ["getFolders"],
   });
 
@@ -63,7 +57,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
     fileUpdateMutation.mutate({
       method: "post",
       uri: `/folder/file/${_id}`,
-      data: { folderId: selectedFolder }
+      data: { folderId: selectedFolder },
     });
   };
 
@@ -80,9 +74,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
     } else {
       setListFolders((prev) => {
         return prev.filter((folder) =>
-          folder.name
-            .toLowerCase()
-            .includes(e.target.value.toLowerCase()),
+          folder.name.toLowerCase().includes(e.target.value.toLowerCase()),
         );
       });
     }
@@ -100,9 +92,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
       <DialogContent className="dark-container sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Move Folder</DialogTitle>
-          <DialogDescription>
-            Move the folder to another location
-          </DialogDescription>
+          <DialogDescription>Move the folder to another location</DialogDescription>
         </DialogHeader>
         <div>
           <div>
@@ -131,32 +121,26 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
                   </div>
                 ) : (
                   <>
-                    {(listFolders as FolderDetails[]).map(
-                      ({ _id, createdAt, name }) => (
-                        <div
-                          key={_id}
-                          id={_id}
-                          className={cn(
-                            "rounded-md bg-blue-500/30 p-2.5 dark:bg-blue-500/10",
-                            selectedFolder &&
-                            _id === selectedFolder &&
-                            "bg-blue-500/60",
-                          )}
-                          onClick={() => handleClickToFolder(_id)}
-                        >
-                          <div className={"flex items-center justify-between"}>
-                            <div className={"flex items-center gap-x-2"}>
-                              <p className={"text-sm"}>{name}</p>
-                            </div>
-                            <span>
-                              <p className={"text-xs text-gray-400"}>
-                                {getFormattedTime(createdAt)}
-                              </p>
-                            </span>
+                    {(listFolders as FolderDetails[]).map(({ _id, createdAt, name }) => (
+                      <div
+                        key={_id}
+                        id={_id}
+                        className={cn(
+                          "rounded-md bg-blue-500/30 p-2.5 dark:bg-blue-500/10",
+                          selectedFolder && _id === selectedFolder && "bg-blue-500/60",
+                        )}
+                        onClick={() => handleClickToFolder(_id)}
+                      >
+                        <div className={"flex items-center justify-between"}>
+                          <div className={"flex items-center gap-x-2"}>
+                            <p className={"text-sm"}>{name}</p>
                           </div>
+                          <span>
+                            <p className={"text-xs text-gray-400"}>{getFormattedTime(createdAt)}</p>
+                          </span>
                         </div>
-                      ),
-                    )}
+                      </div>
+                    ))}
                   </>
                 )}
               </div>

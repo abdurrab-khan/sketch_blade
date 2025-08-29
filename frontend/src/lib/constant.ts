@@ -1,40 +1,40 @@
-import { CombineShapeStyle, StylePropsMap } from "@/types/shapes";
+import { ShapeStyle } from "@/types/shapes";
 
 export const MAX_ARROW_LIMIT = 15;
 export const ARROW_CIRCLE_RADIUS = 4;
 
-export const CREATOR_TOOLS = [
-  "rectangle",
-  "ellipse",
-  "point arrow",
-  "free hand",
-];
-
 export const ArrowSupportedShapes = ["rectangle", "ellipse", "text"];
 
-const commonProperties = {
-  stroke: "#3282B8",
-  strokeStyle: "SOLID",
-  strokeWidth: "THIN",
-  draggable: true,
-  opacity: 1,
-} as Partial<CombineShapeStyle>;
-
-export const shapeStyleProperties: {
-  [K in keyof StylePropsMap]: Partial<StylePropsMap[K]>;
-} = {
+export const shapeStyleProperties: ShapeStyle = {
+  cursor: null,
+  hand: null,
   rectangle: {
+    x: 0,
+    y: 0,
+    height: 0,
+    width: 0,
+    opacity: 1,
+    dash: "SOLID",
+    stroke: "#3282B8",
+    strokeWidth: "THIN",
     fill: "#0A1F2C",
     fillPattern: "SOLID",
     cornerRadius: "ROUNDED",
-    ...commonProperties,
   },
   ellipse: {
+    x: 0,
+    y: 0,
+    height: 0,
+    width: 0,
+    dash: "SOLID",
+    opacity: 1,
+    stroke: "#3282B8",
+    strokeWidth: "THIN",
     fill: "#0A1F2C",
     fillPattern: "SOLID",
-    ...commonProperties,
   },
   text: {
+    text: "",
     stroke: "#ffffff",
     fontSize: "MEDIUM",
     fontFamily: "NORMAL",
@@ -45,11 +45,19 @@ export const shapeStyleProperties: {
     eraserRadius: 15,
   },
   "free hand": {
-    ...commonProperties,
+    dash: "SOLID",
+    opacity: 1,
+    points: [],
+    stroke: "#3282B8",
+    strokeWidth: "THIN",
   },
-  "point arrow": {
+  arrow: {
+    dash: "SOLID",
+    points: [],
+    stroke: "#3282B8",
+    strokeWidth: "THIN",
+    opacity: 1,
     tension: "ROUNDED",
-    ...commonProperties,
   },
 };
 

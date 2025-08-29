@@ -8,17 +8,8 @@ const Text: React.FC<KonvaTextType> = ({ ...props }) => {
   const groupRef = useRef<Konva.Group>();
 
   return (
-    <ShapeGroup
-      _id={props._id}
-      x={props.x}
-      y={props.y}
-    >
-      <KonvaText
-        name="text"
-        {...props}
-        x={0}
-        y={0}
-      />
+    <ShapeGroup _id={props._id} x={props.x} y={props.y}>
+      <KonvaText name="text" {...props} x={0} y={0} />
     </ShapeGroup>
   );
 };

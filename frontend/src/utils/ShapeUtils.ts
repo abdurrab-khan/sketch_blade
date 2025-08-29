@@ -1,10 +1,17 @@
-import { FourCoordinates, SelectedShapesId } from "../types";
-import { Arrow, AttachedShape, Ellipse } from "../types/shapes";
+import { FourCoordinates } from "../types";
 import {
-  AllToolBarProperties,
-  DrawingToolType,
-  ToolType,
-} from "../types/tools/tool";
+  Arrow,
+  ArrowPosition,
+  ArrowProps,
+  AttachedShape,
+  Ellipse,
+  KonvaShapeMap,
+  KonvaStyleMap,
+  Rectangle,
+  ShapeMap,
+  Shapes,
+  StylePropsMap,
+} from "../types/shapes";
 import {
   ArrowSupportedShapes as ShapesThatSupportArrow,
   MAX_ARROW_LIMIT,
@@ -42,133 +49,82 @@ export interface DeletedShapeProps {
   deletedShapes: string[];
 }
 
-// <----------------------------------> SHAPE UTILS <------------------------------------------>
-/**
- * Utility function to get the shape properties based on the current selector and tool bar properties.
- * @param key {keyof ToolBarProperties}[]
- * @param toolBarProperties {Partial<ToolBarProperties>}
- */
-export function getShapeProperties(toolBarProperties: AllToolBarProperties) {
-  const key = Object.keys(toolBarProperties);
+// <================================> SHAPE UTILITY  <================================>
 
-  if (key.length <= 0 || !Array.isArray(key)) return {};
+function getKonvaStyle<K extends keyof StylePropsMap>(
+  styleProps: StylePropsMap[K],
+): KonvaStyleMap[K] {
+  const style: KonvaStyleMap[K] = {};
 
-  let properties = {};
+  for (const s of Object.keys(styleProps) as Array<keyof StylePropsMap[K]>) {
+    const property = styleProps[s];
 
-  key.forEach((key) => {
-    switch (key) {
-      case "edgeStyle": {
-        const property = toolBarProperties.edgeStyle;
-
-        const tension = property === "SHARP" ? 0 : 0.15;
-        const cornerRadius = property === "SHARP" ? 0 : 32;
-
-        const radiusValue =
-          toolBarProperties.type === "point arrow"
-            ? {
-                tension,
-              }
-            : { cornerRadius };
-
-        properties = {
-          ...properties,
-          ...radiusValue,
-        };
+    switch (s) {
+      case "dash": {
+        const dashValue = property === "SOLID" ? [0] : property === "DASHED" ? [10, 15] : undefined;
+        if (dashValue) style[s] = dashValue;
         break;
       }
       case "strokeWidth": {
-        const property = toolBarProperties.strokeWidth;
-
-        let strokeWidth;
-        if (property === "THIN") {
-          strokeWidth = 3;
-        } else if (property === "MEDIUM") {
-          strokeWidth = 4;
-        } else if (property === "THICK") {
-          strokeWidth = 5;
-        }
-        properties = { ...properties, strokeWidth };
+        const strokeWidthValue = property === "THIN" ? 3 : property === "MEDIUM" ? 4 : 5;
+        style[s] = strokeWidthValue;
         break;
       }
-      case "strokeStyle": {
-        const property = toolBarProperties.strokeStyle;
-        let dash;
-        if (property === "SOLID") {
-          dash = [0];
-        } else if (property === "DASHED") {
-          dash = [10, 15];
-        } else {
-          dash = [3, 10];
-        }
-        properties = { ...properties, dash };
+      case "cornerRadius": {
+        const cornerRadiusValue = property === "SHARP" ? 0 : 32;
+        style[s] = cornerRadiusValue;
+        break;
+      }
+      case "tension": {
+        const tensionValue = property === "SHARP" ? 0 : 0.15;
+        style[s] = tensionValue;
+        break;
+      }
+      case "fillPatternImage": {
         break;
       }
       case "fontSize": {
-        const fontSize = toolBarProperties?.fontSize;
-        let size;
-
-        if (fontSize === "SMALL") {
-          size = 22;
-        } else if (fontSize === "MEDIUM") {
-          size = 24;
-        } else {
-          size = 28;
-        }
-
-        properties = { ...properties, fontSize: size };
-        break;
-      }
-      case "textAlign": {
-        const textAlign = toolBarProperties.textAlign;
-
-        properties = { ...properties, textAlign: textAlign?.toLowerCase() };
+        const fontSize = property === "SMALL" ? 22 : property === "MEDIUM" ? 24 : 28;
+        style[s] = fontSize;
         break;
       }
       case "fontFamily": {
-        properties = { ...properties, fontFamily: "sans-serif" };
+        style[s] = "sans-serif";
+        break;
+      }
+      case "align": {
+        style[s] = property.toLowerCase();
         break;
       }
       default: {
-        properties = {
-          ...properties,
-          [key]: toolBarProperties[key as keyof ToolBarProperties],
-        };
+        style[s] = property;
       }
     }
-  });
+  }
 
-  return properties;
+  return style;
 }
 
 /**
  * Utility function to get the updated properties of a shape based on the active tool and selected shapes.
- * @param shape {Shape}
- * @param activeTool {ToolType}
- * @param selectedShapesId {SelectedShapesId | null}
- * @returns {Shape}
+ * @param shape {Shapes}
+ * @returns {ShapePropsMap[K]}
  */
-export function getUpdatedProps(
-  shape: Shape,
-  activeTool: ToolType,
-  selectedShapesId: SelectedShapesId | null,
-) {
-  if (
-    selectedShapesId &&
-    selectedShapesId?._id?.length > 0 &&
-    selectedShapesId?._id?.includes(shape["_id"])
-  ) {
-    if (selectedShapesId?.purpose === "FOR_DELETING") {
-      shape["opacity"] = 0.5;
-    }
+export function getKonvaProps<K extends Extract<keyof ShapeMap, keyof KonvaShapeMap>>(
+  shape: ShapeMap[K],
+): KonvaShapeMap[K] {
+  const konvaStyleProps = getKonvaStyle(shape.styleProperties);
+
+  const result = {
+    ...shape,
+    styleProperties: konvaStyleProps,
+  };
+
+  if ((result.type === "rectangle" || result.type === "ellipse") && result?.text) {
+    result["text"] = getKonvaStyle(result?.text);
   }
 
-  if (activeTool !== ToolType.Cursor) {
-    shape["draggable"] = false;
-  } else {
-    shape["draggable"] = true;
-  }
-
-  return shape;
+  return result as unknown as KonvaShapeMap[K];
 }
 
 /**
@@ -179,7 +135,7 @@ export function getUpdatedProps(
  * @returns {PropsToAddArrow | null}
  */
 export function getUpdatedPropsToAddArrow(
-  shapes: Shape[],
+  shapes: Shapes[],
   selectedShapeId: ArrowProps | null,
   arrow: Arrow,
 ): PropsToAddArrow | null {
@@ -193,8 +149,7 @@ export function getUpdatedPropsToAddArrow(
     !currentShape ||
     currentShape?.arrowProps?.some(
       (props) =>
-        props?._id === arrow?._id &&
-        props?.arrowPosition === selectedShapeId?.arrowPosition,
+        props?._id === arrow?._id && props?.arrowPosition === selectedShapeId?.arrowPosition,
     )
   )
     return null;
@@ -224,81 +179,56 @@ export function getUpdatedPropsToAddArrow(
 
 /**
  * Utility function to recalculate the dimensions of a shape based on the tool type and coordinates.
- * @param tool {ToolType}
+ * @param tool {Drawing}
  * @param coordinates {FourCoordinates}
  * @param shape {Shape}
  * @returns {Shape}
  */
 export function recalculatesShapeDimensions(
-  tool: DrawingToolType,
+  tool: DrawingToolTypeLiteral,
   coordinates: FourCoordinates,
-  shape: Shape,
-): Shape {
+  shape: Shapes,
+): Shapes {
   const copyShape = { ...shape };
   const { x, y2, y, x2 } = coordinates;
 
   switch (tool) {
-    case ToolType.Rectangle: {
+    case "rectangle": {
       const width = Math.abs(x2 - x);
       const height = Math.abs(y2 - y);
 
-      if (!copyShape.isAddable && (height > 4 || width > 5)) {
-        copyShape.isAddable = true;
-      }
-
-      (copyShape as ArrowSupportedShapes)["height"] = height;
-      (copyShape as ArrowSupportedShapes)["width"] = width;
+      (copyShape as Rectangle)["styleProperties"]["height"] = height;
+      (copyShape as Rectangle)["styleProperties"]["width"] = width;
       break;
     }
-    case ToolType.Ellipse: {
+    case "ellipse": {
       const width = Math.abs(x2 - x);
       const height = Math.abs(y2 - y);
 
-      if (!copyShape.isAddable) {
-        const radius = Math.hypot(x2 - x, y2 - y);
-
-        if (radius >= 5) {
-          copyShape.isAddable = true;
-        }
-      }
-
-      (copyShape as Ellipse).height = height;
-      (copyShape as Ellipse).width = width;
+      (copyShape as Ellipse)["styleProperties"]["height"] = height;
+      (copyShape as Ellipse)["styleProperties"]["width"] = width;
       break;
     }
-    case ToolType.FreeHand:
-    case ToolType.PointArrow: {
+    case "free hand":
+    case "point arrow": {
       let points: number[] = [];
 
+      const prevPoints = (copyShape as Arrow)["styleProperties"]["points"];
+
       if (tool === "free hand") {
-        points = [...(copyShape as Arrow).points, x2, y2];
-        (copyShape as Arrow).isAddable = points.length > 5;
+        points = [...prevPoints, x2, y2];
       } else {
-        const len = (copyShape as Arrow).points.length;
+        const len = prevPoints.length;
 
         const fromToRemove = len < 3 ? len : len - 2;
         const deleteCount = len < 3 ? 0 : 2;
-        const copyPoints = (copyShape as Arrow).points.slice();
+        const copyPoints = prevPoints.slice();
         copyPoints.splice(fromToRemove, deleteCount, x2, y2);
-
-        if (copyPoints.length < 5) {
-          const distance = calculatePointDistance(0, copyPoints);
-
-          (copyShape as Arrow).isAddable =
-            distance > 20 && (copyShape as Arrow).isDrawingArrow;
-        } else {
-          for (let i = 0; i < copyPoints.length - 4; i += 4) {
-            const distance = calculatePointDistance(i, copyPoints);
-            (copyShape as Arrow).isAddable = distance > 20;
-
-            if (distance > 20) break;
-          }
-        }
 
         points = copyPoints;
       }
 
-      (copyShape as Arrow).points = points;
+      (copyShape as Arrow)["styleProperties"]["points"] = points;
     }
   }
 
@@ -313,8 +243,8 @@ export function recalculatesShapeDimensions(
  */
 export function getUpdatedAttachProps(
   arrow: Arrow,
-  shapes: Shape[],
-): Array<{ shapeId: string; shapeValue: Partial<Shape> }> | null {
+  shapes: Shapes[],
+): Array<{ shapeId: string; shapeValue: Partial<Shapes> }> | null {
   const attachedShapeIds = arrow?.attachedShape;
   if (!attachedShapeIds) return null;
 
@@ -322,8 +252,7 @@ export function getUpdatedAttachProps(
     START: null,
     END: null,
   };
-  const updatedValue: Array<{ shapeId: string; shapeValue: Partial<Shape> }> =
-    [];
+  const updatedValue: Array<{ shapeId: string; shapeValue: Partial<Shape> }> = [];
 
   const shapeMap = new Map<string, ArrowSupportedShapes>();
   for (const shape of shapes) {
@@ -340,22 +269,14 @@ export function getUpdatedAttachProps(
     if (!shape) continue;
 
     const arrowPoints = getArrowPointsForPosition(arrow, position);
-    const distance = calculatePointDistance(0, [
-      shape.x,
-      shape.y,
-      ...arrowPoints,
-    ]);
+    const distance = calculatePointDistance(0, [shape.x, shape.y, ...arrowPoints]);
 
     if (distance > MAX_ARROW_LIMIT) {
       const { [position]: remove, ...other } = arrow.attachedShape;
-      const updatedArrowProps = shape?.arrowProps?.filter(
-        (p) => p._id !== arrow._id,
-      );
+      const updatedArrowProps = shape?.arrowProps?.filter((p) => p._id !== arrow._id);
 
-      const attachedShape =
-        Object.keys(other).length === 0 ? null : (other as AttachedShape);
-      const arrowProps =
-        updatedArrowProps?.length === 0 ? null : updatedArrowProps;
+      const attachedShape = Object.keys(other).length === 0 ? null : (other as AttachedShape);
+      const arrowProps = updatedArrowProps?.length === 0 ? null : updatedArrowProps;
 
       if (updatedValue.length === 0) {
         updatedValue.push(
@@ -403,7 +324,7 @@ export function getUpdatedAttachProps(
  * @returns {shapeId: string, shapeValue: { points: number[] }}[]
  */
 export function updateAttachedArrowPosition(
-  shapes: Shape[],
+  shapes: Shapes[],
   arrowProps: ArrowProps[],
 ): { shapeId: string; shapeValue: { points: number[] } }[] {
   const updatedArrowPosition: {
@@ -412,11 +333,7 @@ export function updateAttachedArrowPosition(
   }[] = [];
 
   // Update arrow points
-  const updateArrowPoints = ({
-    arrowPoints,
-    from,
-    to,
-  }: UpdateArrowPoints): number[] => {
+  const updateArrowPoints = ({ arrowPoints, from, to }: UpdateArrowPoints): number[] => {
     const copyArrowPoints = [...arrowPoints];
 
     if (from || to) {
@@ -452,25 +369,15 @@ export function updateAttachedArrowPosition(
 
   // Process each arrow that's attached to the moving shape
   arrowProps.forEach((arrowProp) => {
-    const arrow = shapes.find(
-      (s) => s._id === arrowProp._id && s.type === "point arrow",
-    ) as Arrow;
+    const arrow = shapes.find((s) => s._id === arrowProp._id && s.type === "point arrow") as Arrow;
 
     if (!arrow?.attachedShape) return;
 
     const attachedShape = arrow.attachedShape;
-    const sourceShape = shapes.find(
-      (s) => s._id === attachedShape.START,
-    ) as ArrowSupportedShapes;
-    const targetShape = shapes.find(
-      (s) => s._id === attachedShape.END,
-    ) as ArrowSupportedShapes;
+    const sourceShape = shapes.find((s) => s._id === attachedShape.START) as ArrowSupportedShapes;
+    const targetShape = shapes.find((s) => s._id === attachedShape.END) as ArrowSupportedShapes;
 
-    const newPointPosition = findBestConnectionPoints(
-      sourceShape,
-      targetShape,
-      arrow.points,
-    );
+    const newPointPosition = findBestConnectionPoints(sourceShape, targetShape, arrow.points);
 
     if (newPointPosition) {
       const { from, to } = newPointPosition;
@@ -499,10 +406,7 @@ export function updateAttachedArrowPosition(
  * @param shapes {Shape[]}
  * @returns {string[]}
  */
-export function getDeletedShapeProps(
-  selectedIds: string[],
-  shapes: Shape[],
-): DeletedShapeProps {
+export function getDeletedShapeProps(selectedIds: string[], shapes: Shapes[]): DeletedShapeProps {
   const updatedValue: DeletedShapeProps = {
     updatedShapes: {},
     deletedShapes: [],
@@ -512,7 +416,7 @@ export function getDeletedShapeProps(
     const shape = shapes.find((s) => s._id === id);
     if (!shape) return;
 
-    if (shape.type === "point arrow" && (shape as Arrow).attachedShape) {
+    if (shape.type === "arrow" && (shape as Arrow).attachedShape) {
       // If removed shape is Arrow, We have to filter from "ArrowProps".
       const attachedShapeIds = Object.entries(
         (shape as Arrow)?.attachedShape as Record<ArrowPosition, string>,
@@ -530,14 +434,11 @@ export function getDeletedShapeProps(
           [key: string]: ArrowProps[] | null;
         }),
       };
-    } else if (
-      ArrowSupportedShapeList.includes(shape.type) &&
-      (shape as ArrowSupportedShapes)?._id
-    ) {
+    } else if (ArrowSupportedShapeList.includes(shape.type) && shape?._id) {
       // If removed shape is Rect, Ellipse,..., We have to remove from "AttachedShape."
       const filteredArrowProps = filterAttachedShapeProps(
         id,
-        (shape as ArrowSupportedShapes).arrowProps ?? [],
+        shape.arrowProps ?? [],
         updatedValue,
         shapes,
       );
@@ -552,4 +453,53 @@ export function getDeletedShapeProps(
   });
 
   return updatedValue;
+}
+
+/**
+ * Utility function that return a true if the shape is addable, by checking the coordinates.
+ * @param tool {DrawingToolTypeLiteral}
+ * @param coordinates {FourCoordinates}
+ * @return {boolean}
+ */
+export function isShapeAddable(shape: Shapes): boolean {
+  switch (shape.type) {
+    case "rectangle": {
+      const height = shape.styleProperties?.height;
+      const width = shape.styleProperties?.width;
+
+      return height > 4 || width > 5;
+    }
+    case "ellipse": {
+      const a = shape.styleProperties?.width / 2;
+      const b = shape.styleProperties?.height / 2;
+
+      return Math.sqrt(a * b) >= 5;
+    }
+    case "free hand":
+    case "point arrow": {
+      const points = shape.styleProperties.points;
+
+      if (shape.type === "free hand") return points.length > 5;
+      else {
+        if (points.length < 5) {
+          const distance = calculatePointDistance(0, points);
+          return distance > 20;
+        } else {
+          for (let i = 0; i < points.length - 4; i += 4) {
+            const distance = calculatePointDistance(i, points);
+            return distance > 20;
+          }
+        }
+      }
+
+      return false;
+    }
+    case "text": {
+      const text = shape.styleProperties.text;
+
+      return text !== undefined && text.length > 0;
+    }
+  }
+
+  return false;
 }

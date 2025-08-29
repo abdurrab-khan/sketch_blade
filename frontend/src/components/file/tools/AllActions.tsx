@@ -14,7 +14,7 @@ interface ContainerProps {
 }
 
 interface MainToggleGroup {
-  toolKey: AllToolBarPropertiesKeys
+  toolKey: AllToolBarPropertiesKeys;
 }
 
 const Container: React.FC<ContainerProps> = ({ children, label }) => {
@@ -29,32 +29,23 @@ const Container: React.FC<ContainerProps> = ({ children, label }) => {
 };
 
 const ToolItem = ({ propsValue }: { propsValue: IToolBarPropertiesValue | string }) => {
-  const value = typeof propsValue === "string" ? propsValue : propsValue.value
+  const value = typeof propsValue === "string" ? propsValue : propsValue.value;
 
   return (
-    <ToggleGroupItem
-      name="tools"
-      value={value}
-      aria-label={`Toggle ${value}`}
-      className={"p-0"}
-    >
-      {
-        typeof propsValue === "string" ? (
-          <div className={"size-full"} style={{ backgroundColor: propsValue }} />
-        ) : typeof propsValue.icon === "string" ? (
-          <img src={propsValue.icon} className={"size-full object-cover"} alt={value} />
-        ) : (
-          <propsValue.icon className={"size-full object-cover"} />
-        )
-      }
+    <ToggleGroupItem name="tools" value={value} aria-label={`Toggle ${value}`} className={"p-0"}>
+      {typeof propsValue === "string" ? (
+        <div className={"size-full"} style={{ backgroundColor: propsValue }} />
+      ) : typeof propsValue.icon === "string" ? (
+        <img src={propsValue.icon} className={"size-full object-cover"} alt={value} />
+      ) : (
+        <propsValue.icon className={"size-full object-cover"} />
+      )}
     </ToggleGroupItem>
-  )
-}
+  );
+};
 
 const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
-  const selector = useSelector(
-    (state: RootState) => state.app.toolBarProperties,
-  );
+  const selector = useSelector((state: RootState) => state.app.toolBarProperties);
   const selectedShapeId = useSelector((state: RootState) => state.app.selectedShapesId?._id);
 
   const dispatch = useDispatch();
@@ -62,17 +53,15 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
   // Handler Function --
   const getUpdatedShapeProps = useCallback((updatedValue: Partial<AllToolBarProperties>) => {
     // Check --  The give property exits on the shape or not.
-    const updatedProperties = getShapeProperties(
-      updatedValue,
-    );
+    const updatedProperties = getShapeProperties(updatedValue);
 
     return {
       ...updatedProperties,
       customProperties: { ...updatedValue },
-    }
+    };
   }, []);
 
-  // Handler function -- 
+  // Handler function --
   const handleValueChange = async (v: string | number) => {
     if (!v) return;
 
@@ -82,13 +71,13 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
       if (isOpacity) {
         v = Number.parseFloat(v as string);
       } else {
-        v = parseInt(v as string)
+        v = parseInt(v as string);
       }
 
       const min = isOpacity ? 0.15 : 10;
       const max = isOpacity ? 1 : 100;
 
-      if (v as number <= min || v as number > max) return;
+      if ((v as number) <= min || (v as number) > max) return;
     }
 
     // Update the "ToolBarProperties" value
@@ -103,9 +92,9 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
 
         return {
           shapeId: i,
-          shapeValue: updatedValue
-        }
-      })
+          shapeValue: updatedValue,
+        };
+      });
 
       // Calling API to update shape properties
       // await debounceHandleChange(generateUpdatedProps);
@@ -132,43 +121,36 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
       case "eraserRadius":
         return "Radius";
       case "fontSize":
-        return "Font Size"
+        return "Font Size";
     }
   }, [toolKey]);
 
   return (
     <Container label={label}>
-      {
-        toolKey === "opacity" || toolKey === "eraserRadius" ? (
-          <input
-            type="range"
-            className={"w-full"}
-            value={((selector ?? {})[toolKey] ?? 0)}
-            min={toolKey === "eraserRadius" ? 10 : 0.15}
-            max={toolKey === "eraserRadius" ? 100 : 1}
-            step={toolKey === "eraserRadius" ? 1 : 0.01}
-            onChange={(e) => handleValueChange(e.target.value)}
-          />
-        ) : (
-          <ToggleGroup
-            type="single"
-            className="gap-2"
-            value={((selector ?? {})[toolKey] ?? "") as string}
-            onValueChange={handleValueChange}
-          >
-            {
-              ToolActionsProperties[toolKey].map((value, index) => {
-                return (
-                  <ToolItem key={index} propsValue={value} />
-                )
-              })
-            }
-          </ToggleGroup>
-        )
-      }
-
+      {toolKey === "opacity" || toolKey === "eraserRadius" ? (
+        <input
+          type="range"
+          className={"w-full"}
+          value={(selector ?? {})[toolKey] ?? 0}
+          min={toolKey === "eraserRadius" ? 10 : 0.15}
+          max={toolKey === "eraserRadius" ? 100 : 1}
+          step={toolKey === "eraserRadius" ? 1 : 0.01}
+          onChange={(e) => handleValueChange(e.target.value)}
+        />
+      ) : (
+        <ToggleGroup
+          type="single"
+          className="gap-2"
+          value={((selector ?? {})[toolKey] ?? "") as string}
+          onValueChange={handleValueChange}
+        >
+          {ToolActionsProperties[toolKey].map((value, index) => {
+            return <ToolItem key={index} propsValue={value} />;
+          })}
+        </ToggleGroup>
+      )}
     </Container>
-  )
-}
+  );
+};
 
 export default AllActions;

@@ -20,12 +20,7 @@ import { Node, NodeConfig } from "konva/lib/Node";
  * @param threshold {number}
  * @returns {boolean}
  */
-function isMouseNearShapeEdge(
-  mouseX: number,
-  mouseY: number,
-  shape: Shape,
-  threshold = 5,
-) {
+function isMouseNearShapeEdge(mouseX: number, mouseY: number, shape: Shape, threshold = 5) {
   const { x, y, height, width } = shape as ArrowSupportedShapes;
 
   if (shape.type === "ellipse") {
@@ -44,10 +39,8 @@ function isMouseNearShapeEdge(
     const distToLeft = Math.abs(mouseX - x);
     const distToRight = Math.abs(mouseX - (x + width));
 
-    const isWithinExtendedX =
-      mouseX >= x - threshold && mouseX <= x + width + threshold;
-    const isWithinExtendedY =
-      mouseY >= y - threshold && mouseY <= y + height + threshold;
+    const isWithinExtendedX = mouseX >= x - threshold && mouseX <= x + width + threshold;
+    const isWithinExtendedY = mouseY >= y - threshold && mouseY <= y + height + threshold;
 
     if (isWithinExtendedX && isWithinExtendedY) {
       // Near top edge
@@ -78,10 +71,7 @@ function isMouseNearShapeEdge(
  * @param anchorPosition {ArrowDirection}
  * @returns
  */
-function getAnchorPoint(
-  shape: ArrowSupportedShapes,
-  anchorPosition: ArrowDirection,
-): Coordinates {
+function getAnchorPoint(shape: ArrowSupportedShapes, anchorPosition: ArrowDirection): Coordinates {
   if (shape.type === "rectangle") {
     const { x, y, width, height } = shape;
     switch (anchorPosition) {
@@ -148,10 +138,7 @@ export const findBestConnectionPoints = (
 
     positions.forEach((sourcePos) => {
       const sourcePoint = getAnchorPoint(sourceShape, sourcePos);
-      const distance = Math.hypot(
-        targetPoint.x - sourcePoint.x,
-        targetPoint.y - sourcePoint.y,
-      );
+      const distance = Math.hypot(targetPoint.x - sourcePoint.x, targetPoint.y - sourcePoint.y);
 
       if (distance < shortestDistance) {
         shortestDistance = distance;
@@ -168,10 +155,7 @@ export const findBestConnectionPoints = (
 
     positions.forEach((targetPos) => {
       const targetPoint = getAnchorPoint(targetShape, targetPos);
-      const distance = Math.hypot(
-        targetPoint.x - sourcePoint.x,
-        targetPoint.y - sourcePoint.y,
-      );
+      const distance = Math.hypot(targetPoint.x - sourcePoint.x, targetPoint.y - sourcePoint.y);
 
       if (distance < shortestDistance) {
         shortestDistance = distance;
@@ -214,9 +198,7 @@ export const findBestConnectionPoints = (
 };
 
 // <-------------------------------> SHAPE TRANSFORMATION VALUE <------------------------->
-export const getRectangleResizeValue = (
-  n: Node<NodeConfig>,
-): Partial<Shape> => {
+export const getRectangleResizeValue = (n: Node<NodeConfig>): Partial<Shape> => {
   const newWidth = Math.max(5, n.width() * n.scaleX());
   const newHeight = Math.max(5, n.height() * n.scaleY());
 
@@ -280,8 +262,7 @@ export function detectShapeEdgeProximity(
 
       if (activeTool === "point arrow") {
         const position: ArrowPosition =
-          !(currentShape as Arrow)?.points ||
-          (currentShape as Arrow)?.points?.length <= 2
+          !(currentShape as Arrow)?.points || (currentShape as Arrow)?.points?.length <= 2
             ? "START"
             : "END";
 
@@ -303,10 +284,7 @@ export function detectShapeEdgeProximity(
  * @param points {number[]}
  * @returns {number}
  */
-export function calculatePointDistance(
-  startingPointIndex: number,
-  points: number[],
-): number {
+export function calculatePointDistance(startingPointIndex: number, points: number[]): number {
   const firstX = points[startingPointIndex];
   const firstY = points[startingPointIndex + 1];
   const lastX = points[startingPointIndex + 2];
@@ -376,9 +354,7 @@ export function filterArrowProps(
     if (prevUpdatedProps.updatedShapes[shapeId]) {
       attachedShapes = prevUpdatedProps.updatedShapes[shapeId] as ArrowProps[];
     } else {
-      const shape = shapes.find(
-        (s) => s._id === shapeId,
-      ) as ArrowSupportedShapes;
+      const shape = shapes.find((s) => s._id === shapeId) as ArrowSupportedShapes;
       attachedShapes = shape?.arrowProps ?? [];
     }
 
@@ -401,9 +377,7 @@ export function filterAttachedShapeProps(
     let filterArrowProps: AttachedShape;
 
     if (prevUpdatedProps.updatedShapes[props._id]) {
-      filterArrowProps = prevUpdatedProps.updatedShapes[
-        props._id
-      ] as AttachedShape;
+      filterArrowProps = prevUpdatedProps.updatedShapes[props._id] as AttachedShape;
     } else {
       const shape = shapes.find((s) => s._id === props._id) as Arrow;
       filterArrowProps = shape?.attachedShape as AttachedShape;
@@ -413,8 +387,7 @@ export function filterAttachedShapeProps(
       Object.entries(filterArrowProps ?? {}).filter(([, id]) => id !== shapeId),
     ) as AttachedShape;
 
-    updatedValue[props._id] =
-      Object.keys(filterArrowProps).length === 0 ? null : filterArrowProps;
+    updatedValue[props._id] = Object.keys(filterArrowProps).length === 0 ? null : filterArrowProps;
   });
 
   return updatedValue;
@@ -426,10 +399,7 @@ export function filterAttachedShapeProps(
  * @param position {ArrowPosition}
  * @returns {[number, number]} - The x and y coordinates of the arrow's start or end point based on the position.
  */
-export function getArrowPointsForPosition(
-  arrow: Arrow,
-  position: ArrowPosition,
-): [number, number] {
+export function getArrowPointsForPosition(arrow: Arrow, position: ArrowPosition): [number, number] {
   if (position === "START") {
     return [arrow.points[0], arrow.points[1]];
   } else {

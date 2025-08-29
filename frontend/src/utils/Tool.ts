@@ -1,32 +1,28 @@
-import { Shape } from "../types/shapes";
-import { ToolBarProperties } from "../types/tools/tool";
+import { CombineShapeStyle, Shapes } from "@/types/shapes";
 
 /**
  * Combine the properties of the selected shapes into a single object.
  * @param attrs {Shape[]}
  * @returns {ToolBarProperties}
  */
-export function getCombineShapeProps(ShapeAttrs: Shape[]) {
-  const combineProps = ShapeAttrs.reduce(
-    (acc: ToolBarProperties, currentValue: Shape) => {
-      if (Object.keys(acc).length === 0) {
-        return { ...currentValue.customProperties } as ToolBarProperties;
+export function getCombineShapeProps(ShapeAttrs: Shapes[]) {
+  const combineProps = ShapeAttrs.reduce((acc: CombineShapeStyle, currentValue: Shapes) => {
+    if (Object.keys(acc).length === 0) {
+      return { ...currentValue.styleProperties };
+    }
+
+    Object.entries(currentValue.styleProperties).forEach(([key, value]) => {
+      const propKey = key as keyof CombineShapeStyle;
+
+      if (!(propKey in acc)) {
+        acc[propKey] = value;
+      } else if (acc[propKey] !== value) {
+        acc[propKey] = undefined;
       }
+    });
 
-      Object.entries(currentValue.customProperties).forEach(([key, value]) => {
-        const propKey = key as keyof ToolBarProperties;
-
-        if (!(propKey in acc)) {
-          acc[propKey] = value as ToolBarProperties[typeof propKey];
-        } else if (acc[propKey] !== value) {
-          acc[propKey] = "NOT_SHAPE" as ToolBarProperties[typeof propKey];
-        }
-      });
-
-      return acc;
-    },
-    {} as ToolBarProperties,
-  );
+    return acc;
+  }, {});
 
   return combineProps;
 }

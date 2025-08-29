@@ -5,11 +5,5 @@ interface Props {
 }
 
 export default function Container({ children }: Props) {
-  return (
-    <section
-      className={"flex size-full flex-col justify-between"}
-    >
-      {children}
-    </section>
-  );
+  return <section className={"flex size-full flex-col justify-between"}>{children}</section>;
 }

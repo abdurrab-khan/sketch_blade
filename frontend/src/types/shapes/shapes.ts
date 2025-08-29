@@ -1,62 +1,87 @@
-import { DrawingToolTypeLiteral } from "../tools/tool";
 import { ActiveUser, ArrowProps, AttachedShape } from "./common";
 import {
   ArrowStyle,
   EllipseStyle,
+  EraserStyle,
   FreeHandStyle,
   RectangleStyle,
   TextStyle,
 } from "./style-properties";
 
-// <========================> RECTANGLE <========================>
-export interface Rectangle {
+// <****************************> SHAPE BASE <****************************>
+interface BaseShape<ShapeStyle = never> {
   _id: string;
-  type: DrawingToolTypeLiteral;
-  text?: TextStyle;
   isLocked: boolean;
-  arrowProps?: ArrowProps[];
-  styleProperties: RectangleStyle;
+  styleProperties: ShapeStyle;
   activeUser?: ActiveUser;
+}
+
+// <========================> Cursor <========================>
+export interface Cursor
+  extends Omit<BaseShape, "_id" | "isLocked" | "styleProperties" | "activeUser"> {
+  type: "cursor";
+}
+
+// <========================> Hand <========================>
+export interface Hand
+  extends Omit<BaseShape, "_id" | "isLocked" | "styleProperties" | "activeUser"> {
+  type: "free hand";
+}
+
+// <========================> RECTANGLE <========================>
+export interface Rectangle extends BaseShape<RectangleStyle> {
+  type: "rectangle";
+  text?: TextStyle;
+  arrowProps?: ArrowProps[];
 }
 
 // <========================> ELLIPSE <========================>
-export interface Ellipse {
-  _id: string;
-  type: DrawingToolTypeLiteral;
+export interface Ellipse extends BaseShape<EllipseStyle> {
+  type: "ellipse";
   text?: TextStyle;
-  isLocked: boolean;
   arrowProps?: ArrowProps[];
-  styleProperties: EllipseStyle;
-  activeUser?: ActiveUser;
 }
 
 // <========================> TEXT <========================>
-export interface Text {
-  _id: string;
-  type: DrawingToolTypeLiteral;
-  isLocked: boolean;
+export interface Text extends BaseShape<TextStyle> {
+  type: "text";
   arrowProps?: ArrowProps[];
-  styleProperties: TextStyle;
-  activeUser?: ActiveUser;
 }
 
 // <========================> FREE-HAND <========================>
-export interface FreeHand {
-  _id: string;
-  type: DrawingToolTypeLiteral;
-  isLocked: boolean;
-  styleProperties: FreeHandStyle;
-  activeUser?: ActiveUser;
+export interface FreeHand extends BaseShape<FreeHandStyle> {
+  type: "free hand";
 }
 
 // <========================> Arrow <========================>
-export interface Arrow {
-  _id: string;
-  type: DrawingToolTypeLiteral;
-  isLocked: boolean;
+export interface Arrow extends BaseShape<ArrowStyle> {
+  type: "arrow";
   attachedShape?: AttachedShape;
-  styleProperties: ArrowStyle;
-  activeUser?: ActiveUser;
 }
 
-export type CombineShape = Rectangle | Ellipse | Text | FreeHand | Arrow;
+// <========================> Eraser <========================>
+export interface Eraser extends Omit<BaseShape<EraserStyle>, "_id"> {
+  type: "eraser";
+}
+
+// <========================> UPLOAD <========================>
+export interface Upload
+  extends Omit<BaseShape, "_id" | "isLocked" | "styleProperties" | "activeUser"> {
+  type: "upload";
+}
+
+// <========================> ALL SHAPE MAP <========================>
+export interface ShapeMap {
+  cursor: Cursor;
+  hand: Hand;
+  "free hand": FreeHand;
+  rectangle: Rectangle;
+  ellipse: Ellipse;
+  text: Text;
+  arrow: Arrow;
+  eraser: Eraser;
+}
+
+export type ToolType = keyof ShapeMap;
+
+export type Shapes = Rectangle | Ellipse | Text | Eraser | FreeHand | Arrow;

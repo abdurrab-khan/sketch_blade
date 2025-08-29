@@ -26,13 +26,13 @@ const File = () => {
 
   const { data, isPending, isError, error } = useResponse({
     queryKeys: [fileId as string],
-    queryProps: { "uri": `/file/${fileId}` }
+    queryProps: { uri: `/file/${fileId}` },
   });
 
   useEffect(() => {
     if (isError) {
       const err = error as unknown as ApiResponse;
-      const route = (err?.statusCode === 404 || !data) ? "/404" : "/";
+      const route = err?.statusCode === 404 || !data ? "/404" : "/";
 
       navigate(route);
     }
@@ -46,12 +46,8 @@ const File = () => {
     );
 
   return (
-    <main
-      className={
-        "size-screen relative bg-primary text-quaternary"
-      }
-    >
-      <div className="size-full flex flex-col justify-between">
+    <main className={"size-screen relative bg-primary text-quaternary"}>
+      <div className="flex size-full flex-col justify-between">
         <Nav fileId={fileId as string} />
         <ToolActions />
         <Footer />

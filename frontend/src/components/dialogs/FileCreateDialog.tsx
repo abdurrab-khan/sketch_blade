@@ -8,14 +8,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "../ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useForm } from "react-hook-form";
@@ -37,8 +30,7 @@ const formSchema = z.object({
     .max(50, "file name must not exceed 50 characters")
     .nonempty("file name is required")
     .refine((value) => /^[a-zA-Z0-9_-]+$/.test(value), {
-      message:
-        "file name can only contain letters, numbers, underscores, and hyphens",
+      message: "file name can only contain letters, numbers, underscores, and hyphens",
     }),
   description: z.string().optional(),
   collaborators: z
@@ -60,11 +52,7 @@ interface FileCreateDialogProps {
   fileData?: FileDetails;
 }
 
-export function FileCreateDialog({
-  children,
-  _id,
-  fileData,
-}: FileCreateDialogProps) {
+export function FileCreateDialog({ children, _id, fileData }: FileCreateDialogProps) {
   const [collaborators, setCollaborators] = useState<CollaboratorData[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -77,10 +65,20 @@ export function FileCreateDialog({
     },
   });
 
-  const getMutationProps = ({ uri, data, method }: { uri: string, data: unknown, method?: "post" | "put" }): AxiosMutateProps => {
+  const getMutationProps = ({
+    uri,
+    data,
+    method,
+  }: {
+    uri: string;
+    data: unknown;
+    method?: "post" | "put";
+  }): AxiosMutateProps => {
     return {
-      method: method ?? "post", uri, data
-    }
+      method: method ?? "post",
+      uri,
+      data,
+    };
   };
 
   const mutation = useMutate({
@@ -91,23 +89,21 @@ export function FileCreateDialog({
     },
   });
 
-
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     data["collaborators"] = collaborators ?? [];
 
     if (fileData) {
-      const updateMutationProps = getMutationProps({ uri: `/file/${_id}`, data, method: "put" })
+      const updateMutationProps = getMutationProps({ uri: `/file/${_id}`, data, method: "put" });
 
       mutation.mutate(updateMutationProps);
     } else {
-      const createMutationProps = getMutationProps({ uri: `/file`, data: data })
+      const createMutationProps = getMutationProps({ uri: `/file`, data: data });
 
       mutation.mutate(createMutationProps);
     }
   };
 
   useEffect(() => {
-
     if (fileData?.collaborators) {
       setCollaborators(fileData.collaborators);
     }
@@ -119,9 +115,7 @@ export function FileCreateDialog({
       <DialogContent className="dark-container sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create New File</DialogTitle>
-          <DialogDescription>
-            Enter file details and add collaborators.
-          </DialogDescription>
+          <DialogDescription>Enter file details and add collaborators.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -132,11 +126,7 @@ export function FileCreateDialog({
                 <FormItem>
                   <FormLabel>File Name</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter file name"
-                      {...field}
-                      className="dark-input"
-                    />
+                    <Input placeholder="Enter file name" {...field} className="dark-input" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

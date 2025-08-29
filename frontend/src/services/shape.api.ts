@@ -19,10 +19,7 @@ export const insertNewShape = async (shape: Shape) => {
   setInLocalStorage(LOCALSTORAGE_KEY, [...prevShapes, shape]);
 };
 
-export const updateShapes = async (
-  ids: string[],
-  props: Partial<Shape>,
-): Promise<void> => {
+export const updateShapes = async (ids: string[], props: Partial<Shape>): Promise<void> => {
   const prevShapes = await getAllShapes();
 
   const updatedShapeProps = prevShapes.map((s) => {

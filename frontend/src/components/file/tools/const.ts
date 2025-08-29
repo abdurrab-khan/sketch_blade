@@ -15,21 +15,13 @@ import { CiText } from "react-icons/ci";
 
 export interface IToolBarPropertiesValue {
   icon: IconType | string;
-  value:
-    | FillStyle
-    | StrokeWidth
-    | StrokeStyle
-    | EdgeStyle
-    | FontSize
-    | FontFamily
-    | TextAlign;
+  value: FillStyle | StrokeWidth | StrokeStyle | EdgeStyle | FontSize | FontFamily | TextAlign;
 }
 
 export type ToolActionsPropertiesT = {
-  [K in Exclude<
-    keyof AllToolBarProperties,
-    "opacity" | "eraserRadius" | "type" | "draggable"
-  >]: IToolBarPropertiesValue[] | string[];
+  [K in Exclude<keyof AllToolBarProperties, "opacity" | "eraserRadius" | "type" | "draggable">]:
+    | IToolBarPropertiesValue[]
+    | string[];
 };
 
 const BASE_URL = "/assets/icons/";

@@ -21,9 +21,7 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
 };
 
 const ToolActions = () => {
-  const toolBarProperties = useSelector(
-    (state: RootState) => state.app.toolBarProperties,
-  );
+  const toolBarProperties = useSelector((state: RootState) => state.app.toolBarProperties);
 
   if (!toolBarProperties) return <></>;
 

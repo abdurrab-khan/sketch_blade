@@ -12,11 +12,7 @@ interface LastUpdateRef {
   isNear: boolean;
 }
 
-const useShapeEdgeDetector = (
-  threshold = 10,
-  currentShape: Shape | null,
-  isPressed?: boolean,
-) => {
+const useShapeEdgeDetector = (threshold = 10, currentShape: Shape | null, isPressed?: boolean) => {
   const [proximity, setProximity] = useState<Proximity>({
     shapeId: null,
     isNear: false,

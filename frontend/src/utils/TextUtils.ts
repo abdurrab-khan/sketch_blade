@@ -28,11 +28,7 @@ export const createTextMeasurer = (() => {
 /**
  * Measures the actual width of text using canvas context
  */
-export const measureTextWidth = (
-  text: string,
-  fontSize: number,
-  fontFamily: string,
-): number => {
+export const measureTextWidth = (text: string, fontSize: number, fontFamily: string): number => {
   const ctx = createTextMeasurer();
   ctx.font = `${fontSize}px ${fontFamily}`;
   return ctx.measureText(text).width;
@@ -288,9 +284,7 @@ export interface ShapeProps {
   method: "new" | "update";
 }
 
-const extractShapeProps = (
-  text: Konva.Node | null,
-): ExtractTextPropsType | null => {
+const extractShapeProps = (text: Konva.Node | null): ExtractTextPropsType | null => {
   if (text === null) return null;
 
   const textGroup = text.getParent()!;

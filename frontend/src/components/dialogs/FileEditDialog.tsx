@@ -9,14 +9,7 @@ import {
 } from "../ui/dialog.tsx";
 import { Button } from "../ui/button.tsx";
 import { Input } from "../ui/input.tsx";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -38,11 +31,7 @@ const formSchema = z.object({
   // description: z.string().nonempty("Description is required"),
 });
 
-export function FileEditDialog({
-  children,
-  _id,
-  fileData,
-}: FileEditDialogProps) {
+export function FileEditDialog({ children, _id, fileData }: FileEditDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -72,11 +61,7 @@ export function FileEditDialog({
                 <FormItem>
                   <FormLabel>File Name</FormLabel>
                   <FormControl>
-                    <Input
-                      className={"dark-input"}
-                      placeholder="Enter file name"
-                      {...field}
-                    />
+                    <Input className={"dark-input"} placeholder="Enter file name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

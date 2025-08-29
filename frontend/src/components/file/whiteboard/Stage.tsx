@@ -23,19 +23,13 @@ interface StageProps {
   transformerRef: React.RefObject<Konva.Transformer>;
 }
 
-export const Stage: React.FC<StageProps> = ({
-  children,
-  stageRef,
-  transformerRef,
-}) => {
+export const Stage: React.FC<StageProps> = ({ children, stageRef, transformerRef }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
   const isDragging = useRef<boolean>(false);
   const isTransforming = useRef<boolean>(false);
 
-  const activeTool = useSelector(
-    (state: RootState) => state.app.activeTool.type,
-  );
+  const activeTool = useSelector((state: RootState) => state.app.activeTool.type);
   const shapes = useSelector((state: RootState) => state.app.shapes);
 
   return (
@@ -49,10 +43,7 @@ export const Stage: React.FC<StageProps> = ({
       <Layer>
         {Array.isArray(shapes) &&
           shapes.length > 0 &&
-          shapes.map((props, index) => (
-            <GetDynamicShape key={index} {...props} />
-          )
-          )}
+          shapes.map((props, index) => <GetDynamicShape key={index} {...props} />)}
         <ShapeCreator stageRef={stageRef} />
         {children}
         <GlobalTransformer

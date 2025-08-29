@@ -28,9 +28,11 @@ export default function AuthProtection({ children }: AuthLayoutProps) {
   }, [isLoaded, session, navigate]);
 
   if (!isLoaded) {
-    return <div className={"size-screen flex-center bg-primary"}>
-      <Loader2 size={64} className={"animate-spin text-quaternary"} />
-    </div>;
+    return (
+      <div className={"size-screen flex-center bg-primary"}>
+        <Loader2 size={64} className={"animate-spin text-quaternary"} />
+      </div>
+    );
   }
 
   if (!session) {

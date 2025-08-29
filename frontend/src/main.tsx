@@ -37,10 +37,7 @@ const router = createBrowserRouter(
         <Route index element={<All />} />
         <Route path="folder" element={<Folder />} />
         <Route path="created-by-me" element={<CreatedByMe />} />
-        <Route
-          path="folder/:id"
-          element={<div className={"main-container bg-blue-500"}></div>}
-        />
+        <Route path="folder/:id" element={<div className={"main-container bg-blue-500"}></div>} />
       </Route>
       <Route
         path="file/:id"

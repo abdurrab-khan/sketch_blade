@@ -15,7 +15,7 @@ interface FilesTableProps {
 const FilesTable: React.FC<FilesTableProps> = () => {
   const { data, isPending } = useResponse({
     queryKeys: ["getFiles"],
-    queryProps: { uri: "/file" }
+    queryProps: { uri: "/file" },
   });
 
   return (
@@ -51,10 +51,7 @@ const IfNoFile = () => {
     <div className={"flex-center size-full select-none px-8 md:px-0"}>
       <div className={"w-full rounded-2xl border py-14 md:w-[600px]"}>
         <div className={"size-icon flex-center mx-auto mb-4"}>
-          <img
-            src={"/assets/icons/file.svg"}
-            className={"size-full object-cover"}
-          />
+          <img src={"/assets/icons/file.svg"} className={"size-full object-cover"} />
         </div>
         <div className={"text-center"}>
           <div className={"w-full"}>

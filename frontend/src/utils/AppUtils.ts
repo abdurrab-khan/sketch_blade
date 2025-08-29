@@ -8,17 +8,12 @@ import { ToolType } from "../types/tools/tool";
  * @param isHovered {boolean} - Indicates if the element is hovered.
  * @returns {string} - A string representing the cursor style.
  */
-export function getCustomCursor(
-  activeTool: ToolType,
-  isHovered: boolean,
-): string {
+export function getCustomCursor(activeTool: ToolType, isHovered: boolean): string {
   if (isHovered && activeTool === ToolType.Cursor) {
     return "cursor-move";
   }
 
-  if (
-    ["rectangle", "ellipse", "free hand", "point arrow"].includes(activeTool)
-  ) {
+  if (["rectangle", "ellipse", "free hand", "point arrow"].includes(activeTool)) {
     return "cursor-crosshair";
   } else if (activeTool === ToolType.Text) {
     return "cursor-text";

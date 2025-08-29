@@ -3,33 +3,29 @@ import React, { useEffect, useRef, useState } from "react";
 import { Rect } from "react-konva";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
-import {
-  deleteShapes,
-  handleSelectedIds,
-} from "../../../redux/slices/appSlice";
+import { deleteShapes, handleSelectedIds } from "../../../redux/slices/appSlice";
 import useMouseValue from "../../../hooks/useMouseValue";
 import useShapeEdgeDetector from "../../../hooks/useShapeEdgeDetector";
 import { getDeletedShapeProps } from "../../../utils/ShapeUtils";
 import { deleteShapesAPI } from "@/services/shape.api";
+import { KonvaEraser } from "@/types/shapes";
 
 type MouseValue = {
   stageRef: React.RefObject<Konva.Stage>;
 };
 
-const Eraser: React.FC<MouseValue> = ({ stageRef }) => {
+const Eraser: React.FC<KonvaEraser> = ({ stageRef }) => {
   const [isPressed, setIsPressed] = useState(false);
   const eraserRef = useRef<Konva.Rect>(null);
-  const selectedIds = useSelector(
-    (state: RootState) => state.app.selectedShapesId,
-  );
-  const shapes = useSelector((state: RootState) => state.app.shapes)
+  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId);
+  const shapes = useSelector((state: RootState) => state.app.shapes);
 
   const dispatch = useDispatch();
   const eraserProperties = useSelector(
     (state: RootState) => state.app.toolBarProperties?.eraserRadius,
   );
   const mouseCoordinates = useMouseValue({ stageRef });
-  const { proximity } = useShapeEdgeDetector(20, null, isPressed)
+  const { proximity } = useShapeEdgeDetector(20, null, isPressed);
 
   useEffect(() => {
     if (!isPressed) return;
@@ -44,21 +40,18 @@ const Eraser: React.FC<MouseValue> = ({ stageRef }) => {
 
     let shapeIds: string[];
     if (!Array.isArray(selectedIds?._id)) {
-      shapeIds = [shapeId]
+      shapeIds = [shapeId];
     } else {
-      shapeIds = [
-        ...selectedIds._id,
-        shapeId
-      ]
+      shapeIds = [...selectedIds._id, shapeId];
     }
 
     dispatch(
       handleSelectedIds({
         _id: shapeIds as string[],
-        purpose: "FOR_DELETING"
-      })
+        purpose: "FOR_DELETING",
+      }),
     );
-  }, [proximity, selectedIds, isPressed, dispatch])
+  }, [proximity, selectedIds, isPressed, dispatch]);
 
   useEffect(() => {
     const handleMouseDown = (e: MouseEvent) => {
@@ -70,15 +63,14 @@ const Eraser: React.FC<MouseValue> = ({ stageRef }) => {
     };
 
     const handleMouseUp = () => {
-      if (!selectedIds?._id || !(Array.isArray(selectedIds?._id) && selectedIds?._id.length > 0)) return;
+      if (!selectedIds?._id || !(Array.isArray(selectedIds?._id) && selectedIds?._id.length > 0))
+        return;
 
       const deletedShapeProps = getDeletedShapeProps(selectedIds?._id, shapes);
 
-      dispatch(deleteShapes(
-        deletedShapeProps
-      ));
+      dispatch(deleteShapes(deletedShapeProps));
 
-      deleteShapesAPI(selectedIds._id)
+      deleteShapesAPI(selectedIds._id);
       setIsPressed(false);
     };
 

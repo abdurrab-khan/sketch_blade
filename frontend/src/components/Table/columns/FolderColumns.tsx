@@ -37,8 +37,7 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
     header: ({ table }) => (
       <Checkbox
         checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
@@ -63,16 +62,12 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
   {
     accessorKey: "createdAt",
     header: createSortableHeader("CREATED"),
-    cell: ({ row }) => (
-      <div>{getFormattedTime(row.original.createdAt)}</div>
-    ),
+    cell: ({ row }) => <div>{getFormattedTime(row.original.createdAt)}</div>,
   },
   {
     accessorKey: "updatedAt",
     header: createSortableHeader("EDITED"),
-    cell: ({ row }) => (
-      <div>{getFormattedTime(row.original.updatedAt)}</div>
-    ),
+    cell: ({ row }) => <div>{getFormattedTime(row.original.updatedAt)}</div>,
   },
   {
     accessorKey: "creator",
@@ -90,11 +85,7 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
     cell: ({ row }) => {
       const [deleteDialog, setDeleteDialog] = useState(false);
 
-      const deleteMutation = async ({
-        clerkId,
-      }: {
-        clerkId: string;
-      }): Promise<AxiosResponse> => {
+      const deleteMutation = async ({ clerkId }: { clerkId: string }): Promise<AxiosResponse> => {
         return axios.delete(`/api/folder/${row.original._id}`, {
           headers: {
             Authorization: `Bearer ${clerkId}`,
@@ -117,10 +108,7 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
       return (
         <ActionDropMenu _id={row.original._id} type={"folder"}>
           <FolderEditDialog _id={row.original._id}>
-            <DropdownMenuItem
-              onSelect={(event) => event.preventDefault()}
-              className={"w-full"}
-            >
+            <DropdownMenuItem onSelect={(event) => event.preventDefault()} className={"w-full"}>
               <FaEdit className={"h-4 w-4"} />
               Edit
             </DropdownMenuItem>

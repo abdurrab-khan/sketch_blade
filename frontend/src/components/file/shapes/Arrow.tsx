@@ -24,7 +24,7 @@ const Arrow: React.FC<KonvaArrowType> = ({ ...props }) => {
   const arrowRef = useRef<Konva.Arrow>(null);
   const trRef = useRef<Konva.Transformer>(null);
   const groupRef = useRef<Konva.Group>(null);
-  const circleRefs = useRef<Konva.Circle[]>([])
+  const circleRefs = useRef<Konva.Circle[]>([]);
 
   const shapes = useSelector((state: RootState) => state.app.shapes);
   const dispatch = useDispatch();
@@ -35,36 +35,33 @@ const Arrow: React.FC<KonvaArrowType> = ({ ...props }) => {
     const arrRef = arrowRef?.current;
     if (!tr || !arrRef) return;
 
-
     const points = [...(props as ArrowType).points];
     const x = e.target.x();
     const y = e.target.y();
 
-    points[pointIndex * 2 - 1] = x
+    points[pointIndex * 2 - 1] = x;
     points[pointIndex * 2] = y;
 
     tr.forceUpdate();
-    arrRef.setAttrs({ points })
+    arrRef.setAttrs({ points });
   };
 
   const handleCircleDragEnd = () => {
     dispatch(
-      updateExistingShapes(
-        {
-          shapeId: props._id,
-          shapeValue: {
-            points: arrowRef.current?.points() ?? (props as ArrowType).points
-          }
-        }
-      )
-    )
-  }
+      updateExistingShapes({
+        shapeId: props._id,
+        shapeValue: {
+          points: arrowRef.current?.points() ?? (props as ArrowType).points,
+        },
+      }),
+    );
+  };
 
   // Transformer handling function.
   const handleTransforming = () => {
     // Change the size of the ellipse.
     updateControlCircles();
-  }
+  };
 
   // Handler function to update the size of ellipse.
   const updateControlCircles = () => {
@@ -89,19 +86,23 @@ const Arrow: React.FC<KonvaArrowType> = ({ ...props }) => {
   // Handler function to update after end of any movement.
   const handleMovementEnd = () => {
     // Update the size of the arrow.
-    const allRefs = checkRefValue(groupRef, arrowRef, trRef) as [Konva.Group, Konva.Arrow, Konva.Transformer]
+    const allRefs = checkRefValue(groupRef, arrowRef, trRef) as [
+      Konva.Group,
+      Konva.Arrow,
+      Konva.Transformer,
+    ];
     if (!allRefs) return;
 
     const [group, arrow, tr] = allRefs;
     const newPoints = updatePointsAfterTransformation((props as ArrowType).points, group);
 
-    group.x(0)
-    group.y(0)
-    group.scaleX(1)
-    group.scaleY(1)
-    group.rotation(0)
-    group.skewX(0)
-    group.skewY(0)
+    group.x(0);
+    group.y(0);
+    group.scaleX(1);
+    group.scaleY(1);
+    group.rotation(0);
+    group.skewX(0);
+    group.skewY(0);
 
     tr.forceUpdate();
     updateControlCircles();
@@ -114,31 +115,26 @@ const Arrow: React.FC<KonvaArrowType> = ({ ...props }) => {
 
     if (updatedAttachProps) {
       updatedAttachProps[0].shapeValue = {
-        ...(updatedAttachProps[0].shapeValue),
-        points: newPoints
-      }
+        ...updatedAttachProps[0].shapeValue,
+        points: newPoints,
+      };
 
-      dispatch(
-        updateExistingShapes(updatedAttachProps)
-      )
+      dispatch(updateExistingShapes(updatedAttachProps));
     } else {
       dispatch(
-        updateExistingShapes(
-          {
-            shapeId: props._id,
-            shapeValue: {
-              points: newPoints
-            }
-          }
-        )
-      )
+        updateExistingShapes({
+          shapeId: props._id,
+          shapeValue: {
+            points: newPoints,
+          },
+        }),
+      );
     }
-  }
+  };
 
   const handleDragMove = () => {
     // TODO: Write a logic when going beyond the canvas size.
-  }
-
+  };
 
   return (
     <ShapeGroup
@@ -150,8 +146,8 @@ const Arrow: React.FC<KonvaArrowType> = ({ ...props }) => {
       isClicked={isClicked}
     >
       <KonvaArrow ref={arrowRef} {...props} lineCap="round" name={"shape"} />
-      {
-        isClicked && (props as ArrowConfig).points.map((_, i) => {
+      {isClicked &&
+        (props as ArrowConfig).points.map((_, i) => {
           if (i % 2 === 0) return null;
 
           const points = (props as ArrowConfig).points;
@@ -175,9 +171,8 @@ const Arrow: React.FC<KonvaArrowType> = ({ ...props }) => {
               onDragEnd={handleCircleDragEnd}
               draggable
             />
-          )
-        })
-      }
+          );
+        })}
     </ShapeGroup>
   );
 };

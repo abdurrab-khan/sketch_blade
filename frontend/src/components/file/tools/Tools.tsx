@@ -10,7 +10,7 @@ import { cn } from "../../../lib/utils";
 
 const Tools = () => {
   const activeTool = useSelector((state: RootState) => state.app.activeTool);
-  const selectedId = useSelector((state: RootState) => state.app.selectedShapesId)
+  const selectedId = useSelector((state: RootState) => state.app.selectedShapesId);
   const dispatch = useDispatch();
 
   const handleToolLock = () => {
@@ -25,7 +25,7 @@ const Tools = () => {
     // Handle single click interaction.
     if (event.detail === 1) {
       if (selectedId && selectedId?._id.length > 0) {
-        dispatch(handleSelectedIds(null))
+        dispatch(handleSelectedIds(null));
       }
 
       const toolName = event.currentTarget.getAttribute("tool-name") as ToolType;
@@ -33,7 +33,7 @@ const Tools = () => {
 
       dispatch(
         changeActiveTool({
-          type: toolName
+          type: toolName,
         }),
       );
     } else if (event.detail === 2) {
@@ -59,7 +59,7 @@ const Tools = () => {
       );
 
       if (selectedId && selectedId?._id.length > 0) {
-        dispatch(handleSelectedIds(null))
+        dispatch(handleSelectedIds(null));
       }
     };
 
@@ -108,9 +108,7 @@ const Tools = () => {
               {activeTool.type === toolName && (
                 <motion.span
                   initial={false}
-                  className={cn(
-                    "absolute right-0 top-0 z-0 size-full rounded-md bg-teal-950/80",
-                  )}
+                  className={cn("absolute right-0 top-0 z-0 size-full rounded-md bg-teal-950/80")}
                   layoutId={"active"}
                 ></motion.span>
               )}

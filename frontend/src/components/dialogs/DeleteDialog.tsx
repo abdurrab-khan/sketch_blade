@@ -11,7 +11,7 @@ import {
 import { DropdownMenuItem } from "../ui/dropdown-menu.tsx";
 import React from "react";
 import { Loader2 } from "lucide-react";
-import {MdDelete} from "react-icons/md";
+import { MdDelete } from "react-icons/md";
 
 interface DeleteDialogProps {
   isOpen: boolean;
@@ -20,12 +20,7 @@ interface DeleteDialogProps {
   isLoading?: boolean;
 }
 
-function DeleteDialog({
-  isOpen,
-  handleDelete,
-  setOpen,
-  isLoading,
-}: DeleteDialogProps) {
+function DeleteDialog({ isOpen, handleDelete, setOpen, isLoading }: DeleteDialogProps) {
   const handleClose = () => {
     if (isLoading && isLoading) return;
     setOpen((prev) => !prev);

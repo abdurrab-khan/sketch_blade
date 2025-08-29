@@ -35,16 +35,10 @@ const createSortableHeader = (label: string) => {
 };
 
 const TimeDisplay = ({ value }: { value: string | null }) => (
-  <div className="capitalize">
-    {value ? getFormattedTime(value) : "-"}
-  </div>
+  <div className="capitalize">{value ? getFormattedTime(value) : "-"}</div>
 );
 
-const ActiveCollaborators = ({
-  collaborators,
-}: {
-  collaborators: ActiveCollaboratorsType[];
-}) => {
+const ActiveCollaborators = ({ collaborators }: { collaborators: ActiveCollaboratorsType[] }) => {
   if (!collaborators?.length) return null;
 
   return (
@@ -55,10 +49,7 @@ const ActiveCollaborators = ({
           className="relative overflow-hidden rounded-full"
           style={{ zIndex: 3 - index }}
         >
-          <ProfileImg
-            profileUrl={collaborator.profileUrl}
-            fullName={collaborator.fullName}
-          />
+          <ProfileImg profileUrl={collaborator.profileUrl} fullName={collaborator.fullName} />
         </div>
       ))}
     </div>
@@ -71,8 +62,7 @@ export const fileColumns: ColumnDef<FileDetails>[] = [
     header: ({ table }) => (
       <Checkbox
         checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
@@ -104,13 +94,7 @@ export const fileColumns: ColumnDef<FileDetails>[] = [
     accessorKey: "folder",
     header: createSortableHeader("LOCATION"),
     cell: ({ row }) => (
-      <>
-        {row.original.folder ? (
-          <span>{row.original.folder?.name}</span>
-        ) : (
-          <>-</>
-        )}
-      </>
+      <>{row.original.folder ? <span>{row.original.folder?.name}</span> : <>-</>}</>
     ),
   },
   {
@@ -128,9 +112,7 @@ export const fileColumns: ColumnDef<FileDetails>[] = [
     header: "ACTIVE",
     cell: ({ row }) => (
       <div className="flex items-center justify-center rounded-lg">
-        <ActiveCollaborators
-          collaborators={row.getValue("active_collaborators")}
-        />
+        <ActiveCollaborators collaborators={row.getValue("active_collaborators")} />
       </div>
     ),
   },
@@ -160,16 +142,13 @@ export const fileColumns: ColumnDef<FileDetails>[] = [
       });
 
       const handleDeleteFile = () => {
-        mutate.mutate({ uri: `/file/${row.original._id}`, method: "delete" })
+        mutate.mutate({ uri: `/file/${row.original._id}`, method: "delete" });
       };
 
       return (
         <ActionDropMenu _id={row.original._id} type={"file"}>
           <FileCreateDialog _id={row.original._id} fileData={row.original}>
-            <DropdownMenuItem
-              onSelect={(event) => event.preventDefault()}
-              className={"w-full"}
-            >
+            <DropdownMenuItem onSelect={(event) => event.preventDefault()} className={"w-full"}>
               <FaEdit className="h-4 w-4" />
               Edit
             </DropdownMenuItem>
@@ -180,14 +159,8 @@ export const fileColumns: ColumnDef<FileDetails>[] = [
             setOpen={setDeleteDialogOpen}
             isLoading={mutate?.isPending}
           />
-          <MoveFileDialog
-            _id={row.original._id}
-            existingFolderId={row.original.folder?._id}
-          >
-            <DropdownMenuItem
-              onSelect={(event) => event.preventDefault()}
-              className={"w-full"}
-            >
+          <MoveFileDialog _id={row.original._id} existingFolderId={row.original.folder?._id}>
+            <DropdownMenuItem onSelect={(event) => event.preventDefault()} className={"w-full"}>
               <Move className="h-4 w-4" />
               Move File
             </DropdownMenuItem>

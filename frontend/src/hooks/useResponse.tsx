@@ -9,7 +9,7 @@ import useApiClient from "./useApiClient.ts";
 
 interface type {
   queryKeys: string[];
-  queryProps: AxiosQueryProps
+  queryProps: AxiosQueryProps;
 }
 
 export const useResponse = ({ queryKeys, queryProps }: type) => {
@@ -22,7 +22,7 @@ export const useResponse = ({ queryKeys, queryProps }: type) => {
   const result = useQuery({
     queryKey: [...queryKeys],
     queryFn: async () => {
-      const response = await apiClient.get(queryProps.uri) as ApiResponse;
+      const response = (await apiClient.get(queryProps.uri)) as ApiResponse;
 
       return response?.data ?? null;
     },
@@ -30,7 +30,6 @@ export const useResponse = ({ queryKeys, queryProps }: type) => {
     retryDelay: 1000,
     enabled: !!userClerkId,
   });
-
 
   useEffect(() => {
     const { isError, error } = result;

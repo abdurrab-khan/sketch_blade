@@ -8,20 +8,18 @@ import { getCombineShapeProps } from "../../utils/Tool.ts";
 import { ArrowProps, SelectionPurpose } from "../../types/shapes/common.ts";
 
 // Types
-import { ActiveTool, ToolType } from "../../types/tools/tool.ts";
+import { ActiveTool } from "../../types/tools/tool.ts";
 import { shapeStyleProperties } from "@/lib/constant.ts";
-import { CombineShape as Shape } from "@/types/shapes/shapes.ts";
 import { SelectedShapesId } from "@/types/index.ts";
-import {
-  ShapeStylePartial,
-  StylePropsMap,
-} from "@/types/shapes/style-properties.ts";
+import { CombineShapeStyle, ShapeStylePartial } from "@/types/shapes/style-properties.ts";
+import { Shapes, ToolType } from "@/types/shapes/shapes.ts";
 
 type AppState = {
   clerkId: string | null;
-  shapes: Shape[];
+  shapes: Shapes[];
   activeTool: ActiveTool;
-  shapeStyleProps: ShapeStylePartial | null;
+  shapeStyles: ShapeStylePartial | null;
+  combineShapeStyles: CombineShapeStyle | null;
   selectedShapesId: SelectedShapesId | null;
   selectedShapeToAddArrow: ArrowProps | null;
 };
@@ -30,10 +28,11 @@ const initialState: AppState = {
   clerkId: null,
   shapes: [],
   activeTool: {
-    type: ToolType.Cursor,
+    type: "cursor",
     isLocked: false,
   },
-  shapeStyleProps: null,
+  shapeStyles: null,
+  combineShapeStyles: null,
   selectedShapesId: null,
   selectedShapeToAddArrow: null,
 };
@@ -59,27 +58,27 @@ export const appSlice = createSlice({
       };
 
       if (type && type in shapeStyleProperties) {
-        const k = type as keyof StylePropsMap;
-        state.shapeStyleProps = shapeStyleProperties[k];
+        const k = type === "cursor" ? "text" : type;
+        state.shapeStyles = shapeStyleProperties[k];
       } else {
-        state.shapeStyleProps = null;
+        state.shapeStyles = null;
       }
     },
 
     removeUpdateToolBarProperties: (state, action) => {
       const payload = action.payload;
 
-      state.shapeStyleProps = payload;
+      state.shapeStyles = payload;
     },
 
     updateToolBarProperties: (state, action) => {
       const payload = action.payload;
 
       if (payload === null) {
-        state.shapeStyleProps = null;
+        state.shapeStyles = null;
       } else {
-        state.shapeStyleProps = {
-          ...state.shapeStyleProps,
+        state.shapeStyles = {
+          ...state.shapeStyles,
           ...payload,
         };
       }
@@ -89,15 +88,15 @@ export const appSlice = createSlice({
       const shapes = action.payload;
 
       if (!shapes || shapes.length === 0) {
-        state.shapeStyleProps = null;
+        state.combineShapeStyles = null;
         return;
       }
 
-      state.shapeStyleProps = getCombineShapeProps(shapes);
+      state.combineShapeStyles = getCombineShapeProps(shapes);
     },
 
     setShapes: (state, action) => {
-      const shapes: Shape = action.payload;
+      const shapes: Shapes = action.payload;
 
       if (Array.isArray(shapes)) {
         if (state.shapes.length > 0) {
@@ -116,26 +115,22 @@ export const appSlice = createSlice({
         payload:
           | {
               shapeId: string;
-              shapeValue: Partial<Shape>;
+              shapeValue: Partial<Shapes>;
             }
           | {
               shapeId: string;
-              shapeValue: Partial<Shape>;
+              shapeValue: Partial<Shapes>;
             }[];
       },
     ) => {
-      const updates = Array.isArray(action.payload)
-        ? action.payload
-        : [action.payload];
+      const updates = Array.isArray(action.payload) ? action.payload : [action.payload];
 
       updates.forEach((update) => {
-        const index = state.shapes.findIndex(
-          (shape) => shape._id === update.shapeId,
-        );
+        const index = state.shapes.findIndex((shape) => shape._id === update.shapeId);
 
         if (index !== -1) {
           for (const key in update.shapeValue) {
-            const k = key as keyof Partial<Shape>;
+            const k = key as keyof Partial<Shapes>;
             const updatedShapeValues: Record<string, unknown> = {};
 
             if (update.shapeValue[k]) {
@@ -152,7 +147,7 @@ export const appSlice = createSlice({
             state.shapes[index] = {
               ...state.shapes[index],
               ...updatedShapeValues,
-            } as Shape;
+            } as Shapes;
           }
         }
       });
@@ -172,22 +167,17 @@ export const appSlice = createSlice({
           const shapeIndex = state.shapes.findIndex((s) => s._id === id);
 
           if (shapeIndex !== -1) {
-            const key =
-              state.shapes[shapeIndex].type === "point arrow"
-                ? "attachedShape"
-                : "arrowProps";
+            const key = state.shapes[shapeIndex].type === "arrow" ? "attachedShape" : "arrowProps";
 
             state.shapes[shapeIndex] = {
               ...state.shapes[shapeIndex],
               [key]: props,
-            } as Shape;
+            } as Shapes;
           }
         });
       }
 
-      state.shapes = state.shapes.filter(
-        (s) => !action.payload.deletedShapes.includes(s._id),
-      );
+      state.shapes = state.shapes.filter((s) => !action.payload.deletedShapes.includes(s._id));
       state.selectedShapesId = null;
     },
 

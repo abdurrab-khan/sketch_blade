@@ -36,12 +36,7 @@ const FolderTable = () => {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const queryFn = ({
-    clerkId,
-  }: {
-    clerkId: string;
-    _id: string;
-  }): Promise<AxiosResponse> => {
+  const queryFn = ({ clerkId }: { clerkId: string; _id: string }): Promise<AxiosResponse> => {
     return axios.get("/api/folder", {
       headers: {
         Authorization: `Bearer ${clerkId}`,
@@ -54,13 +49,7 @@ const FolderTable = () => {
     queryKeys: ["getFolders"],
   });
 
-  const mutationFun = ({
-    clerkId,
-    data,
-  }: {
-    clerkId: string;
-    data: { folder_name: string };
-  }) => {
+  const mutationFun = ({ clerkId, data }: { clerkId: string; data: { folder_name: string } }) => {
     return axios.post("/api/folder", data, {
       headers: {
         Authorization: `Bearer ${clerkId}`,
@@ -95,10 +84,7 @@ const FolderTable = () => {
         title: e,
         variant: "destructive",
         action: (
-          <ToastAction
-            altText="Try again"
-            onClick={() => folderMutation.mutate}
-          >
+          <ToastAction altText="Try again" onClick={() => folderMutation.mutate}>
             Try again
           </ToastAction>
         ),
@@ -122,10 +108,7 @@ const FolderTable = () => {
       ) : (
         <>
           <div className={"mb-3 w-full text-end"}>
-            <Dialog
-              open={isDeleteDialogOpen}
-              onOpenChange={handleDeleteDialogOpen}
-            >
+            <Dialog open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant={"app"}>
                   New Folder <FaFolderPlus className={"ml-2"} />
@@ -134,9 +117,7 @@ const FolderTable = () => {
               <DialogContent className="dark-container sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle>Add a new folder</DialogTitle>
-                  <DialogDescription>
-                    Create a new folder to organize your files
-                  </DialogDescription>
+                  <DialogDescription>Create a new folder to organize your files</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                   <div className="grid gap-4 py-4">
@@ -153,8 +134,7 @@ const FolderTable = () => {
                     <Button type="submit" variant={"app"} className={"w-full"}>
                       {folderMutation.isPending ? (
                         <>
-                          Creating...{" "}
-                          <Loader2 className={"h-4 w-4 animate-spin"} />
+                          Creating... <Loader2 className={"h-4 w-4 animate-spin"} />
                         </>
                       ) : (
                         "Create Folder"
