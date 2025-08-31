@@ -70,6 +70,7 @@ export interface ArrowStyle {
 // <========================> Eraser <========================>
 export interface EraserStyle {
   eraserRadius: number;
+  opacity: number;
 }
 
 // <========================> ALL STYLE PROPS MAP <========================>
@@ -83,6 +84,13 @@ export interface StylePropsMap {
 }
 
 // <========================> ALL STYLE PROPS MAP <========================>
+export type ShapeStyles =
+  | RectangleStyle
+  | EllipseStyle
+  | FreeHandStyle
+  | ArrowStyle
+  | TextStyle
+  | EraserStyle;
 
 // <========================> Shape Style Partial <========================>
 export type ShapeStyle = {

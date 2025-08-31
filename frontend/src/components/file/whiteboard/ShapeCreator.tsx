@@ -41,10 +41,12 @@ const ShapeCreator: React.FC<ShapeCreatorProps> = ({ stageRef }) => {
   const createNewShape = useCallback(
     (shapeBase: Shapes, transformedPos: Coordinates) => {
       if (shapeBase.type === "arrow" || shapeBase.type === "free hand") {
+        // Change the coordinates of "arrow"  or "free hand"
         shapeBase["styleProperties"]["points"] = [...Object.values(transformedPos)];
-      } else {
-        (shapeBase as Rectangle | Ellipse)["styleProperties"]["x"] = transformedPos.x;
-        (shapeBase as Rectangle | Ellipse)["styleProperties"]["y"] = transformedPos.y;
+      } else if (shapeBase.type === "rectangle" || shapeBase.type === "ellipse") {
+        // Change the x and y axis of "rectangle" or "ellipse"
+        shapeBase["styleProperties"]["x"] = transformedPos.x;
+        shapeBase["styleProperties"]["y"] = transformedPos.y;
       }
 
       setCurrentShape(shapeBase);

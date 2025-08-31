@@ -58,6 +58,14 @@ export interface KonvaShapeMap {
   text: KonvaText;
 }
 
+export type KonvaStyles =
+  | Partial<Rect>
+  | Partial<Ellipse>
+  | Partial<Rect>
+  | Partial<Line>
+  | Partial<Arrow>
+  | Partial<Text>;
+
 // <========================> ALL SHAPE PROPS MAP <========================>
 export interface KonvaStyleMap {
   rectangle: Partial<Rect>;
@@ -69,7 +77,7 @@ export interface KonvaStyleMap {
 }
 
 // <========================> Combine KonvaShape <========================>
-export type CombineKonvaShape =
+export type KonvaShape =
   | KonvaRectangle
   | KonvaEllipse
   | KonvaEraser

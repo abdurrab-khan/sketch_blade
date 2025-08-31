@@ -5,12 +5,11 @@ import {
   ArrowProps,
   AttachedShape,
   Ellipse,
-  KonvaShapeMap,
-  KonvaStyleMap,
+  KonvaShape,
+  KonvaStyles,
   Rectangle,
-  ShapeMap,
   Shapes,
-  StylePropsMap,
+  ShapeStyles,
 } from "../types/shapes";
 import {
   ArrowSupportedShapes as ShapesThatSupportArrow,
@@ -50,59 +49,123 @@ export interface DeletedShapeProps {
 }
 
 // <================================> SHAPE UTILITY  <================================>
+function getKonvaStyle(shapeStyle: ShapeStyles): KonvaStyles {
+  // Use a loose accumulator to avoid index-signature issues on union types
+  const style: Record<string, unknown> = {};
 
-function getKonvaStyle<K extends keyof StylePropsMap>(
-  styleProps: StylePropsMap[K],
-): KonvaStyleMap[K] {
-  const style: KonvaStyleMap[K] = {};
-
-  for (const s of Object.keys(styleProps) as Array<keyof StylePropsMap[K]>) {
-    const property = styleProps[s];
+  const entries = Object.entries(shapeStyle as unknown as Record<string, unknown>);
+  for (const [s, property] of entries) {
+    const p: any = property as any;
 
     switch (s) {
       case "dash": {
-        const dashValue = property === "SOLID" ? [0] : property === "DASHED" ? [10, 15] : undefined;
-        if (dashValue) style[s] = dashValue;
+        // Map abstract stroke style to Konva dash array
+        // Expected input: "SOLID" | "DASHED" | others
+        const dashValue = p === "SOLID" ? [0] : p === "DASHED" ? [10, 15] : undefined;
+        if (dashValue) style["dash"] = dashValue;
         break;
       }
       case "strokeWidth": {
-        const strokeWidthValue = property === "THIN" ? 3 : property === "MEDIUM" ? 4 : 5;
-        style[s] = strokeWidthValue;
+        // Map abstract stroke width to numeric pixels
+        const width = p === "THIN" ? 3 : p === "MEDIUM" ? 4 : 5;
+        style["strokeWidth"] = width;
         break;
       }
       case "cornerRadius": {
-        const cornerRadiusValue = property === "SHARP" ? 0 : 32;
-        style[s] = cornerRadiusValue;
+        // Map edge style to numeric corner radius
+        const radius = p === "SHARP" ? 0 : 32;
+        style["cornerRadius"] = radius;
         break;
       }
       case "tension": {
-        const tensionValue = property === "SHARP" ? 0 : 0.15;
-        style[s] = tensionValue;
+        // Map edge style to arrow/line tension
+        const tension = p === "SHARP" ? 0 : 0.15;
+        style["tension"] = tension;
         break;
       }
       case "fillPatternImage": {
+        // Pattern image is resolved elsewhere; skip here
         break;
       }
       case "fontSize": {
-        const fontSize = property === "SMALL" ? 22 : property === "MEDIUM" ? 24 : 28;
-        style[s] = fontSize;
+        const fontSize = p === "SMALL" ? 22 : p === "MEDIUM" ? 24 : 28;
+        style["fontSize"] = fontSize;
         break;
       }
       case "fontFamily": {
-        style[s] = "sans-serif";
+        // Use a safe default font family
+        style["fontFamily"] = "sans-serif";
         break;
       }
       case "align": {
-        style[s] = property.toLowerCase();
+        // Konva expects lowercase alignment values
+        if (typeof p === "string") style["align"] = p.toLowerCase();
         break;
       }
       default: {
-        style[s] = property;
+        // Pass-through for compatible primitive values (x,y,height,width,fill,stroke,opacity,points,...)
+        style[s] = p as unknown;
       }
     }
   }
 
-  return style;
+  return style as KonvaStyles;
+  // for (const s in styleProps) {
+  //   const property = styleProps[s];
+  //   switch (s) {
+  //     case "dash": {
+  //       const dashValue = (
+  //         property === "SOLID" ? [0] : property === "DASHED" ? [10, 15] : undefined
+  //       ) as GetSet<number[], Rect> | undefined;
+  //       if (dashValue) {
+  //         style["dash"] = dashValue;
+  //       }
+  //       break;
+  //     }
+  //     case "strokeWidth": {
+  //       const strokeWidthValue = (property === "THIN"
+  //         ? 3
+  //         : property === "MEDIUM"
+  //           ? 4
+  //           : 5) as unknown as GetSet<number, Line<LineConfig>>;
+  //       style["strokeWidth"] = strokeWidthValue;
+  //       break;
+  //     }
+  //     case "cornerRadius": {
+  //       const cornerRadiusValue = (property === "SHARP" ? 0 : 32) as unknown as GetSet<
+  //         number[],
+  //         Rect
+  //       >;
+  //       style["cornerRadius"] = cornerRadiusValue;
+  //       break;
+  //     }
+  //     case "tension": {
+  //       const tensionValue = property === "SHARP" ? 0 : 0.15;
+  //       style["tension"] = tensionValue;
+  //       break;
+  //     }
+  //     case "fillPatternImage": {
+  //       break;
+  //     }
+  //     case "fontSize": {
+  //       const fontSize = property === "SMALL" ? 22 : property === "MEDIUM" ? 24 : 28;
+  //       style["fontSize"] = fontSize;
+  //       break;
+  //     }
+  //     case "fontFamily": {
+  //       style["fontFamily"] = "sans-serif";
+  //       break;
+  //     }
+  //     case "align": {
+  //       style["align"] = property.toLowerCase();
+  //       break;
+  //     }
+  //     default: {
+  //       style[s] = property;
+  //     }
+  //   }
+  // }
+  // return style;
 }
 
 /**
@@ -110,21 +173,13 @@ function getKonvaStyle<K extends keyof StylePropsMap>(
  * @param shape {Shapes}
  * @returns {ShapePropsMap[K]}
  */
-export function getKonvaProps<K extends Extract<keyof ShapeMap, keyof KonvaShapeMap>>(
-  shape: ShapeMap[K],
-): KonvaShapeMap[K] {
-  const konvaStyleProps = getKonvaStyle(shape.styleProperties);
+export function getKonvaProps(shape: Shapes): KonvaShape {
+  const konvaStyle = getKonvaStyle(shape.styleProperties);
 
-  const result = {
+  return {
     ...shape,
-    styleProperties: konvaStyleProps,
-  };
-
-  if ((result.type === "rectangle" || result.type === "ellipse") && result?.text) {
-    result["text"] = getKonvaStyle(result?.text);
-  }
-
-  return result as unknown as KonvaShapeMap[K];
+    styleProperties: konvaStyle,
+  } as KonvaShape;
 }
 
 /**
