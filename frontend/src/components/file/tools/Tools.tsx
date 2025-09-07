@@ -5,8 +5,8 @@ import { RootState } from "../../../redux/store";
 import { changeActiveTool, handleSelectedIds } from "../../../redux/slices/appSlice";
 import { ToolIcons } from "./constants";
 import { AnimatePresence, motion } from "motion/react";
-import { ToolType } from "../../../types/tools/tool";
 import { cn } from "../../../lib/utils";
+import { ToolType } from "@/types/shapes";
 
 const Tools = () => {
   const activeTool = useSelector((state: RootState) => state.app.activeTool);

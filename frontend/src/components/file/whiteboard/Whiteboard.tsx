@@ -13,7 +13,6 @@ function Whiteboard() {
   const transformerRef = useRef<Konva.Transformer>(null);
 
   const dispatch = useDispatch();
-
   const activeTool = useSelector((state: RootState) => state.app.activeTool.type);
 
   useEffect(() => {

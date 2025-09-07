@@ -2,7 +2,6 @@ import Konva from "konva";
 import { v4 as uuid } from "uuid";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import useShapeProperties from "@/hooks/useShapeProperties";
-import { AllToolBarProperties, ToolType } from "@/types/tools/tool";
 import {
   extractTextShapeProps,
   getMaxedString,
@@ -13,9 +12,7 @@ import {
 } from "@/utils/TextUtils";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { Texts } from "@/types/shapes";
 import { KonvaEventObject } from "konva/lib/Node";
-import { getShapeProperties } from "@/utils/ShapeUtils";
 import {
   changeActiveTool,
   handleSelectedIds,
@@ -23,7 +20,8 @@ import {
   setShapes,
   updateExistingShapes,
 } from "@/redux/slices/appSlice";
-import { toolBarProperties } from "@/lib/constant";
+import { KonvaText, Text, TextSupportedShapes } from "@/types/shapes";
+import { getKonvaProps, isShapeAddable } from "@/utils/ShapeUtils";
 
 interface TextHandlerProps {
   stageRef: React.RefObject<Konva.Stage>;
@@ -53,7 +51,7 @@ const getTextAreaPos = (x: number, y: number, fontSize: number, fontFamily: stri
 };
 
 export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
-  const [textProps, setTextProps] = useState<Texts | null>(null);
+  const [textProps, setTextProps] = useState<Text | null>(null);
 
   const shapeProps = useRef<ShapeProps | null>(null);
   const shapeHeightLimit = useRef<number | null>(null);
@@ -61,8 +59,8 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
 
   const dispatch = useDispatch();
   const activeTool = useSelector((state: RootState) => state.app.activeTool.type);
-  const toolBarProps = useSelector((state: RootState) => state.app.toolBarProperties);
-  const newShapeProps = useShapeProperties() as Texts | null;
+  const toolBarProps = useSelector((state: RootState) => state.app.shapeStyles);
+  const newShapeProps = useShapeProperties() as Text | null;
 
   // Reset all shape/text props
   const resetTextProps = () => {
@@ -71,21 +69,20 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
     shapeHeightLimit.current = null;
 
     // If we are in text tool, simply so to cursor.
-    if (activeTool === ToolType.Text) dispatch(changeActiveTool({ type: ToolType.Cursor }));
+    if (activeTool === "text") dispatch(changeActiveTool({ type: "cursor" }));
 
     // If we are in cursor, simply remove the toolbarProps.
-    if (activeTool === ToolType.Cursor) dispatch(removeUpdateToolBarProperties(null));
+    if (activeTool === "cursor") dispatch(removeUpdateToolBarProperties(null));
   };
 
   // Update or add new shape after blur.
   const handleOnBlur = async () => {
-    if (!textProps?.isAddable) {
+    if (textProps == null || !isShapeAddable(textProps)) {
       resetTextProps();
       return; // Blur evt happen but there is not text, Simply reset and return it.
     }
 
     const shapeProperties = shapeProps.current;
-
     if (shapeProperties !== null) {
       if (shapeProperties.type === "whiteboard") {
         if (shapeProperties.method === "new") {
@@ -100,10 +97,13 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
           ); // Updating text.
         }
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { styleProperties: { x, y, ...otherTextStyle } } = textProps;
+
         dispatch(
           updateExistingShapes({
             shapeId: shapeProperties.id as string,
-            shapeValue: { text: textProps },
+            shapeValue: { text: otherTextStyle } as TextSupportedShapes
           }),
         ); // Updating text inside shape.
       }
@@ -118,12 +118,13 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const shapePos = shapeProps.current;
 
+      // Does not allow any operations if shapePos and textProps is not there.
       if (!(shapePos && textProps)) return;
+
+      const { styleProperties: { fontSize = 18, fontFamily = "roboto" } } = getKonvaProps(textProps) as KonvaText;
 
       const inputText = e.target.value;
       const availableWidth = shapePos.width * 0.98 - 15;
-      const fontSize = textProps.fontSize;
-      const fontFamily = textProps.fontFamily;
 
       let wrappedResult: TextWrapResult;
       let finalText = inputText;
@@ -210,7 +211,7 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
 
   const handleStageClick = useCallback(
     (e: KonvaEventObject<MouseEvent>) => {
-      if (activeTool !== ToolType.Text) return;
+      if (activeTool !== "text") return;
 
       // Call blur event if clicked on the stage and already textProps is there.
       if (textProps) {
@@ -251,7 +252,7 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
 
   const handleStageDblClick = useCallback(
     (e: KonvaEventObject<MouseEvent>) => {
-      if (activeTool !== ToolType.Cursor) return; // Only double click work for "Cursor"
+      if (activeTool !== "cursor") return; // Only double click work for "Cursor"
 
       const shapeAndTextProps = extractTextShapeProps(e);
       if (shapeAndTextProps?.oldText) {
@@ -297,10 +298,10 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
   useEffect(() => {
     if (!toolBarProps) return;
 
-    setTextProps((prev: Texts | null) => {
+    setTextProps((prev: Text | null) => {
       if (prev === null) return null;
-      const hasFontSizeChanged = prev.customProperties.fontSize !== toolBarProps.fontSize;
-      const hasFontFamilyChanged = prev.customProperties.fontFamily !== toolBarProps.fontFamily;
+      const hasFontSizeChanged = prev.styleProperties.fontSize !== toolBarProps.fontSize;
+      const hasFontFamilyChanged = prev.styleProperties.fontFamily !== toolBarProps.fontFamily;
 
       let wrappedText = {};
       if (hasFontSizeChanged || hasFontFamilyChanged) {

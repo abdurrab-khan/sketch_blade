@@ -1,8 +1,8 @@
 import { useSelector } from "react-redux";
 
 import { RootState } from "../../../redux/store";
-import { AllToolBarProperties } from "../../../types/tools/tool";
 import AllActions from "./AllActions";
+import { CombineShapeStyle } from "@/types/shapes";
 
 interface ContainerProps {
   children: React.ReactNode;
@@ -21,28 +21,28 @@ const Container: React.FC<ContainerProps> = ({ children }) => {
 };
 
 const ToolActions = () => {
-  const toolBarProperties = useSelector((state: RootState) => state.app.toolBarProperties);
+  const shapeStyles = useSelector((state: RootState) => state.app.shapeStyles);
 
-  if (!toolBarProperties) return <></>;
+  if (!shapeStyles) return <></>;
 
-  const propertiesElement: (keyof AllToolBarProperties)[] = [
+  const shapeActionStyles: Partial<keyof CombineShapeStyle>[] = [
     "fill",
     "stroke",
-    "fillStyle",
-    "strokeStyle",
+    "fillPatternImage",
+    "dash",
     "strokeWidth",
-    "edgeStyle",
+    "cornerRadius",
     "fontSize",
     "fontFamily",
-    "textAlign",
-    "eraserRadius",
+    "align",
+    "radius",
     "opacity",
   ];
 
   return (
     <Container>
-      {propertiesElement.map((key, index) =>
-        toolBarProperties[key as keyof AllToolBarProperties] ? (
+      {shapeActionStyles.map((key, index) =>
+        shapeStyles[key] ? (
           <AllActions key={index} toolKey={key} />
         ) : null,
       )}

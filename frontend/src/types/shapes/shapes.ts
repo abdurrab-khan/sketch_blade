@@ -31,14 +31,14 @@ export interface Hand
 // <========================> RECTANGLE <========================>
 export interface Rectangle extends BaseShape<RectangleStyle> {
   type: "rectangle";
-  text?: TextStyle;
+  text?: Omit<TextStyle, "x" | "y">;
   arrowProps?: ArrowProps[];
 }
 
 // <========================> ELLIPSE <========================>
 export interface Ellipse extends BaseShape<EllipseStyle> {
   type: "ellipse";
-  text?: TextStyle;
+  text?: Omit<TextStyle, "x" | "y">;
   arrowProps?: ArrowProps[];
 }
 
@@ -84,4 +84,13 @@ export interface ShapeMap {
 
 export type ToolType = keyof ShapeMap;
 
-export type Shapes = Rectangle | Ellipse | Text | Eraser | FreeHand | Arrow;
+export type Shapes = Rectangle | Ellipse | Text | FreeHand | Arrow;
+
+// <========================> ARROW SUPPORTED SHAPES <========================>
+type ShapeEx<T extends Shapes> = T extends { arrowProps?: ArrowProps[] } ? T : never;
+export type ArrowSupportedShapes = ShapeEx<Shapes>;
+
+// <========================> TEXT SUPPORTED SHAPES <========================>
+type TextShapeEx<T extends Shapes> = T extends { text?: any } ? T : never;
+
+export type TextSupportedShapes = TextShapeEx<Shapes>;

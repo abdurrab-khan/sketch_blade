@@ -1,16 +1,18 @@
 import Konva from "konva";
-import { ArrowProps, Coordinates, Proximity } from "../types";
+import { Coordinates, Proximity } from "../types";
 import {
   Arrow,
   ArrowDirection,
   ArrowPosition,
+  ArrowProps,
   ArrowSupportedShapes,
   AttachedShape,
-  Shape,
+  RectangleStyle,
+  Shapes,
 } from "../types/shapes";
-import { ToolType } from "../types/tools/tool";
 import { DeletedShapeProps } from "./ShapeUtils";
 import { Node, NodeConfig } from "konva/lib/Node";
+import { UpdatingShapePayLoad } from "@/types/redux";
 
 /**
  * Utility function to check if the mouse is near the edge of a shape.
@@ -20,8 +22,15 @@ import { Node, NodeConfig } from "konva/lib/Node";
  * @param threshold {number}
  * @returns {boolean}
  */
-function isMouseNearShapeEdge(mouseX: number, mouseY: number, shape: Shape, threshold = 5) {
-  const { x, y, height, width } = shape as ArrowSupportedShapes;
+function isMouseNearShapeEdge(
+  mouseX: number,
+  mouseY: number,
+  shape: ArrowSupportedShapes,
+  threshold = 5,
+) {
+  const {
+    styleProperties: { x, y, height, width },
+  } = shape;
 
   if (shape.type === "ellipse") {
     const centerX = x;
@@ -73,7 +82,9 @@ function isMouseNearShapeEdge(mouseX: number, mouseY: number, shape: Shape, thre
  */
 function getAnchorPoint(shape: ArrowSupportedShapes, anchorPosition: ArrowDirection): Coordinates {
   if (shape.type === "rectangle") {
-    const { x, y, width, height } = shape;
+    const {
+      styleProperties: { x, y, width, height },
+    } = shape;
     switch (anchorPosition) {
       case "TOP":
         return { x: x + width / 2, y };
@@ -87,7 +98,9 @@ function getAnchorPoint(shape: ArrowSupportedShapes, anchorPosition: ArrowDirect
         return { x: x + width / 2, y: y + height / 2 };
     }
   } else if (shape.type === "ellipse") {
-    const { x, y, width, height } = shape;
+    const {
+      styleProperties: { x, y, width, height },
+    } = shape;
     const radiusX = width / 2;
     const radiusY = height / 2;
 
@@ -198,11 +211,11 @@ export const findBestConnectionPoints = (
 };
 
 // <-------------------------------> SHAPE TRANSFORMATION VALUE <------------------------->
-export const getRectangleResizeValue = (n: Node<NodeConfig>): Partial<Shape> => {
+export const getRectangleResizeValue = (n: Node<NodeConfig>): Partial<RectangleStyle> => {
   const newWidth = Math.max(5, n.width() * n.scaleX());
   const newHeight = Math.max(5, n.height() * n.scaleY());
 
-  const updatedValue = {
+  const updatedValue: Partial<RectangleStyle> = {
     width: Math.round(newWidth),
     height: Math.round(newHeight),
     x: Math.round(n.x()),
@@ -242,10 +255,9 @@ export const getFreeHandResizeValue = (node: Node<NodeConfig>) => {
 export function detectShapeEdgeProximity(
   mouseX: number,
   mouseY: number,
-  shapes: Shape[],
+  shapes: Shapes[],
   threshold = 5,
-  activeTool: ToolType,
-  currentShape: Shape | null,
+  currentShape: Shapes,
 ): Proximity {
   const proximityProperties: Proximity = {
     shapeId: null,
@@ -255,14 +267,16 @@ export function detectShapeEdgeProximity(
 
   for (let i = shapes.length - 1; i >= 0; i--) {
     const shape = shapes[i];
+    if (!(shape.type === "rectangle" || shape.type === "ellipse" || shape.type === "text"))
+      continue;
 
     if (isMouseNearShapeEdge(mouseX, mouseY, shape, threshold)) {
       proximityProperties.shapeId = shape._id;
       proximityProperties.isNear = true;
 
-      if (activeTool === "point arrow") {
+      if (currentShape && currentShape.type === "arrow") {
         const position: ArrowPosition =
-          !(currentShape as Arrow)?.points || (currentShape as Arrow)?.points?.length <= 2
+          !currentShape.styleProperties?.points || currentShape.styleProperties?.points?.length <= 2
             ? "START"
             : "END";
 
@@ -310,7 +324,7 @@ export function getTransformedPos(stage: Konva.Stage): Coordinates | null {
 }
 
 /**
- * Utility function to update the points of a shape after transformation.
+ * Utility function to update the points of the arrow after transformation.
  * @param oldPoints {number[]}
  * @param groupRef {Konva.Group}
  * @returns {number[]}
@@ -337,14 +351,14 @@ export function updatePointsAfterTransformation(
  * @param arrowId {string}
  * @param prevUpdatedProps {DeletedShapeProps}
  * @param attachedArrowIds {[ArrowPosition, string][]}
- * @param shapes {Shape[]}
+ * @param shapes {Shapes[]}
  * @returns {[key : string] : ArrowProps[]}
  */
 export function filterArrowProps(
   arrowId: string,
   prevUpdatedProps: DeletedShapeProps,
   attachedArrowIds: [ArrowPosition, string][],
-  shapes: Shape[],
+  shapes: Shapes[],
 ): { [key: string]: ArrowProps[] | null } {
   const updatedValue: { [key: string]: ArrowProps[] | null } = {};
 
@@ -369,7 +383,7 @@ export function filterAttachedShapeProps(
   shapeId: string,
   arrowProps: ArrowProps[],
   prevUpdatedProps: DeletedShapeProps,
-  shapes: Shape[],
+  shapes: Map<string, Shapes>,
 ): { [key: string]: AttachedShape | null } {
   const updatedValue: { [key: string]: AttachedShape | null } = {};
 
@@ -379,7 +393,7 @@ export function filterAttachedShapeProps(
     if (prevUpdatedProps.updatedShapes[props._id]) {
       filterArrowProps = prevUpdatedProps.updatedShapes[props._id] as AttachedShape;
     } else {
-      const shape = shapes.find((s) => s._id === props._id) as Arrow;
+      const shape = shapes.get(props._id) as Arrow;
       filterArrowProps = shape?.attachedShape as AttachedShape;
     }
 
@@ -401,9 +415,9 @@ export function filterAttachedShapeProps(
  */
 export function getArrowPointsForPosition(arrow: Arrow, position: ArrowPosition): [number, number] {
   if (position === "START") {
-    return [arrow.points[0], arrow.points[1]];
+    return [arrow.styleProperties.points[0], arrow.styleProperties.points[1]];
   } else {
-    const points = arrow.points;
+    const points = arrow.styleProperties.points;
     return [points[points.length - 2], points[points.length - 1]];
   }
 }
@@ -413,21 +427,19 @@ export function getArrowPointsForPosition(arrow: Arrow, position: ArrowPosition)
  * @param nodes {Node<NodeConfig[]>}
  * @returns {Array<{ shapeId: string; shapeValue: Partial<Shape> }>}
  */
-export function getResizeShape(
-  nodes: Node<NodeConfig>[],
-): Array<{ shapeId: string; shapeValue: Partial<Shape> }> {
-  const newValues: Array<{ shapeId: string; shapeValue: Partial<Shape> }> = [];
+export function getResizeShape(nodes: Node<NodeConfig>[]): UpdatingShapePayLoad[] {
+  const newValues: UpdatingShapePayLoad[] = [];
 
   nodes.forEach((n) => {
     // Resize Shape -- based on shape type >> "Rectangle", "Ellipse", "Free Hand" ... etc.
-    switch ((n.attrs as Shape).type) {
+    switch ((n.attrs as Shapes).type) {
       // Resize -- Rectangle
       case "rectangle": {
         const resizedValue = getRectangleResizeValue(n);
 
         newValues.push({
           shapeId: n.attrs.id,
-          shapeValue: resizedValue,
+          shapeStyle: resizedValue,
         });
         break;
       }
@@ -436,7 +448,7 @@ export function getResizeShape(
         break;
       }
       // Resize -- Point Arrow
-      case "point arrow": {
+      case "arrow": {
         break;
       }
       // Resize -- Free hand

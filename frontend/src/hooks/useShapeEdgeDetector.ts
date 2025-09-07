@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 
 import { Proximity } from "../types";
-import { Shape } from "../types/shapes";
+import { Shapes } from "../types/shapes";
 import { detectShapeEdgeProximity } from "@/utils/Helper";
 
 interface LastUpdateRef {
@@ -12,7 +12,7 @@ interface LastUpdateRef {
   isNear: boolean;
 }
 
-const useShapeEdgeDetector = (threshold = 10, currentShape: Shape | null, isPressed?: boolean) => {
+const useShapeEdgeDetector = (threshold = 10, currentShape: Shapes | null, isPressed?: boolean) => {
   const [proximity, setProximity] = useState<Proximity>({
     shapeId: null,
     isNear: false,
@@ -30,23 +30,12 @@ const useShapeEdgeDetector = (threshold = 10, currentShape: Shape | null, isPres
 
   const handleMouseMove = useCallback(
     (event: MouseEvent) => {
-      if (timeoutRef.current) {
-        return;
-      }
+      if (timeoutRef.current) return;
 
-      if (!isPressed && activeTool === "eraser") {
-        return;
-      }
+      if ((!isPressed && activeTool === "eraser") || currentShape === null) return;
 
       const { clientX, clientY } = event;
-      const result = detectShapeEdgeProximity(
-        clientX,
-        clientY,
-        shapes,
-        threshold,
-        activeTool,
-        currentShape,
-      );
+      const result = detectShapeEdgeProximity(clientX, clientY, shapes, threshold, currentShape);
 
       const statusChanged =
         result.isNear !== lastUpdateRef.current.isNear ||
@@ -65,7 +54,7 @@ const useShapeEdgeDetector = (threshold = 10, currentShape: Shape | null, isPres
   );
 
   useEffect(() => {
-    if (!(activeTool === "point arrow" || activeTool === "eraser")) {
+    if (!(activeTool === "arrow" || activeTool === "eraser")) {
       return;
     }
 

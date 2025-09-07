@@ -5,7 +5,7 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { useDispatch, useSelector } from "react-redux";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { Arrow, Shapes, Ellipse, Rectangle } from "@/types/shapes";
+import { Arrow, ArrowSupportedShapes, Shapes } from "@/types/shapes";
 import { GetDynamicShape } from "./others/const";
 import useShapeProperties from "@/hooks/useShapeProperties";
 import { Coordinates, FourCoordinates } from "@/types";
@@ -41,11 +41,9 @@ const ShapeCreator: React.FC<ShapeCreatorProps> = ({ stageRef }) => {
   const createNewShape = useCallback(
     (shapeBase: Shapes, transformedPos: Coordinates) => {
       if (shapeBase.type === "arrow" || shapeBase.type === "free hand") {
-        // Change the coordinates of "arrow"  or "free hand"
-        shapeBase["styleProperties"]["points"] = [...Object.values(transformedPos)];
+        shapeBase["styleProperties"]["points"] = [...Object.values(transformedPos)]; // Change the coordinates of "arrow" or "free hand"
       } else if (shapeBase.type === "rectangle" || shapeBase.type === "ellipse") {
-        // Change the x and y axis of "rectangle" or "ellipse"
-        shapeBase["styleProperties"]["x"] = transformedPos.x;
+        shapeBase["styleProperties"]["x"] = transformedPos.x; // Changing the x and y axis
         shapeBase["styleProperties"]["y"] = transformedPos.y;
       }
 
@@ -88,10 +86,10 @@ const ShapeCreator: React.FC<ShapeCreatorProps> = ({ stageRef }) => {
     if (arrowAndShapeValue) {
       dispatch(
         updateExistingShapes({
+          shapeId: selectedShapeToAddArrow?._id,
           shapeValue: {
             arrowProps: arrowAndShapeValue.arrowProps,
-          },
-          shapeId: selectedShapeToAddArrow?._id,
+          } as ArrowSupportedShapes,
         }),
       );
 
@@ -242,6 +240,7 @@ const ShapeCreator: React.FC<ShapeCreatorProps> = ({ stageRef }) => {
     if (activeTool !== "arrow") return;
 
     const { isNear, shapeId, arrowProps } = proximity;
+
     if (isNear) {
       if (!arrowProps || selectedShapeToAddArrow?._id === shapeId) return;
       dispatch(

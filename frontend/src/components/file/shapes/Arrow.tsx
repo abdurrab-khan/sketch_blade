@@ -16,7 +16,6 @@ import { checkRefValue } from "../../../utils/AppUtils";
 import { ARROW_CIRCLE_RADIUS } from "../../../lib/constant";
 import { updatePointsAfterTransformation } from "../../../utils/Helper";
 import ShapeGroup from "./ShapeGroup";
-import { ToolType } from "@/types/tools/tool";
 
 const Arrow: React.FC<KonvaArrowType> = ({ ...props }) => {
   const [isClicked, setIsClicked] = useState<boolean>(false);

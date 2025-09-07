@@ -15,6 +15,7 @@ export interface RectangleStyle {
   y: number;
   height: number;
   width: number;
+  rotation: number;
   fill: string;
   fillPatternImage: FillStyle;
   stroke: string;
@@ -30,6 +31,7 @@ export interface EllipseStyle {
   y: number;
   height: number;
   width: number;
+  rotation: number;
   fill: string;
   fillPatternImage: FillStyle;
   stroke: string;
@@ -40,6 +42,11 @@ export interface EllipseStyle {
 
 // <========================> TEXT <========================>
 export interface TextStyle {
+  x: number;
+  y: number;
+  height: number;
+  width: number;
+  rotation: number;
   text: string;
   stroke: string;
   fontSize: FontSize;
@@ -50,6 +57,7 @@ export interface TextStyle {
 
 // <========================> FREE-HAND <========================>
 export interface FreeHandStyle {
+  rotation: number;
   points: number[];
   stroke: string;
   dash: StrokeStyle;
@@ -59,6 +67,7 @@ export interface FreeHandStyle {
 
 // <========================> Arrow <========================>
 export interface ArrowStyle {
+  rotation: number;
   points: number[];
   stroke: string;
   dash: StrokeStyle;
@@ -69,8 +78,7 @@ export interface ArrowStyle {
 
 // <========================> Eraser <========================>
 export interface EraserStyle {
-  eraserRadius: number;
-  opacity: number;
+  radius: number;
 }
 
 // <========================> ALL STYLE PROPS MAP <========================>

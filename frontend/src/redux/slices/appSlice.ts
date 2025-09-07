@@ -13,6 +13,7 @@ import { shapeStyleProperties } from "@/lib/constant.ts";
 import { SelectedShapesId } from "@/types/index.ts";
 import { CombineShapeStyle, ShapeStylePartial } from "@/types/shapes/style-properties.ts";
 import { Shapes, ToolType } from "@/types/shapes/shapes.ts";
+import { UpdatingShapePayLoad } from "@/types/redux.ts";
 
 type AppState = {
   clerkId: string | null;
@@ -111,17 +112,7 @@ export const appSlice = createSlice({
 
     updateExistingShapes: (
       state,
-      action: {
-        payload:
-          | {
-              shapeId: string;
-              shapeValue: Partial<Shapes>;
-            }
-          | {
-              shapeId: string;
-              shapeValue: Partial<Shapes>;
-            }[];
-      },
+      action: { payload: UpdatingShapePayLoad | UpdatingShapePayLoad[] },
     ) => {
       const updates = Array.isArray(action.payload) ? action.payload : [action.payload];
 
@@ -129,24 +120,22 @@ export const appSlice = createSlice({
         const index = state.shapes.findIndex((shape) => shape._id === update.shapeId);
 
         if (index !== -1) {
-          for (const key in update.shapeValue) {
-            const k = key as keyof Partial<Shapes>;
-            const updatedShapeValues: Record<string, unknown> = {};
-
-            if (update.shapeValue[k]) {
-              if (k === "styleProperties") {
-                updatedShapeValues[k] = {
-                  ...state.shapes[index][k],
-                  ...update.shapeValue[k],
-                };
-              }
-            } else {
-              updatedShapeValues[k] = update.shapeValue[k];
-            }
-
+          if (update?.shapeStyle !== undefined) {
+            // Updating Shape Style
             state.shapes[index] = {
               ...state.shapes[index],
-              ...updatedShapeValues,
+              styleProperties: {
+                ...state.shapes[index].styleProperties,
+                ...update.shapeStyle,
+              },
+            } as Shapes;
+          }
+
+          if (update?.shapeValue !== undefined) {
+            // Updating Shape Style
+            state.shapes[index] = {
+              ...state.shapes[index],
+              ...update.shapeValue,
             } as Shapes;
           }
         }

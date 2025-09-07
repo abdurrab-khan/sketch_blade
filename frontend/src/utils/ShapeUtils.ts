@@ -3,6 +3,7 @@ import {
   Arrow,
   ArrowPosition,
   ArrowProps,
+  ArrowSupportedShapes,
   AttachedShape,
   Ellipse,
   KonvaShape,
@@ -10,6 +11,7 @@ import {
   Rectangle,
   Shapes,
   ShapeStyles,
+  ToolType,
 } from "../types/shapes";
 import {
   ArrowSupportedShapes as ShapesThatSupportArrow,
@@ -23,6 +25,7 @@ import {
   findBestConnectionPoints,
   getArrowPointsForPosition,
 } from "./Helper";
+import { UpdatingShapePayLoad } from "@/types/redux";
 
 interface PropsToAddArrow {
   arrowProps: ArrowProps[];
@@ -55,7 +58,7 @@ function getKonvaStyle(shapeStyle: ShapeStyles): KonvaStyles {
 
   const entries = Object.entries(shapeStyle as unknown as Record<string, unknown>);
   for (const [s, property] of entries) {
-    const p: any = property as any;
+    const p: unknown = property as unknown;
 
     switch (s) {
       case "dash": {
@@ -110,62 +113,6 @@ function getKonvaStyle(shapeStyle: ShapeStyles): KonvaStyles {
   }
 
   return style as KonvaStyles;
-  // for (const s in styleProps) {
-  //   const property = styleProps[s];
-  //   switch (s) {
-  //     case "dash": {
-  //       const dashValue = (
-  //         property === "SOLID" ? [0] : property === "DASHED" ? [10, 15] : undefined
-  //       ) as GetSet<number[], Rect> | undefined;
-  //       if (dashValue) {
-  //         style["dash"] = dashValue;
-  //       }
-  //       break;
-  //     }
-  //     case "strokeWidth": {
-  //       const strokeWidthValue = (property === "THIN"
-  //         ? 3
-  //         : property === "MEDIUM"
-  //           ? 4
-  //           : 5) as unknown as GetSet<number, Line<LineConfig>>;
-  //       style["strokeWidth"] = strokeWidthValue;
-  //       break;
-  //     }
-  //     case "cornerRadius": {
-  //       const cornerRadiusValue = (property === "SHARP" ? 0 : 32) as unknown as GetSet<
-  //         number[],
-  //         Rect
-  //       >;
-  //       style["cornerRadius"] = cornerRadiusValue;
-  //       break;
-  //     }
-  //     case "tension": {
-  //       const tensionValue = property === "SHARP" ? 0 : 0.15;
-  //       style["tension"] = tensionValue;
-  //       break;
-  //     }
-  //     case "fillPatternImage": {
-  //       break;
-  //     }
-  //     case "fontSize": {
-  //       const fontSize = property === "SMALL" ? 22 : property === "MEDIUM" ? 24 : 28;
-  //       style["fontSize"] = fontSize;
-  //       break;
-  //     }
-  //     case "fontFamily": {
-  //       style["fontFamily"] = "sans-serif";
-  //       break;
-  //     }
-  //     case "align": {
-  //       style["align"] = property.toLowerCase();
-  //       break;
-  //     }
-  //     default: {
-  //       style[s] = property;
-  //     }
-  //   }
-  // }
-  // return style;
 }
 
 /**
@@ -240,7 +187,7 @@ export function getUpdatedPropsToAddArrow(
  * @returns {Shape}
  */
 export function recalculatesShapeDimensions(
-  tool: DrawingToolTypeLiteral,
+  tool: ToolType,
   coordinates: FourCoordinates,
   shape: Shapes,
 ): Shapes {
@@ -265,7 +212,7 @@ export function recalculatesShapeDimensions(
       break;
     }
     case "free hand":
-    case "point arrow": {
+    case "arrow": {
       let points: number[] = [];
 
       const prevPoints = (copyShape as Arrow)["styleProperties"]["points"];
@@ -299,15 +246,19 @@ export function recalculatesShapeDimensions(
 export function getUpdatedAttachProps(
   arrow: Arrow,
   shapes: Shapes[],
-): Array<{ shapeId: string; shapeValue: Partial<Shapes> }> | null {
+): UpdatingShapePayLoad[] | null {
   const attachedShapeIds = arrow?.attachedShape;
   if (!attachedShapeIds) return null;
 
-  const result: { [key in ArrowPosition]: ArrowSupportedShapes | null } = {
-    START: null,
-    END: null,
-  };
-  const updatedValue: Array<{ shapeId: string; shapeValue: Partial<Shape> }> = [];
+  // const result: {
+  //   [key in ArrowPosition]: ArrowSupportedShapes | null;
+  // } = {
+  //   START: null,
+  //   END: null,
+  // };
+
+  let updatedArrow: UpdatingShapePayLoad | null = null;
+  const updatedShapes: UpdatingShapePayLoad[] = [];
 
   const shapeMap = new Map<string, ArrowSupportedShapes>();
   for (const shape of shapes) {
@@ -324,51 +275,45 @@ export function getUpdatedAttachProps(
     if (!shape) continue;
 
     const arrowPoints = getArrowPointsForPosition(arrow, position);
-    const distance = calculatePointDistance(0, [shape.x, shape.y, ...arrowPoints]);
+    const distance = calculatePointDistance(0, [
+      shape.styleProperties.x,
+      shape.styleProperties.y,
+      ...arrowPoints,
+    ]);
 
     if (distance > MAX_ARROW_LIMIT) {
-      const { [position]: remove, ...other } = arrow.attachedShape;
       const updatedArrowProps = shape?.arrowProps?.filter((p) => p._id !== arrow._id);
+      const filteredArrow = Object.entries(arrow?.attachedShape ?? {}).filter(
+        ([pos]) => position !== pos,
+      );
 
-      const attachedShape = Object.keys(other).length === 0 ? null : (other as AttachedShape);
+      const currentlyAttachedShape = Object.fromEntries(filteredArrow);
       const arrowProps = updatedArrowProps?.length === 0 ? null : updatedArrowProps;
 
-      if (updatedValue.length === 0) {
-        updatedValue.push(
-          {
-            shapeId: arrow._id,
-            shapeValue: {
-              attachedShape,
-            },
-          },
-          {
-            shapeId: shape._id,
-            shapeValue: {
-              arrowProps,
-            },
-          },
-        );
-      } else {
-        updatedValue[0].shapeValue = {
-          attachedShape: {
-            ...(updatedValue[0].shapeValue as AttachedShape),
-            ...attachedShape,
-          },
-        };
-
-        updatedValue.push({
+      if (arrowProps != null) {
+        updatedShapes.push({
           shapeId: shape._id,
           shapeValue: {
             arrowProps,
-          },
+          } as ArrowSupportedShapes,
         });
+
+        updatedArrow = {
+          shapeId: shape._id,
+          shapeValue: {
+            attachedShape: currentlyAttachedShape,
+          } as Arrow,
+        };
       }
     }
   }
 
+  if (updatedArrow == null || updatedShapes.length > 0) return null;
+
   // Let's create a new object to update the attachedShape properties and arrowProps.
-  if (result?.START === null && result?.END === null) return null;
-  return updatedValue;
+  // if (result?.START === null && result?.END === null) return null;
+
+  return [updatedArrow, ...updatedShapes] as UpdatingShapePayLoad[];
 }
 
 /**
@@ -381,11 +326,8 @@ export function getUpdatedAttachProps(
 export function updateAttachedArrowPosition(
   shapes: Shapes[],
   arrowProps: ArrowProps[],
-): { shapeId: string; shapeValue: { points: number[] } }[] {
-  const updatedArrowPosition: {
-    shapeId: string;
-    shapeValue: { points: number[] };
-  }[] = [];
+): UpdatingShapePayLoad[] {
+  const updatedArrowPosition: UpdatingShapePayLoad[] = [];
 
   // Update arrow points
   const updateArrowPoints = ({ arrowPoints, from, to }: UpdateArrowPoints): number[] => {
@@ -424,7 +366,7 @@ export function updateAttachedArrowPosition(
 
   // Process each arrow that's attached to the moving shape
   arrowProps.forEach((arrowProp) => {
-    const arrow = shapes.find((s) => s._id === arrowProp._id && s.type === "point arrow") as Arrow;
+    const arrow = shapes.find((s) => s.type === "arrow" && s._id === arrowProp._id) as Arrow;
 
     if (!arrow?.attachedShape) return;
 
@@ -432,7 +374,11 @@ export function updateAttachedArrowPosition(
     const sourceShape = shapes.find((s) => s._id === attachedShape.START) as ArrowSupportedShapes;
     const targetShape = shapes.find((s) => s._id === attachedShape.END) as ArrowSupportedShapes;
 
-    const newPointPosition = findBestConnectionPoints(sourceShape, targetShape, arrow.points);
+    const newPointPosition = findBestConnectionPoints(
+      sourceShape,
+      targetShape,
+      arrow.styleProperties.points,
+    );
 
     if (newPointPosition) {
       const { from, to } = newPointPosition;
@@ -440,12 +386,12 @@ export function updateAttachedArrowPosition(
       const newPoints = updateArrowPoints({
         from,
         to,
-        arrowPoints: arrow.points,
+        arrowPoints: arrow.styleProperties.points,
       });
 
       updatedArrowPosition.push({
         shapeId: arrow._id,
-        shapeValue: {
+        shapeStyle: {
           points: newPoints,
         },
       });
@@ -462,13 +408,19 @@ export function updateAttachedArrowPosition(
  * @returns {string[]}
  */
 export function getDeletedShapeProps(selectedIds: string[], shapes: Shapes[]): DeletedShapeProps {
+  const shapeMap = new Map<string, Shapes>();
   const updatedValue: DeletedShapeProps = {
     updatedShapes: {},
     deletedShapes: [],
   };
 
+  // Map All Shapes with there ids
+  for (const s of shapes) {
+    shapeMap.set(s._id, s);
+  }
+
   selectedIds.forEach((id) => {
-    const shape = shapes.find((s) => s._id === id);
+    const shape = shapeMap.get(id);
     if (!shape) return;
 
     if (shape.type === "arrow" && (shape as Arrow).attachedShape) {
@@ -489,18 +441,17 @@ export function getDeletedShapeProps(selectedIds: string[], shapes: Shapes[]): D
           [key: string]: ArrowProps[] | null;
         }),
       };
-    } else if (ArrowSupportedShapeList.includes(shape.type) && shape?._id) {
-      // If removed shape is Rect, Ellipse,..., We have to remove from "AttachedShape."
+    } else if ("arrowProps" in shape && shape?._id) {
       const filteredArrowProps = filterAttachedShapeProps(
         id,
         shape.arrowProps ?? [],
         updatedValue,
-        shapes,
+        shapeMap,
       );
 
       updatedValue.updatedShapes = {
         ...updatedValue.updatedShapes,
-        ...(filteredArrowProps as { [key: string]: AttachedShape | null }),
+        ...filteredArrowProps,
       };
     }
 
@@ -531,7 +482,7 @@ export function isShapeAddable(shape: Shapes): boolean {
       return Math.sqrt(a * b) >= 5;
     }
     case "free hand":
-    case "point arrow": {
+    case "arrow": {
       const points = shape.styleProperties.points;
 
       if (shape.type === "free hand") return points.length > 5;

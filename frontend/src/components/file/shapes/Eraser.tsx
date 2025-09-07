@@ -1,6 +1,6 @@
 import Konva from "konva";
 import React, { useEffect, useRef, useState } from "react";
-import { Rect } from "react-konva";
+import { Circle } from "react-konva";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { deleteShapes, handleSelectedIds } from "../../../redux/slices/appSlice";
@@ -8,24 +8,22 @@ import useMouseValue from "../../../hooks/useMouseValue";
 import useShapeEdgeDetector from "../../../hooks/useShapeEdgeDetector";
 import { getDeletedShapeProps } from "../../../utils/ShapeUtils";
 import { deleteShapesAPI } from "@/services/shape.api";
-import { KonvaEraser } from "@/types/shapes";
+import { EraserStyle } from "@/types/shapes";
 
-type MouseValue = {
-  stageRef: React.RefObject<Konva.Stage>;
-};
+interface IEraser {
+  stageRef: React.RefObject<Konva.Stage>
+}
 
-const Eraser: React.FC<KonvaEraser> = ({ stageRef }) => {
+const Eraser: React.FC<IEraser> = ({ stageRef }) => {
   const [isPressed, setIsPressed] = useState(false);
-  const eraserRef = useRef<Konva.Rect>(null);
-  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId);
+  const eraserRef = useRef<Konva.Circle>(null);
   const shapes = useSelector((state: RootState) => state.app.shapes);
+  const selectedIds = useSelector((state: RootState) => state.app.selectedShapesId);
 
   const dispatch = useDispatch();
-  const eraserProperties = useSelector(
-    (state: RootState) => state.app.toolBarProperties?.eraserRadius,
-  );
   const mouseCoordinates = useMouseValue({ stageRef });
   const { proximity } = useShapeEdgeDetector(20, null, isPressed);
+  const eraserProperties = useSelector((state: RootState) => state.app.shapeStyles) as EraserStyle;
 
   useEffect(() => {
     if (!isPressed) return;
@@ -84,10 +82,9 @@ const Eraser: React.FC<KonvaEraser> = ({ stageRef }) => {
   }, [stageRef, isPressed, selectedIds, dispatch, shapes]);
 
   return (
-    <Rect
+    <Circle
       ref={eraserRef}
-      height={eraserProperties}
-      width={eraserProperties}
+      radius={eraserProperties.radius}
       fill={"#0a1f2c"}
       stroke={"#3282B8"}
       strokeWidth={1}

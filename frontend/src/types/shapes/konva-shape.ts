@@ -1,8 +1,8 @@
-import { Rect } from "konva/lib/shapes/Rect";
-import { Ellipse } from "konva/lib/shapes/Ellipse";
-import { Text } from "konva/lib/shapes/Text";
-import { Line } from "konva/lib/shapes/Line";
-import { Arrow } from "konva/lib/shapes/Arrow";
+import { RectConfig } from "konva/lib/shapes/Rect";
+import { EllipseConfig } from "konva/lib/shapes/Ellipse";
+import { TextConfig } from "konva/lib/shapes/Text";
+import { LineConfig } from "konva/lib/shapes/Line";
+import { ArrowConfig } from "konva/lib/shapes/Arrow";
 import { ActiveUser, ArrowProps, AttachedShape } from "./common";
 
 // <****************************> SHAPE BASE <****************************>
@@ -14,37 +14,38 @@ interface BaseShape<ShapeStyle> {
 }
 
 // <========================> RECTANGLE <========================>
-export interface KonvaRectangle extends BaseShape<Partial<Rect>> {
+export interface KonvaRectangle extends BaseShape<Partial<RectConfig>> {
   type: "rectangle";
-  text?: Partial<Text>;
+  text?: Partial<TextConfig>;
   arrowProps?: ArrowProps[];
 }
 
 // <========================> ELLIPSE <========================>
-export interface KonvaEllipse extends BaseShape<Partial<Ellipse>> {
+export interface KonvaEllipse extends BaseShape<Partial<EllipseConfig>> {
   type: "ellipse";
-  text?: Partial<Text>;
+  text?: Partial<TextConfig>;
   arrowProps?: ArrowProps[];
 }
 
 // <========================> TEXT <========================>
-export interface KonvaText extends BaseShape<Partial<Text>> {
+export interface KonvaText extends BaseShape<Partial<TextConfig>> {
   type: "text";
   arrowProps?: ArrowProps[];
 }
 
 // <========================> FREE-HAND <========================>
-export interface KonvaFreeHand extends BaseShape<Partial<Line>> {
+export interface KonvaFreeHand extends BaseShape<Partial<LineConfig>> {
   type: "free hand";
 }
 
 // <========================> Arrow <========================>
-export interface KonvaArrow extends BaseShape<Partial<Arrow>> {
+export interface KonvaArrow extends BaseShape<Partial<ArrowConfig>> {
   type: "arrow";
   attachedShape?: AttachedShape;
 }
 
-export interface KonvaEraser extends Omit<BaseShape<Rect>, "_id" | "isLocked" | "activeUser"> {
+export interface KonvaEraser
+  extends Omit<BaseShape<RectConfig>, "_id" | "isLocked" | "activeUser"> {
   type: "eraser";
 }
 
@@ -59,22 +60,17 @@ export interface KonvaShapeMap {
 }
 
 export type KonvaStyles =
-  | Partial<Rect>
-  | Partial<Ellipse>
-  | Partial<Rect>
-  | Partial<Line>
-  | Partial<Arrow>
-  | Partial<Text>;
+  | Partial<RectConfig>
+  | Partial<EllipseConfig>
+  | Partial<RectConfig>
+  | Partial<LineConfig>
+  | Partial<ArrowConfig>
+  | Partial<TextConfig>;
 
 // <========================> ALL SHAPE PROPS MAP <========================>
-export interface KonvaStyleMap {
-  rectangle: Partial<Rect>;
-  ellipse: Partial<Ellipse>;
-  eraser: Partial<Rect>;
-  "free hand": Partial<Line>;
-  arrow: Partial<Arrow>;
-  text: Partial<Text>;
-}
+export type KonvaStyleMap = {
+  [K in keyof KonvaShapeMap]: KonvaShapeMap[K]["styleProperties"];
+};
 
 // <========================> Combine KonvaShape <========================>
 export type KonvaShape =

@@ -1,15 +1,13 @@
 import React, { ReactNode } from "react";
 import { Ellipse, FreeHand, Rectangle, Arrow, Text } from "../../shapes";
 import { KonvaShapeMap, Shapes } from "@/types/shapes";
-import Eraser from "../../shapes/Eraser";
 import { getKonvaProps } from "@/utils/ShapeUtils";
 
-const ListComponent: { [K in keyof KonvaShapeMap]: React.ComponentType<KonvaShapeMap[K]> } = {
+const ListComponent: { [K in Exclude<keyof KonvaShapeMap, "eraser">]: React.ComponentType<KonvaShapeMap[K]> } = {
   rectangle: Rectangle,
   ellipse: Ellipse,
   arrow: Arrow,
   text: Text,
-  eraser: Eraser,
   "free hand": FreeHand,
 };
 
@@ -32,10 +30,6 @@ const GetDynamicShape = ({ ...props }: Shapes): ReactNode => {
     case "text": {
       const updatedProps = getKonvaProps(props) as KonvaShapeMap["text"];
       return <Text {...updatedProps} />;
-    }
-    case "eraser": {
-      const updatedProps = getKonvaProps(props) as KonvaShapeMap["eraser"];
-      return <Eraser {...updatedProps} />;
     }
     case "free hand": {
       const updatedProps = getKonvaProps(props) as KonvaShapeMap["free hand"];

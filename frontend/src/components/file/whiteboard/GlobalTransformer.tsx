@@ -14,8 +14,6 @@ import { ArrowSupportedShapes } from "../../../lib/constant";
 // Utils
 import { getUpdatedAttachProps, updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
 
-// Types
-import { Shape, Arrow } from "../../../types/shapes";
 import {
   getRectangleResizeValue,
   getResizeShape,
@@ -33,7 +31,7 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
     const groupRef = useRef<Konva.Group>(null);
 
     const { type: activeTool } = useSelector((state: RootState) => state.app.activeTool);
-    const shapes: Shape[] = useSelector((state: RootState) => state.app.shapes) as Shape[];
+    const shapes = useSelector((state: RootState) => state.app.shapes);
 
     const dispatch = useDispatch();
 
@@ -42,7 +40,7 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
       if (!x || !y) return;
 
       // Update the position of ArrowSupportedShape during movements
-      if (ArrowSupportedShapes.includes((attrs as Shape).type)) {
+      if (ArrowSupportedShapes.includes(attrs.type)) {
         if (!arrowProps?.length) return;
         const updatedArrowPosition = updateAttachedArrowPosition(shapes, arrowProps);
 
@@ -79,8 +77,6 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
 
     // Event handler functions
     const handleDragMove = (e: KonvaEventObject<MouseEvent>) => {
-      console.log("From Drag --> Global Transformer");
-
       if (!(e.target instanceof Konva.Transformer) || activeTool !== "cursor") return;
 
       const nodes = (e.currentTarget as Konva.Transformer).nodes();
@@ -108,27 +104,25 @@ const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
       // TODO: Write a logic when going beyond the canvas size.
 
       // Check Is any attachedShape is detached or not.
-      if ((attrs as Shape).type === "point arrow") {
-        const arrow = attrs as Arrow;
+      if ((attrs).type === "arrow") {
+        const arrow = attrs;
 
         // Check whether arrow attached shape is detached or not.
-        const newPoints = updatePointsAfterTransformation(arrow.points, groupRef.current);
+        const newPoints = updatePointsAfterTransformation(arrow.styleProperties.points, groupRef.current);
         const updatedAttachProps = getUpdatedAttachProps(arrow, shapes);
 
-        if (updatedAttachProps) {
-          updatedAttachProps[0].shapeValue = {
-            ...updatedAttachProps[0].shapeValue,
-            points: newPoints,
-          };
-
+        if (updatedAttachProps && updatedAttachProps.length > 0) {
+          updatedAttachProps[0].shapeStyle = {
+            points: newPoints
+          }
           dispatch(updateExistingShapes(updatedAttachProps));
         } else {
           dispatch(
             updateExistingShapes({
               shapeId: arrow._id,
-              shapeValue: {
-                points: newPoints,
-              },
+              shapeStyle: {
+                points: newPoints
+              }
             }),
           );
         }

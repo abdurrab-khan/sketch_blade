@@ -9,7 +9,7 @@ const Text: React.FC<KonvaTextType> = ({ ...props }) => {
 
   return (
     <ShapeGroup _id={props._id} x={props.x} y={props.y}>
-      <KonvaText name="text" {...props} x={0} y={0} />
+      <KonvaText name="text" {...props} />
     </ShapeGroup>
   );
 };
