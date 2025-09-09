@@ -138,18 +138,15 @@ const Arrow: React.FC<KonvaArrowType> = ({ ...props }) => {
   return (
     <ShapeGroup
       _id={props._id}
-      trRef={trRef}
-      groupRef={groupRef}
-      type={ToolType.PointArrow}
-      setIsClicked={setIsClicked}
-      isClicked={isClicked}
+      x={props.styleProperties.x!}
+      y={props.styleProperties.y!}
     >
       <KonvaArrow ref={arrowRef} {...props} lineCap="round" name={"shape"} />
       {isClicked &&
-        (props as ArrowConfig).points.map((_, i) => {
+        props?.styleProperties?.points?.map((_, i) => {
           if (i % 2 === 0) return null;
 
-          const points = (props as ArrowConfig).points;
+          const points = props.styleProperties.points;
           const x = points[i - 1];
           const y = points[i];
           const pointIndex = i / 2;

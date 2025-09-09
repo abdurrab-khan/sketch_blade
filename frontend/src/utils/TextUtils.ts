@@ -1,4 +1,4 @@
-import { Texts } from "@/types/shapes";
+import { Text } from "@/types/shapes";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 
@@ -265,7 +265,7 @@ interface NewText {
 }
 
 interface OldText {
-  textProps: Texts;
+  textProps: Text;
   shapeProps: ShapeProps;
 }
 

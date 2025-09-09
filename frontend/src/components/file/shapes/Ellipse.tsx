@@ -17,14 +17,12 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
 import { getResizeShape } from "@/utils/Helper";
 import ShapeGroup from "./ShapeGroup";
-import { ToolType } from "@/types/tools/tool";
+import ShapeText from "./ShapeText";
 
 const Ellipse: React.FC<KonvaEllipseType> = ({ ...props }) => {
   const dispatch = useDispatch();
   const shapes = useSelector((state: RootState) => state.app.shapes);
   const selectedShapes = useSelector((state: RootState) => state.app.selectedShapesId);
-
-  const trRef = useRef<Konva.Transformer>(null);
 
   // ------------------------------- TRANSFORMER EVENT HANDLER ----------------------------
   const handleTransformingEnd = (e: KonvaEventObject<MouseEvent>) => {
@@ -77,28 +75,23 @@ const Ellipse: React.FC<KonvaEllipseType> = ({ ...props }) => {
     );
   };
 
-  useEffect(() => {
-    const tr = trRef?.current;
-    if (!tr || trRef.current?.nodes().length === 0) return;
-
-    if (Array.isArray(selectedShapes?._id) || selectedShapes?._id !== props._id) {
-      tr.nodes([]);
-    }
-
-    return () => {
-      tr.nodes([]);
-    };
-  }, [props._id, selectedShapes]);
-
   return (
-    <ShapeGroup trRef={trRef} _id={props._id} type={ToolType.Ellipse}>
+    <ShapeGroup _id={props._id} x={props.styleProperties.x} y={props.styleProperties.y}>
       <KonvaEllipse
         id={props._id}
         name={"shape"}
+        x={0}
+        y={0}
+        radiusX={0}
+        radiusY={0}
         lineCap={"square"}
         strokeScaleEnabled={false}
-        {...props}
+        {...props.styleProperties}
       />
+
+      {/* Render Text */}
+      <ShapeText shape={props} />
+
     </ShapeGroup>
   );
 };

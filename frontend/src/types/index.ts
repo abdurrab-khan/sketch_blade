@@ -1,4 +1,4 @@
-import { ArrowDirection, ArrowPosition, SelectionPurpose } from "./shapes";
+import { ArrowProps, SelectionPurpose } from "./shapes";
 
 export interface AxiosMutateProps {
   method: "post" | "put" | "delete";

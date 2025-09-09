@@ -45,6 +45,7 @@ export interface Ellipse extends BaseShape<EllipseStyle> {
 // <========================> TEXT <========================>
 export interface Text extends BaseShape<TextStyle> {
   type: "text";
+  attachedShape?: string;
   arrowProps?: ArrowProps[];
 }
 

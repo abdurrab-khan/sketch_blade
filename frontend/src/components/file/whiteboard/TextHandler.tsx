@@ -1,6 +1,5 @@
 import Konva from "konva";
-import { v4 as uuid } from "uuid";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useShapeProperties from "@/hooks/useShapeProperties";
 import {
   extractTextShapeProps,
@@ -20,8 +19,8 @@ import {
   setShapes,
   updateExistingShapes,
 } from "@/redux/slices/appSlice";
-import { KonvaText, Text, TextSupportedShapes } from "@/types/shapes";
-import { getKonvaProps, isShapeAddable } from "@/utils/ShapeUtils";
+import { Text, TextStyle, TextSupportedShapes } from "@/types/shapes";
+import { getKonvaStyle, isShapeAddable } from "@/utils/ShapeUtils";
 
 interface TextHandlerProps {
   stageRef: React.RefObject<Konva.Stage>;
@@ -59,8 +58,10 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
 
   const dispatch = useDispatch();
   const activeTool = useSelector((state: RootState) => state.app.activeTool.type);
-  const toolBarProps = useSelector((state: RootState) => state.app.shapeStyles);
-  const newShapeProps = useShapeProperties() as Text | null;
+  const textStyle = useSelector((state: RootState) => state.app.shapeStyles);
+  const newTextProps = useShapeProperties() as Text | null;
+  // Let's extract all textProps properties
+  const { x, y, height, width, text, fontSize, fontFamily, stroke, align, opacity } = useMemo(() => getKonvaStyle(textProps?.styleProperties ?? null), [textProps?.styleProperties])
 
   // Reset all shape/text props
   const resetTextProps = () => {
@@ -73,6 +74,9 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
 
     // If we are in cursor, simply remove the toolbarProps.
     if (activeTool === "cursor") dispatch(removeUpdateToolBarProperties(null));
+
+    // Let's clean the "selectedShapesId"
+    dispatch(handleSelectedIds(null));
   };
 
   // Update or add new shape after blur.
@@ -83,10 +87,9 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
     }
 
     const shapeProperties = shapeProps.current;
-    if (shapeProperties !== null) {
+    if (shapeProperties != null) {
       if (shapeProperties.type === "whiteboard") {
         if (shapeProperties.method === "new") {
-          textProps["_id"] = uuid();
           dispatch(setShapes(textProps));
         } else {
           dispatch(
@@ -121,7 +124,8 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
       // Does not allow any operations if shapePos and textProps is not there.
       if (!(shapePos && textProps)) return;
 
-      const { styleProperties: { fontSize = 18, fontFamily = "roboto" } } = getKonvaProps(textProps) as KonvaText;
+      // Extracting all text style properties.
+      const { fontSize, fontFamily, height, width, x, y } = getKonvaStyle(textProps.styleProperties);
 
       const inputText = e.target.value;
       const availableWidth = shapePos.width * 0.98 - 15;
@@ -168,41 +172,40 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
         dispatch(
           updateExistingShapes({
             shapeId: shapePos.id,
-            shapeValue: { height: newShapeHeight },
+            shapeStyle: {
+              height: newShapeHeight
+            },
           }),
         );
       }
 
       // Only changes on textArea state whether changes happen on "height" or "width".
-      let updatedTextSize: Partial<Texts> = {};
+      let textStyle: Partial<Text["styleProperties"]> = {};
       if (
-        textProps.height !== wrappedResult.requiredHeight ||
-        textProps.width !== wrappedResult.maxLineWidth
+        height !== wrappedResult.requiredHeight ||
+        width !== wrappedResult.maxLineWidth
       ) {
-        const heightDiff = wrappedResult.requiredHeight - textProps.height;
-        const widthDiff = wrappedResult.maxLineWidth - textProps.width;
+        const heightDiff = wrappedResult.requiredHeight - height!;
+        const widthDiff = wrappedResult.maxLineWidth - width!;
 
-        updatedTextSize = {
-          x: textProps.x - widthDiff / 2,
-          y: textProps.y - heightDiff / 2,
+        textStyle = {
+          x: x! - widthDiff / 2,
+          y: y! - heightDiff / 2,
           height: wrappedResult.requiredHeight,
           width: wrappedResult.maxLineWidth,
         };
       }
 
-      // Making text addable based on input length.
-      if (textProps.isAddable && inputText.length === 0) {
-        updatedTextSize["isAddable"] = false;
-      } else if (!textProps.isAddable && inputText.length > 0) {
-        updatedTextSize["isAddable"] = true;
-      }
-
-      setTextProps((prev: Texts | null) => {
+      setTextProps((prev: Text | null) => {
         if (prev === null) return null;
+
         return {
           ...prev,
-          ...updatedTextSize,
           text: finalText,
+          styleProperties: {
+            ...prev.styleProperties,
+            ...textStyle
+          }
         };
       });
     },
@@ -211,43 +214,53 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
 
   const handleStageClick = useCallback(
     (e: KonvaEventObject<MouseEvent>) => {
-      if (activeTool !== "text") return;
+      if (activeTool !== "text" || newTextProps == null) return;
 
       // Call blur event if clicked on the stage and already textProps is there.
-      if (textProps) {
+      if (textProps && e.evt.target !== textAreaRef.current) {
         textAreaRef.current?.blur();
         return;
       }
+
+      // Extracting all text style properties.
+      const { fontSize = 18, fontFamily = "roboto" } = getKonvaStyle(newTextProps.styleProperties);
 
       const shapeAndTextProps = extractTextShapeProps(e);
       if (shapeAndTextProps?.oldText) {
         shapeProps.current = shapeAndTextProps.oldText.shapeProps;
         setTextProps(shapeAndTextProps.oldText.textProps);
+
+        // Let's add text id into "selectedShapesId"
+        dispatch(handleSelectedIds({ _id: shapeAndTextProps.oldText.textProps._id, purpose: "FOR_EDITING" }));
       } else if (shapeAndTextProps?.newText) {
-        if (!newShapeProps) return;
+        if (!newTextProps) return;
 
-        const shapeProperties = shapeAndTextProps.newText.shapeProps;
-        shapeProps.current = shapeProperties;
+        const newShape = shapeAndTextProps.newText.shapeProps;
+        shapeProps.current = newShape;
 
-        if (shapeProperties.type !== "whiteboard") {
-          shapeHeightLimit.current = shapeProperties.height;
+        if (newShape.type !== "whiteboard") {
+          shapeHeightLimit.current = newShape.height;
         }
 
         const textPos = getTextAreaPos(
-          shapeProperties.x,
-          shapeProperties.y,
-          newShapeProps.fontSize,
-          newShapeProps.fontFamily,
+          newShape.x,
+          newShape.y,
+          fontSize,
+          fontFamily,
         );
+
         setTextProps({
-          ...newShapeProps,
+          ...newTextProps,
           ...textPos,
-          shapeId: shapeProperties.id,
-          text: "",
+          _id: newShape.id!,
+          styleProperties: {
+            ...newTextProps.styleProperties,
+            text: "",
+          }
         });
       }
     },
-    [activeTool, newShapeProps, textProps],
+    [activeTool, dispatch, newTextProps, textProps],
   );
 
   const handleStageDblClick = useCallback(
@@ -258,13 +271,20 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
       if (shapeAndTextProps?.oldText) {
         shapeProps.current = shapeAndTextProps.oldText.shapeProps;
         setTextProps(shapeAndTextProps.oldText.textProps);
+
+        // Let's add text id into "selectedShapesId"
+        dispatch(handleSelectedIds({ _id: shapeAndTextProps.oldText.textProps._id, purpose: "FOR_EDITING" }));
       } else if (shapeAndTextProps?.newText) {
-        const textRawProps = toolBarProperties["text"] as AllToolBarProperties;
-        const newTextProps = getShapeProperties(textRawProps);
-        const textProps = { ...newTextProps, customProperties: textRawProps } as Texts;
+        const textProps = newTextProps;
+
+        // Return if there is no text props
+        if (textProps == null) return;
+
+        // Extracting all text style properties.
+        const { fontSize = 18, fontFamily = "roboto" } = getKonvaStyle(textProps.styleProperties);
 
         // Updating the global toolBarProperties.
-        dispatch(removeUpdateToolBarProperties(textRawProps));
+        dispatch(removeUpdateToolBarProperties(newTextProps));
 
         // Cleaning the tr nodes and removing all shapes from them.
         trRef.current?.nodes([]);
@@ -280,41 +300,45 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
         const textPos = getTextAreaPos(
           shapeProperties.x,
           shapeProperties.y,
-          textProps.fontSize,
-          textProps.fontFamily,
+          fontSize,
+          fontFamily,
         );
+
         setTextProps({
           ...textProps,
           ...textPos,
-          shapeId: shapeProperties.id,
-          text: "",
+          attachedShape: shapeProperties.id!,
+          styleProperties: {
+            ...textProps.styleProperties,
+            text: "",
+          },
         });
       }
     },
-    [activeTool, dispatch, trRef],
+    [activeTool, dispatch, newTextProps, trRef],
   );
 
   // Handle changes on tool bar props
   useEffect(() => {
-    if (!toolBarProps) return;
+    if (textStyle == null || !("text" in textStyle)) return;
 
     setTextProps((prev: Text | null) => {
       if (prev === null) return null;
-      const hasFontSizeChanged = prev.styleProperties.fontSize !== toolBarProps.fontSize;
-      const hasFontFamilyChanged = prev.styleProperties.fontFamily !== toolBarProps.fontFamily;
 
-      let wrappedText = {};
+      // Extracting all text style properties.
+      const { fontSize, fontFamily } = getKonvaStyle(textStyle);
+
+      const hasFontSizeChanged = prev.styleProperties.fontSize !== fontSize;
+      const hasFontFamilyChanged = prev.styleProperties.fontFamily !== fontFamily;
+
+      let wrappedText: Partial<TextStyle> = {};
       if (hasFontSizeChanged || hasFontFamilyChanged) {
         const availableWidth = shapeProps.current?.width as number;
-        const toolProps = getShapeProperties({
-          fontSize: toolBarProps.fontSize,
-          fontFamily: toolBarProps.fontFamily,
-        }) as { fontSize: number; fontFamily: string };
         const wrappedResult = wrapText(
-          prev.text ?? "",
+          prev.styleProperties.text ?? "",
           availableWidth * 0.98 - 15,
-          toolProps.fontSize,
-          toolProps.fontFamily,
+          fontSize,
+          fontFamily,
         );
 
         wrappedText = {
@@ -326,12 +350,13 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
 
       return {
         ...prev,
-        ...wrappedText,
-        ...getShapeProperties(toolBarProps),
-        customProperties: toolBarProps,
-      } as Texts;
+        styleProperties: {
+          ...textStyle,
+          ...wrappedText,
+        },
+      };
     });
-  }, [toolBarProps]);
+  }, [textStyle]);
 
   useEffect(() => {
     const stage = stageRef?.current;
@@ -346,13 +371,16 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
     };
   }, [stageRef, handleStageClick, handleStageDblClick]);
 
-  return textProps ? (
+  // Return nothing if there is not textProps.
+  if (textProps == null) return <></>
+
+  return (
     <div
       style={{
-        top: textProps.y,
-        left: textProps.x,
-        height: textProps.height,
-        width: textProps.width,
+        top: y,
+        left: x,
+        height: height,
+        width: width,
       }}
       className={`absolute z-50`}
     >
@@ -360,15 +388,15 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
         wrap="off"
         name="text"
         ref={textAreaRef}
-        value={textProps.text ?? ""}
+        value={text ?? ""}
         autoFocus
         style={{
-          fontSize: textProps.fontSize + "px",
-          fontFamily: textProps.fontFamily,
-          lineHeight: textProps.fontSize * 1.2 + "px",
-          textAlign: textProps.textAlign,
-          color: textProps.stroke,
-          opacity: textProps.opacity,
+          fontSize: `${fontSize}px`,
+          fontFamily: fontFamily,
+          lineHeight: `${fontSize * 1.2}px`,
+          textAlign: align,
+          color: stroke as string,
+          opacity: opacity,
         }}
         className="m-0 box-content size-full resize-none overflow-hidden border-none bg-transparent outline-none"
         onChange={handleInputText}
@@ -381,5 +409,5 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
         }}
       />
     </div>
-  ) : null;
+  );
 }

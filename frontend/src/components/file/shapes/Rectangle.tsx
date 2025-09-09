@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from "react";
 import Konva from "konva";
-import { Rect, Text } from "react-konva";
+import { Rect } from "react-konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { useDispatch, useSelector } from "react-redux";
 import { getRectangleResizeValue, getResizeShape } from "@/utils/Helper";
@@ -12,6 +12,7 @@ import { updateExistingShapes } from "../../../redux/slices/appSlice";
 
 import { updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
 import ShapeGroup from "./ShapeGroup";
+import ShapeText from "./ShapeText";
 
 const Rectangle: React.FC<KonvaRectangle> = ({ ...props }) => {
   const dispatch = useDispatch();
@@ -86,22 +87,28 @@ const Rectangle: React.FC<KonvaRectangle> = ({ ...props }) => {
     );
   };
 
+  const l = props;
+
   return (
-    <ShapeGroup _id={props._id} x={props.x} y={props.y}>
+    <ShapeGroup _id={props._id} x={props.styleProperties.x!} y={props.styleProperties.y!}>
       <Rect
         id={props._id}
         name={"shape"}
         ref={reactRef}
-        {...props}
+        {...props.styleProperties}
         x={0}
         y={0}
         strokeScaleEnabled={false}
         lineCap="round"
-        offsetX={props.width / 2}
-        offsetY={props.height / 2}
+        offsetX={props.styleProperties.width! / 2}
+        offsetY={props.styleProperties.height! / 2}
         draggable={false}
-        opacity={isSelected ? 0.3 : props.opacity}
+        opacity={isSelected ? 0.3 : props.styleProperties.opacity}
       />
+
+      {/* Render Text */}
+      <ShapeText shape={props} />
+
     </ShapeGroup>
   );
 };

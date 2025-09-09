@@ -31,6 +31,8 @@ export interface EllipseStyle {
   y: number;
   height: number;
   width: number;
+  radiusX: number;
+  radiusY: number;
   rotation: number;
   fill: string;
   fillPatternImage: FillStyle;

@@ -1,9 +1,9 @@
 import { RectConfig } from "konva/lib/shapes/Rect";
-import { EllipseConfig } from "konva/lib/shapes/Ellipse";
 import { TextConfig } from "konva/lib/shapes/Text";
 import { LineConfig } from "konva/lib/shapes/Line";
 import { ArrowConfig } from "konva/lib/shapes/Arrow";
 import { ActiveUser, ArrowProps, AttachedShape } from "./common";
+import { EllipseConfig } from "konva/lib/shapes/Ellipse";
 
 // <****************************> SHAPE BASE <****************************>
 interface BaseShape<ShapeStyle> {
@@ -80,3 +80,7 @@ export type KonvaShape =
   | KonvaText
   | KonvaFreeHand
   | KonvaArrow;
+
+// <========================> Konva Text Supported Shapes <========================>
+type KonvaTShape<T> = T extends { text?: any } ? T : never;
+export type KonvaTextSupportedShapes = KonvaTShape<KonvaShape>;

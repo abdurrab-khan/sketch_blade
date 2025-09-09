@@ -52,7 +52,9 @@ export interface DeletedShapeProps {
 }
 
 // <================================> SHAPE UTILITY  <================================>
-function getKonvaStyle(shapeStyle: ShapeStyles): KonvaStyles {
+export function getKonvaStyle(shapeStyle: ShapeStyles | null): KonvaStyles {
+  if (shapeStyle == null) return {};
+
   // Use a loose accumulator to avoid index-signature issues on union types
   const style: Record<string, unknown> = {};
 

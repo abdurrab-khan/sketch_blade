@@ -3,14 +3,12 @@ import React, { useRef } from "react";
 import { Line } from "react-konva";
 import { KonvaFreeHand } from "../../../types/shapes";
 import ShapeGroup from "./ShapeGroup";
-import { ToolType } from "@/types/tools/tool";
 
 const FreeHand: React.FC<KonvaFreeHand> = ({ ...props }) => {
-  const trRef = useRef<Konva.Transformer>(null);
   const lineRef = useRef<Konva.Line>(null);
 
   return (
-    <ShapeGroup trRef={trRef} _id={props._id} type={ToolType.FreeHand}>
+    <ShapeGroup _id={props._id} x={props.styleProperties.x!} y={props.styleProperties.y!}>
       <Line
         id={props._id}
         ref={lineRef}
