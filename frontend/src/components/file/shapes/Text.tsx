@@ -14,7 +14,7 @@ const Text: React.FC<KonvaTextType> = ({ ...props }) => {
       selectedShape?._id === props._id &&
       selectedShape.purpose === "FOR_EDITING"
     )
-  }, [props._id, selectedShape?._id, selectedShape?.purpose]);
+  }, [props._id, selectedShape]);
 
   // Return null -- if text is editing.
   if (isUpdating) return <></>;

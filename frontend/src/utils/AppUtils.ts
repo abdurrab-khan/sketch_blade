@@ -1,5 +1,5 @@
+import { ToolType } from "@/types/shapes";
 import { RefObject } from "react";
-import { ToolType } from "../types/tools/tool";
 
 /**
  * Utility function to get the custom cursor style based on the active tool and hover state.
@@ -9,17 +9,17 @@ import { ToolType } from "../types/tools/tool";
  * @returns {string} - A string representing the cursor style.
  */
 export function getCustomCursor(activeTool: ToolType, isHovered: boolean): string {
-  if (isHovered && activeTool === ToolType.Cursor) {
+  if (isHovered && activeTool === "cursor") {
     return "cursor-move";
   }
 
   if (["rectangle", "ellipse", "free hand", "point arrow"].includes(activeTool)) {
     return "cursor-crosshair";
-  } else if (activeTool === ToolType.Text) {
+  } else if (activeTool === "text") {
     return "cursor-text";
-  } else if (activeTool === ToolType.Hand) {
+  } else if (activeTool === "hand") {
     return "cursor-grab";
-  } else if (activeTool === ToolType.Eraser) {
+  } else if (activeTool === "eraser") {
     return "cursor-none";
   } else {
     return "cursor-default";

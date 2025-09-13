@@ -2,7 +2,7 @@ import { model, Schema, Document } from "mongoose";
 
 export interface IFolder extends Document {
    name: string;
-   creatorId: Schema.Types.ObjectId;
+   ownerId: Schema.Types.ObjectId;
 }
 
 const folderSchema = new Schema<IFolder>(
@@ -11,7 +11,7 @@ const folderSchema = new Schema<IFolder>(
          type: String,
          default: "Untitled Folder",
       },
-      creatorId: {
+      ownerId: {
          type: Schema.Types.ObjectId,
          ref: "User",
          required: true,

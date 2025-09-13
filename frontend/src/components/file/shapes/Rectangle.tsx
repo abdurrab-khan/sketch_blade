@@ -1,113 +1,43 @@
-import React, { useMemo, useRef } from "react";
-import Konva from "konva";
+import React, { useMemo } from "react";
 import { Rect } from "react-konva";
-import { KonvaEventObject } from "konva/lib/Node";
-import { useDispatch, useSelector } from "react-redux";
-import { getRectangleResizeValue, getResizeShape } from "@/utils/Helper";
+import { useSelector } from "react-redux";
 
 import { KonvaRectangle } from "../../../types/shapes";
 
 import { RootState } from "../../../redux/store";
-import { updateExistingShapes } from "../../../redux/slices/appSlice";
 
-import { updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
 import ShapeGroup from "./ShapeGroup";
 import ShapeText from "./ShapeText";
 
 const Rectangle: React.FC<KonvaRectangle> = ({ ...props }) => {
-  const dispatch = useDispatch();
-  const shapes = useSelector((state: RootState) => state.app.shapes);
-  const selectedShapesIds = useSelector((state: RootState) => state.app.selectedShapeToAddArrow);
+  const selectedShapeId = useSelector((state: RootState) => state.app.selectedShapeToAddArrow);
   const isSelected = useMemo(
-    () => selectedShapesIds?._id === props._id,
-    [props._id, selectedShapesIds?._id],
+    () => selectedShapeId?._id === props._id,
+    [props._id, selectedShapeId?._id],
   );
 
-  const reactRef = React.useRef(null);
-  const trRef = useRef<Konva.Transformer>(null);
-
-  const handleTransforming = (e: KonvaEventObject<MouseEvent>) => {
-    if (!e.target) return;
-    const node = e.target;
-
-    getRectangleResizeValue(node);
-  };
-
-  const handleTransformingEnd = (e: KonvaEventObject<MouseEvent>) => {
-    if (!e?.target) return;
-    const node = e.target;
-
-    const newShapeValue = getResizeShape([node]);
-    dispatch(updateExistingShapes(newShapeValue));
-  };
-
-  const handleDragMove = (e: KonvaEventObject<MouseEvent>) => {
-    console.log("Movement happen on local rect one");
-    if (!(e.currentTarget instanceof Konva.Transformer)) return;
-
-    const transformer = e.currentTarget;
-    const shapeNode = transformer.nodes()[0];
-
-    if (!shapeNode) return;
-
-    const { arrowProps, id } = shapeNode.attrs;
-    const { x, y } = transformer.attrs;
-
-    if (!arrowProps || arrowProps?.length === 0) return;
-    if (x === undefined || y === undefined) return;
-
-    const updatedShapes = shapes.map((shape) => (shape._id === id ? { ...shape, x, y } : shape));
-
-    const updatedArrowPosition = updateAttachedArrowPosition(updatedShapes, arrowProps);
-
-    if (updatedArrowPosition.length > 0) {
-      dispatch(updateExistingShapes(updatedArrowPosition));
-    }
-  };
-
-  const handleDragEnd = (e: KonvaEventObject<MouseEvent>) => {
-    if (!(e.currentTarget instanceof Konva.Group)) return;
-
-    const group = e.currentTarget;
-    const shapeNode = group.findOne(".shape");
-
-    if (!shapeNode) return;
-
-    const { id } = shapeNode.attrs;
-    const { x, y } = group.attrs;
-
-    dispatch(
-      updateExistingShapes({
-        shapeId: id,
-        shapeValue: {
-          x,
-          y,
-        },
-      }),
-    );
-  };
-
-  const l = props;
-
   return (
-    <ShapeGroup _id={props._id} x={props.styleProperties.x!} y={props.styleProperties.y!}>
+    <ShapeGroup
+      _id={props._id}
+      x={props.styleProperties.x}
+      y={props.styleProperties.y}
+    >
       <Rect
         id={props._id}
         name={"shape"}
-        ref={reactRef}
         {...props.styleProperties}
         x={0}
         y={0}
-        strokeScaleEnabled={false}
         lineCap="round"
+        draggable={false}
+        strokeScaleEnabled={false}
         offsetX={props.styleProperties.width! / 2}
         offsetY={props.styleProperties.height! / 2}
-        draggable={false}
         opacity={isSelected ? 0.3 : props.styleProperties.opacity}
       />
 
       {/* Render Text */}
-      <ShapeText shape={props} />
+      <ShapeText shapeId={props._id} shape={props} />
 
     </ShapeGroup>
   );

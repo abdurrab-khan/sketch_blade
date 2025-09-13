@@ -8,7 +8,11 @@ const FreeHand: React.FC<KonvaFreeHand> = ({ ...props }) => {
   const lineRef = useRef<Konva.Line>(null);
 
   return (
-    <ShapeGroup _id={props._id} x={props.styleProperties.x!} y={props.styleProperties.y!}>
+    <ShapeGroup
+      _id={props._id}
+      x={props.styleProperties.points[0]}
+      y={props.styleProperties.points[1]}
+    >
       <Line
         id={props._id}
         ref={lineRef}

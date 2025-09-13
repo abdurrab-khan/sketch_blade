@@ -4,8 +4,6 @@ import { ToggleGroup, ToggleGroupItem } from "../../ui/toggle-group.tsx";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store.ts";
 import { updateToolBarProperties, updateExistingShapes } from "../../../redux/slices/appSlice.ts";
-import { AllToolBarProperties } from "@/types/tools/tool.ts";
-import { getShapeProperties } from "@/utils/ShapeUtils.ts";
 import { AllToolBarPropertiesKeys } from "@/types/tools/common.ts";
 
 interface ContainerProps {

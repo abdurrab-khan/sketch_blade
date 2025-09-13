@@ -1,6 +1,5 @@
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
-import { ArrowConfig } from "konva/lib/shapes/Arrow";
 import { useDispatch, useSelector } from "react-redux";
 import React, { useRef, useState } from "react";
 import { Circle, Arrow as KonvaArrow } from "react-konva";
@@ -138,10 +137,15 @@ const Arrow: React.FC<KonvaArrowType> = ({ ...props }) => {
   return (
     <ShapeGroup
       _id={props._id}
-      x={props.styleProperties.x!}
-      y={props.styleProperties.y!}
+      x={props.styleProperties.points[0]}
+      y={props.styleProperties.points[1]}
     >
-      <KonvaArrow ref={arrowRef} {...props} lineCap="round" name={"shape"} />
+      <KonvaArrow
+        ref={arrowRef}
+        {...props.styleProperties}
+        lineCap="round"
+        name={"shape"}
+      />
       {isClicked &&
         props?.styleProperties?.points?.map((_, i) => {
           if (i % 2 === 0) return null;

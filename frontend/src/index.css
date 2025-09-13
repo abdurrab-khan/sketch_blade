@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 @layer base {
   :root {
@@ -17,40 +15,82 @@
 
 @layer utilities {
   .size-screen {
-    @apply h-screen w-screen;
+    height: 100vh;
+    width: 100vw;
   }
   .size-full {
-    @apply h-full w-full;
+    height: 100%;
+    width: 100%;
   }
   .flex-center {
-    @apply flex items-center justify-center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .flex-start {
-    @apply flex items-center justify-start;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
   }
   .main-container {
-    @apply w-full sm:w-[600px] md:w-[750px] lg:w-[1000px] xl:w-[1300px];
+    width: 100%;
+  }
+  @media (min-width: 640px) {
+    .main-container {
+      width: 600px;
+    }
+  }
+  @media (min-width: 768px) {
+    .main-container {
+      width: 750px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .main-container {
+      width: 1000px;
+    }
+  }
+  @media (min-width: 1280px) {
+    .main-container {
+      width: 1300px;
+    }
   }
   .size-icon {
-    @apply h-12 w-12;
+    height: 3rem;
+    width: 3rem;
   }
-
   .dark-container {
-    @apply select-none border-quaternary bg-gray-800 text-quaternary;
+    border-color: var(--quaternary);
+    color: var(--quaternary);
+    background-color: rgb(31 41 55);
+    user-select: none;
   }
-
   .dark-input {
-    @apply border-quaternary bg-secondary text-quaternary !placeholder-quaternary transition-all focus:!placeholder-gray-400;
+    border-color: var(--quaternary);
+    background-color: var(--secondary);
+    color: var(--quaternary);
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
   }
-
+  .dark-input::placeholder {
+    color: var(--quaternary);
+  }
+  .dark-input:focus::placeholder {
+    color: rgb(156 163 175);
+  }
   .tool__divider {
-    @apply h-full w-0.5 bg-gray-500/30;
+    height: 100%;
+    width: 2px;
+    background-color: rgb(107 114 128 / 0.3);
   }
 }
 
-.tool__bar {
-  display: grid;
-  grid-template-columns: auto;
-  grid-auto-flow: column;
-  gap: 0.5rem;
+@layer components {
+  .tool__bar {
+    display: grid;
+    grid-template-columns: auto;
+    grid-auto-flow: column;
+    gap: 0.5rem;
+  }
 }

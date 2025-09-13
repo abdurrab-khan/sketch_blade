@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { QueryFilters, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "./use-toast.ts";
 import useApiClient from "./useApiClient.ts";
 import { ApiResponse, AxiosMutateProps } from "@/types/index.ts";
@@ -6,7 +6,7 @@ import { ApiResponse, AxiosMutateProps } from "@/types/index.ts";
 interface useMutateProps {
   finallyFn: () => void;
   isShowToast?: boolean;
-  options?: Record<string, string[]>;
+  options?: QueryFilters;
 }
 
 const useMutate = ({ finallyFn, options, isShowToast }: useMutateProps) => {

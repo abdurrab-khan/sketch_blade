@@ -19,7 +19,7 @@ import {
   setShapes,
   updateExistingShapes,
 } from "@/redux/slices/appSlice";
-import { Text, TextStyle, TextSupportedShapes } from "@/types/shapes";
+import { KonvaTextStyle, Text, TextStyle, TextSupportedShapes } from "@/types/shapes";
 import { getKonvaStyle, isShapeAddable } from "@/utils/ShapeUtils";
 
 interface TextHandlerProps {
@@ -60,8 +60,9 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
   const activeTool = useSelector((state: RootState) => state.app.activeTool.type);
   const textStyle = useSelector((state: RootState) => state.app.shapeStyles);
   const newTextProps = useShapeProperties() as Text | null;
+
   // Let's extract all textProps properties
-  const { x, y, height, width, text, fontSize, fontFamily, stroke, align, opacity } = useMemo(() => getKonvaStyle(textProps?.styleProperties ?? null), [textProps?.styleProperties])
+  const textStyleProps = useMemo(() => getKonvaStyle(textProps?.styleProperties), [textProps?.styleProperties]) as KonvaTextStyle | null;
 
   // Reset all shape/text props
   const resetTextProps = () => {
@@ -122,10 +123,10 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
       const shapePos = shapeProps.current;
 
       // Does not allow any operations if shapePos and textProps is not there.
-      if (!(shapePos && textProps)) return;
+      if (!(shapePos && textProps && textStyleProps)) return;
 
       // Extracting all text style properties.
-      const { fontSize, fontFamily, height, width, x, y } = getKonvaStyle(textProps.styleProperties);
+      const { fontSize, fontFamily, height, width, x, y } = textStyleProps;
 
       const inputText = e.target.value;
       const availableWidth = shapePos.width * 0.98 - 15;
@@ -209,7 +210,7 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
         };
       });
     },
-    [dispatch, textProps],
+    [dispatch, textProps, textStyleProps],
   );
 
   const handleStageClick = useCallback(
@@ -223,7 +224,7 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
       }
 
       // Extracting all text style properties.
-      const { fontSize = 18, fontFamily = "roboto" } = getKonvaStyle(newTextProps.styleProperties);
+      const { fontSize, fontFamily } = getKonvaStyle(newTextProps.styleProperties) as KonvaTextStyle;
 
       const shapeAndTextProps = extractTextShapeProps(e);
       if (shapeAndTextProps?.oldText) {
@@ -281,7 +282,7 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
         if (textProps == null) return;
 
         // Extracting all text style properties.
-        const { fontSize = 18, fontFamily = "roboto" } = getKonvaStyle(textProps.styleProperties);
+        const { fontSize, fontFamily } = getKonvaStyle(textProps.styleProperties) as KonvaTextStyle;
 
         // Updating the global toolBarProperties.
         dispatch(removeUpdateToolBarProperties(newTextProps));
@@ -323,13 +324,13 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
     if (textStyle == null || !("text" in textStyle)) return;
 
     setTextProps((prev: Text | null) => {
-      if (prev === null) return null;
+      if (prev == null || textStyleProps == null) return null;
 
       // Extracting all text style properties.
-      const { fontSize, fontFamily } = getKonvaStyle(textStyle);
+      const { fontSize, fontFamily } = textStyleProps;
 
-      const hasFontSizeChanged = prev.styleProperties.fontSize !== fontSize;
-      const hasFontFamilyChanged = prev.styleProperties.fontFamily !== fontFamily;
+      const hasFontSizeChanged = prev.styleProperties.fontSize !== textProps?.styleProperties.fontSize;
+      const hasFontFamilyChanged = prev.styleProperties.fontFamily !== textProps?.styleProperties.fontFamily;
 
       let wrappedText: Partial<TextStyle> = {};
       if (hasFontSizeChanged || hasFontFamilyChanged) {
@@ -356,7 +357,7 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
         },
       };
     });
-  }, [textStyle]);
+  }, [textProps?.styleProperties.fontFamily, textProps?.styleProperties.fontSize, textStyle, textStyleProps]);
 
   useEffect(() => {
     const stage = stageRef?.current;
@@ -372,7 +373,19 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
   }, [stageRef, handleStageClick, handleStageDblClick]);
 
   // Return nothing if there is not textProps.
-  if (textProps == null) return <></>
+  if (textProps == null || textStyleProps == null) return <></>;
+  const {
+    x,
+    y,
+    height,
+    width,
+    text,
+    fontSize,
+    fontFamily,
+    align,
+    stroke,
+    opacity
+  } = textStyleProps;
 
   return (
     <div
@@ -394,7 +407,7 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
           fontSize: `${fontSize}px`,
           fontFamily: fontFamily,
           lineHeight: `${fontSize * 1.2}px`,
-          textAlign: align,
+          textAlign: align as Lowercase<"CENTER" | "LEFT" | "RIGHT">,
           color: stroke as string,
           opacity: opacity,
         }}

@@ -25,7 +25,7 @@ export default function AuthProtection({ children }: AuthLayoutProps) {
       };
       dispatch(addUser(sessionData));
     }
-  }, [isLoaded, session, navigate]);
+  }, [isLoaded, session, navigate, isSignedIn, dispatch]);
 
   if (!isLoaded) {
     return (

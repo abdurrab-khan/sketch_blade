@@ -2,7 +2,6 @@ import { folderColumns } from "./columns/FolderColumns.tsx";
 import { DataTable } from "./Data-table.tsx";
 import { useResponse } from "../../hooks/useResponse.tsx";
 import { Loader2 } from "lucide-react";
-import { Folders } from "../../types/index.ts";
 import { useToast } from "../../hooks/use-toast.ts";
 import { ToastAction } from "../ui/toast.tsx";
 import { Button } from "../ui/button.tsx";
@@ -18,10 +17,9 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { z } from "zod";
-import axios, { AxiosResponse } from "axios";
-import { useEffect, useState } from "react";
+import axios from "axios";
+import { useState } from "react";
 import useMutate from "../../hooks/useMutate.ts";
-import { useParams } from "react-router";
 
 const folderSchema = z.object({
   folderName: z
@@ -36,17 +34,9 @@ const FolderTable = () => {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const queryFn = ({ clerkId }: { clerkId: string; _id: string }): Promise<AxiosResponse> => {
-    return axios.get("/api/folder", {
-      headers: {
-        Authorization: `Bearer ${clerkId}`,
-      },
-    });
-  };
-
   const { data, isPending } = useResponse({
-    queryFn: queryFn,
     queryKeys: ["getFolders"],
+    queryProps: { uri: "/folder" }
   });
 
   const mutationFun = ({ clerkId, data }: { clerkId: string; data: { folder_name: string } }) => {
@@ -58,8 +48,8 @@ const FolderTable = () => {
   };
 
   const folderMutation = useMutate({
-    mutateFn: mutationFun,
     options: { queryKey: ["getFolders"] },
+    isShowToast: true,
     finallyFn: () => setIsDeleteDialogOpen(false),
   });
 

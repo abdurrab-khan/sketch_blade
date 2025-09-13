@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 
 // Types
 import { KonvaEllipse as KonvaEllipseType } from "../../../types/shapes";
@@ -22,7 +22,7 @@ import ShapeText from "./ShapeText";
 const Ellipse: React.FC<KonvaEllipseType> = ({ ...props }) => {
   const dispatch = useDispatch();
   const shapes = useSelector((state: RootState) => state.app.shapes);
-  const selectedShapes = useSelector((state: RootState) => state.app.selectedShapesId);
+  const selectedShapeId = useSelector((state: RootState) => state.app.selectedShapesId);
 
   // ------------------------------- TRANSFORMER EVENT HANDLER ----------------------------
   const handleTransformingEnd = (e: KonvaEventObject<MouseEvent>) => {
@@ -76,17 +76,21 @@ const Ellipse: React.FC<KonvaEllipseType> = ({ ...props }) => {
   };
 
   return (
-    <ShapeGroup _id={props._id} x={props.styleProperties.x} y={props.styleProperties.y}>
+    <ShapeGroup
+      _id={props._id}
+      x={props.styleProperties.x}
+      y={props.styleProperties.y}
+    >
       <KonvaEllipse
         id={props._id}
         name={"shape"}
+        {...props.styleProperties}
         x={0}
         y={0}
         radiusX={0}
         radiusY={0}
         lineCap={"square"}
         strokeScaleEnabled={false}
-        {...props.styleProperties}
       />
 
       {/* Render Text */}

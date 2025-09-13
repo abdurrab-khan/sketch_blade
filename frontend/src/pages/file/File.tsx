@@ -1,5 +1,5 @@
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { ApiResponse } from "../../types/index.ts";
 import { useToast } from "../../hooks/use-toast.ts";
@@ -8,6 +8,16 @@ import { Footer } from "../../components/file/Footer.tsx";
 import { useResponse } from "../../hooks/useResponse.tsx";
 import ToolActions from "../../components/file/tools/ToolActions.tsx";
 import Whiteboard from "../../components/file/whiteboard/Whiteboard.tsx";
+
+const LoadingLayout = () => {
+  return (
+    <div className="z-2 fixed right-1/2 top-0 size-full translate-x-1/2 flex-center" >
+      <p className="text-2xl">
+        Loading...
+      </p>
+    </div>
+  )
+}
 
 const File = () => {
   const fileId = useParams().id;
@@ -53,10 +63,11 @@ const File = () => {
         <Footer />
       </div>
       {/* Konva -- Canvas */}
-      <Whiteboard />
+      <Suspense fallback={<LoadingLayout />}>
+        <Whiteboard />
+      </Suspense>
     </main>
   );
 };
 export default File;
 
-// "px-2 py-2 text-quaternary md:px-6 lg:px-10"

@@ -3,7 +3,7 @@ import { Schema, model, Document } from "mongoose";
 export interface IFile extends Document {
    name: string;
    folderId: Schema.Types.ObjectId;
-   creatorId: string;
+   ownerId: string;
    description: string;
    isLocked: boolean;
    createdAt: Date;
@@ -21,7 +21,7 @@ const fileSchema = new Schema<IFile>(
          ref: "Folder",
          default: null,
       },
-      creatorId: {
+      ownerId: {
          type: String,
          ref: "User",
          required: true,

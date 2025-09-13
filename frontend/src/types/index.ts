@@ -3,7 +3,7 @@ import { ArrowProps, SelectionPurpose } from "./shapes";
 export interface AxiosMutateProps {
   method: "post" | "put" | "delete";
   uri: string;
-  data?: any;
+  data?: unknown;
 }
 
 export interface AxiosQueryProps {
