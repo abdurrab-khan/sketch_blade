@@ -23,7 +23,7 @@ export interface CollaboratorData {
   _id: string;
   fullName: string;
   profileUrl: string;
-  actions: CollaboratorActions[];
+  actions: CollaboratorActions;
   email: string;
 }
 

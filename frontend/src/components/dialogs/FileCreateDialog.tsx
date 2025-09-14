@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,78 +8,45 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "../ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from "../ui/form";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import AddCollaboratorInput from "../AddCollaboratorInput.tsx";
-import { Textarea } from "../ui/textarea";
 import { Loader2 } from "lucide-react";
+import { Textarea } from "../ui/textarea";
+
+import * as z from "zod";
+import { useForm } from "react-hook-form";
 import useMutate from "../../hooks/useMutate.ts";
-import { CollaboratorData } from "../../types/user.ts";
-import { FileDetails } from "../../types/file.ts";
-import { AxiosMutateProps } from "@/types/index.ts";
+import { fileSchema } from "@/lib/zod/schemas.ts";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { File as FileType } from "../../types/file.ts";
+import AddCollaboratorInput from "../AddCollaboratorInput.tsx";
 
 // Zod Validation Schema: for creation of file
-const formSchema = z.object({
-  fileName: z
-    .string()
-    .min(3, "file name must be at least 3 characters long")
-    .max(50, "file name must not exceed 50 characters")
-    .nonempty("file name is required")
-    .refine((value) => /^[a-zA-Z0-9_-]+$/.test(value), {
-      message: "file name can only contain letters, numbers, underscores, and hyphens",
-    }),
-  description: z.string().optional(),
-  collaborators: z
-    .array(
-      z.object({
-        _id: z.string(),
-        fullName: z.string(),
-        profileUrl: z.string(),
-        email: z.string().email(),
-        actions: z.enum(["editor", "viewer", "owner", "commenter"]),
-      }),
-    )
-    .optional(),
-});
-
 interface FileCreateDialogProps {
   children: React.ReactNode;
   _id?: string;
-  fileData?: FileDetails;
+  fileData?: FileType;
 }
 
 export function FileCreateDialog({ children, _id, fileData }: FileCreateDialogProps) {
-  const [collaborators, setCollaborators] = useState<CollaboratorData[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof fileSchema>>({
+    resolver: zodResolver(fileSchema),
     defaultValues: {
       fileName: fileData?.name ?? "",
-      collaborators: [],
+      collaborators: fileData?.collaborators ?? [],
       description: fileData?.description ?? "",
     },
   });
-
-  const getMutationProps = ({
-    uri,
-    data,
-    method,
-  }: {
-    uri: string;
-    data: unknown;
-    method?: "post" | "put";
-  }): AxiosMutateProps => {
-    return {
-      method: method ?? "post",
-      uri,
-      data,
-    };
-  };
 
   const mutation = useMutate({
     options: { queryKey: ["getFiles"] },
@@ -89,25 +56,15 @@ export function FileCreateDialog({ children, _id, fileData }: FileCreateDialogPr
     },
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    data["collaborators"] = collaborators ?? [];
-
-    if (fileData) {
-      const updateMutationProps = getMutationProps({ uri: `/file/${_id}`, data, method: "put" });
-
-      mutation.mutate(updateMutationProps);
+  const handleNewFileCreation = (data: z.infer<typeof fileSchema>) => {
+    if (_id) {
+      // Handle File Updation 
+      mutation.mutate({ method: "put", data, uri: `/file/${_id}` });
     } else {
-      const createMutationProps = getMutationProps({ uri: `/file`, data: data });
-
-      mutation.mutate(createMutationProps);
+      // Creating a new File
+      mutation.mutate({ method: "post", data, uri: "/file" });
     }
   };
-
-  useEffect(() => {
-    if (fileData?.collaborators) {
-      setCollaborators(fileData.collaborators);
-    }
-  }, [fileData]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -118,7 +75,7 @@ export function FileCreateDialog({ children, _id, fileData }: FileCreateDialogPr
           <DialogDescription>Enter file details and add collaborators.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleNewFileCreation)} className="space-y-6">
             <FormField
               control={form.control}
               name="fileName"
@@ -133,8 +90,8 @@ export function FileCreateDialog({ children, _id, fileData }: FileCreateDialogPr
               )}
             />
             <AddCollaboratorInput
-              setCollaborators={setCollaborators}
-              collaborators={collaborators}
+              setCollaborators={form.setValue}
+              collaborators={form.getValues("collaborators") ?? []}
             />
             <FormField
               control={form.control}

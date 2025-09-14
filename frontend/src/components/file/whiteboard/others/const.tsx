@@ -1,14 +1,14 @@
-import React, { ReactNode } from "react";
+import React, { lazy, ReactNode } from "react";
 import { Ellipse, FreeHand, Rectangle, Arrow, Text } from "../../shapes";
 import { KonvaShapeMap, Shapes } from "@/types/shapes";
 import { getKonvaProps } from "@/utils/ShapeUtils";
 
 const ListComponent: { [K in Exclude<keyof KonvaShapeMap, "eraser">]: React.ComponentType<KonvaShapeMap[K]> } = {
-  rectangle: Rectangle,
-  ellipse: Ellipse,
-  arrow: Arrow,
-  text: Text,
-  "free hand": FreeHand,
+  rectangle: lazy(() => import("../../shapes/Rectangle")),
+  ellipse: lazy(() => import("../../shapes/Ellipse")),
+  arrow: lazy(() => import("../../shapes/Arrow")),
+  text: lazy(() => import("../../shapes/Text")),
+  "free hand": lazy(() => import("../../shapes/FreeHand")),
 };
 
 const GetDynamicShape = ({ ...props }: Shapes): ReactNode => {

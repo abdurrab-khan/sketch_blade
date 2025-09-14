@@ -3,18 +3,18 @@ import { ArrowProps, SelectionPurpose } from "./shapes";
 export interface AxiosMutateProps {
   method: "post" | "put" | "delete";
   uri: string;
-  data?: unknown;
+  data?: any;
 }
 
 export interface AxiosQueryProps {
   uri: string;
 }
 
-export interface ApiResponse {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   statusCode: number;
   message: string;
-  data?: any;
+  data?: T;
 }
 
 export interface Coordinates {

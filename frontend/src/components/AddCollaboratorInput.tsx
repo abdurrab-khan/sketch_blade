@@ -1,6 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
-import { AnimatePresence, motion } from "motion/react";
 import {
   Select,
   SelectContent,
@@ -10,21 +8,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "./ui/tooltip";
+import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
 import { SearchIcon, XIcon } from "lucide-react";
-import { Input } from "./ui/input.tsx";
-import axios from "axios";
-import { useSelector } from "react-redux";
-import { RootState } from "../redux/store.ts";
+import { AnimatePresence, motion } from "motion/react";
+
+
+import * as z from "zod";
 import { debounce } from "lodash";
 import { cn } from "../lib/utils.ts";
-import { CollaboratorActions, CollaboratorData, ListCollaborator } from "../types/user.ts";
-import useApiClient from "@/hooks/useApiClient.ts";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store.ts";
 import { ApiResponse } from "@/types/index.ts";
+import { fileSchema } from "@/lib/zod/schemas.ts";
+import { UseFormSetValue } from "react-hook-form";
+import useApiClient from "@/hooks/useApiClient.ts";
+import {
+  CollaboratorActions,
+  CollaboratorData,
+  ListCollaborator
+} from "../types/user.ts";
 
 interface AddCollaboratorInputProps {
   collaborators: CollaboratorData[];
-  setCollaborators: React.Dispatch<React.SetStateAction<CollaboratorData[]>>;
+  setCollaborators: UseFormSetValue<z.infer<typeof fileSchema>>;
 }
 
 const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
@@ -55,7 +68,7 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
         } catch (e) {
           console.error(e);
         }
-      }, 700),
+      }, 600),
     [apiClient],
   );
 
@@ -75,17 +88,26 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
 
     if (isAlreadySelected) return;
 
-    setCollaborators((prevColl) => [...prevColl, collaboratorData]);
+    setCollaborators("collaborators", collaborators.concat(collaboratorData)); // Concat previous and new collaborators
 
     setListColl([]);
     setInputSearch("");
   };
 
   const handleChangeRole = (_id: string, role: CollaboratorActions) => {
-    setCollaborators((prevColl) =>
-      prevColl.map((coll) => (coll._id === _id ? { ...coll, actions: role } : coll)),
-    );
+    // Changing the roll from collaborators
+    const updatedCollaborators = collaborators.map((coll) => (coll._id === _id ? { ...coll, actions: role } : coll));
+
+    setCollaborators("collaborators", updatedCollaborators);
   };
+
+  const handleRemoveCollaborators = (e: React.MouseEvent<HTMLButtonElement>, collId: string) => {
+    e.stopPropagation();
+
+    // Removing collaborator
+    const removedCollaborators = collaborators.filter((coll) => coll._id !== collId);
+    setCollaborators("collaborators", removedCollaborators)
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -133,8 +155,8 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
                       className={cn(
                         "flex items-center justify-center gap-x-2.5 rounded-full border border-zinc-200 bg-primary px-2 py-1 text-white focus:border-2",
                         selectedCollaborator?._id === collaborator._id &&
-                          selectedCollaborator?._id === collaborator._id &&
-                          "ring-1 ring-offset-1",
+                        selectedCollaborator?._id === collaborator._id &&
+                        "ring-1 ring-offset-1",
                       )}
                       onClick={() => {
                         setSelectedCollaborator(collaborator);
@@ -149,12 +171,7 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
                       <p>{collaborator.fullName}</p>
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCollaborators((prevColl) =>
-                            prevColl.filter((coll) => coll._id !== collaborator._id),
-                          );
-                        }}
+                        onClick={(e) => handleRemoveCollaborators(e, collaborator._id)}
                       >
                         <XIcon className="h-5 w-4" />
                       </button>
@@ -248,7 +265,7 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </div >
   );
 };
 

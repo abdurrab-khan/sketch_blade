@@ -16,7 +16,7 @@ function Whiteboard() {
   const dispatch = useDispatch();
   const activeTool = useSelector((state: RootState) => state.app.activeTool.type);
 
-  const shapes = use(getAllShapes());
+  const shapes = use(getAllShapes()); // Fetching all shapes
 
   useEffect(() => {
     if (Array.isArray(shapes) && shapes.length > 0) {
@@ -30,7 +30,7 @@ function Whiteboard() {
     <div className="z-2 fixed right-1/2 top-0 size-full translate-x-1/2">
       <Stage stageRef={stageRef} transformerRef={transformerRef}>
         {activeTool === "eraser" &&
-          <Suspense >
+          <Suspense>
             <Eraser stageRef={stageRef} />
           </Suspense>
         }

@@ -16,10 +16,7 @@ const useMutate = ({ finallyFn, options, isShowToast }: useMutateProps) => {
 
   const mutationFn = async (mutateProps: AxiosMutateProps) => {
     try {
-      const res = (await apiClient[mutateProps.method](
-        mutateProps.uri,
-        mutateProps.data,
-      )) as ApiResponse;
+      const res = await apiClient[mutateProps.method](mutateProps.uri, mutateProps.data);
 
       return res?.data || null;
     } catch (err) {

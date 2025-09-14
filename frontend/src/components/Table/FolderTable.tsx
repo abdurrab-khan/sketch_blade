@@ -16,36 +16,19 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { z } from "zod";
-import axios from "axios";
 import { useState } from "react";
 import useMutate from "../../hooks/useMutate.ts";
-
-const folderSchema = z.object({
-  folderName: z
-    .string()
-    .min(3, {
-      message: "Folder name must be at least 3 characters long",
-    })
-    .optional(),
-});
+import { FolderDetails } from "@/types/file.ts";
+import { folderSchema } from "@/lib/zod/schemas.ts";
 
 const FolderTable = () => {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const { data, isPending } = useResponse({
+  const { data, isPending } = useResponse<FolderDetails[]>({
     queryKeys: ["getFolders"],
     queryProps: { uri: "/folder" }
   });
-
-  const mutationFun = ({ clerkId, data }: { clerkId: string; data: { folder_name: string } }) => {
-    return axios.post("/api/folder", data, {
-      headers: {
-        Authorization: `Bearer ${clerkId}`,
-      },
-    });
-  };
 
   const folderMutation = useMutate({
     options: { queryKey: ["getFolders"] },
@@ -53,25 +36,34 @@ const FolderTable = () => {
     finallyFn: () => setIsDeleteDialogOpen(false),
   });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const createNewFolder = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const zodHandler = folderSchema.safeParse({
         folderName: e.currentTarget.folderName.value,
       });
+
       if (!zodHandler.success) {
-        const { message } = zodHandler.error.errors[0];
+        const message = zodHandler.error.message;
         return toast({
           title: "Error",
           description: message,
           variant: "destructive",
         });
       }
-      const folderName = zodHandler.data.folderName;
-      folderMutation.mutate({ folder_name: folderName });
+
+      folderMutation.mutate(
+        {
+          method: "post",
+          uri: "/folder",
+          data: {
+            folder_name: zodHandler.data.folderName
+          }
+        }
+      );
     } catch (e) {
       toast({
-        title: e,
+        title: e instanceof Error ? e.message : "An error occurred during folder creation.",
         variant: "destructive",
         action: (
           <ToastAction altText="Try again" onClick={() => folderMutation.mutate}>
@@ -109,7 +101,7 @@ const FolderTable = () => {
                   <DialogTitle>Add a new folder</DialogTitle>
                   <DialogDescription>Create a new folder to organize your files</DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={createNewFolder}>
                   <div className="grid gap-4 py-4">
                     <Label htmlFor="folderName">Folder Name</Label>
                     <Input
@@ -135,7 +127,14 @@ const FolderTable = () => {
               </DialogContent>
             </Dialog>
           </div>
-          <DataTable columns={folderColumns} data={data as Folders[]} />
+          {
+            (data?.data != undefined && data?.data.length === 0) ?
+              (
+                <DataTable columns={folderColumns} data={data?.data} />
+              ) : (
+                <div className="text-8xl">No Folder Found</div>
+              )
+          }
         </>
       )}
     </>

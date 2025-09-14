@@ -7,6 +7,9 @@ const apiClient = Axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 10000,
   withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 export default function useApiClient() {
@@ -21,7 +24,6 @@ export default function useApiClient() {
           config.headers["Authorization"] = `Bearer ${token}`;
           config.headers["Access-Control-Allow-Credentials"] = true;
         }
-        config.headers["Content-Type"] = "application/json";
 
         return config;
       },
@@ -32,14 +34,15 @@ export default function useApiClient() {
 
     apiClient.interceptors.response.use(
       (response) => {
-        const customResponse: ApiResponse = {
+        const customResponse = {
           success: response.data?.success,
           statusCode: response.data?.statusCode || response.status,
-          message: response.data?.message || "Request successful",
+          message: response?.data?.message || "",
           data: response.data?.data || response.data,
         };
 
-        return Promise.resolve(customResponse);
+        response.data = customResponse;
+        return response;
       },
       async (error) => {
         if (error.response?.status === 401) {

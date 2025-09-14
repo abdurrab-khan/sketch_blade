@@ -36,7 +36,7 @@ export function FileEditDialog({ children, _id, fileData }: FileEditDialogProps)
     resolver: zodResolver(formSchema),
     defaultValues: {
       fileName: fileData.name,
-      folder: fileData?.folder.name,
+      folder: fileData?.folder?.name,
     },
   });
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,12 +12,14 @@ import { Input } from "../ui/input.tsx";
 import { Button } from "../ui/button.tsx";
 import { Label } from "../ui/label.tsx";
 import { Separator } from "../ui/separator.tsx";
-import { useResponse } from "../../hooks/useResponse.tsx";
 import { Loader2 } from "lucide-react";
 import useMutate from "../../hooks/useMutate.ts";
 import { FolderDetails } from "../../types/file.ts";
 import { cn } from "../../lib/utils.ts";
 import { getFormattedTime } from "../../utils/AppUtils.ts";
+import useApiClient from "@/hooks/useApiClient.ts";
+import { ApiResponse } from "@/types/index.ts";
+import { debounce } from "lodash";
 
 interface MoveFileDialogProps {
   _id: string;
@@ -27,14 +29,12 @@ interface MoveFileDialogProps {
 
 const MoveFileDialog: React.FC<MoveFileDialogProps> = ({ children, _id, existingFolderId }) => {
   const [inputSearch, setInputSearch] = useState<string>("");
-  const [selectedFolder, setSelectedFolder] = React.useState<string>(existingFolderId || "");
+  const [selectedFolder, setSelectedFolder] = useState<string>(existingFolderId || "");
   const [listFolders, setListFolders] = useState<FolderDetails[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
 
-  const { data, isPending } = useResponse({
-    queryProps: { uri: "/folder" },
-    queryKeys: ["getFolders"],
-  });
+  const apiClient = useApiClient();
+  const [isPending, startTransition] = useTransition();
 
   const handleClickToFolder = (folderId: string) => {
     setSelectedFolder((prev) => (prev === folderId ? "" : folderId));
@@ -46,7 +46,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({ children, _id, existing
     finallyFn: () => setOpenDialog(false),
   });
 
-  const handleSubmit = () => {
+  const handleMoveIntoFolder = () => {
     if (!selectedFolder) return;
 
     if (existingFolderId === selectedFolder) {
@@ -66,25 +66,28 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({ children, _id, existing
     setOpenDialog((prev) => !prev);
   };
 
-  const handleInputChange = (e) => {
-    setInputSearch(e.target.value);
+  const debounceSearchFolder = useCallback(
+    () => debounce((searchQuery) => {
+      startTransition(async () => {
+        const folders = await apiClient.get<ApiResponse<FolderDetails[]>>(`/folder/${searchQuery}`);
 
-    if (!e.target.value) {
-      setListFolders(data);
-    } else {
-      setListFolders((prev) => {
-        return prev.filter((folder) =>
-          folder.name.toLowerCase().includes(e.target.value.toLowerCase()),
-        );
-      });
-    }
+        // Set Fetched Folders
+        startTransition(() => {
+          const folderData = folders.data?.data;
+
+          if (folderData != undefined && folderData.length !== 0) {
+            setListFolders(folderData);
+          }
+        })
+      })
+    }, 300), [apiClient])
+
+  const handleSearchFolder = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+
+    setInputSearch(inputValue);
+    debounceSearchFolder(); // Performing Debounce search to search folder
   };
-
-  useEffect(() => {
-    if (isPending) return;
-
-    setListFolders(data);
-  }, [data, isPending]);
 
   return (
     <Dialog open={openDialog} onOpenChange={handleOpenChange}>
@@ -104,7 +107,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({ children, _id, existing
               )}
               placeholder={"Search folder to move"}
               value={inputSearch}
-              onChange={handleInputChange}
+              onChange={handleSearchFolder}
             />
           </div>
 
@@ -121,7 +124,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({ children, _id, existing
                   </div>
                 ) : (
                   <>
-                    {(listFolders as FolderDetails[]).map(({ _id, createdAt, name }) => (
+                    {listFolders.map(({ _id, createdAt, name }) => (
                       <div
                         key={_id}
                         id={_id}
@@ -153,7 +156,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({ children, _id, existing
             variant={"app"}
             className={"w-full"}
             disabled={!selectedFolder}
-            onClick={handleSubmit}
+            onClick={handleMoveIntoFolder}
           >
             {fileUpdateMutation.isPending ? (
               <>

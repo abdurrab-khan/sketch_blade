@@ -1,6 +1,6 @@
 import { CreatorDetails, ActiveCollaborators, CollaboratorData } from "./user";
 
-export interface FileDetails {
+export interface File {
   _id: string;
   name: string;
   folder?: FolderDetails;

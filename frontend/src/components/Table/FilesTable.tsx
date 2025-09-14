@@ -6,14 +6,14 @@ import { Loader2, PlusIcon } from "lucide-react";
 import { useResponse } from "../../hooks/useResponse.tsx";
 import { FileCreateDialog } from "../dialogs/FileCreateDialog.tsx";
 import { FaFileCirclePlus } from "react-icons/fa6";
-import { FileDetails } from "../../types/file.ts";
+import { File as FileType } from "../../types/file.ts";
 
 interface FilesTableProps {
   type: "all" | "my";
 }
 
 const FilesTable: React.FC<FilesTableProps> = () => {
-  const { data, isPending } = useResponse({
+  const { data, isPending } = useResponse<FileType[]>({
     queryKeys: ["getFiles"],
     queryProps: { uri: "/file" },
   });
@@ -26,7 +26,7 @@ const FilesTable: React.FC<FilesTableProps> = () => {
             <Loader2 className={"h-8 w-8 animate-spin"} />
           </div>
         </div>
-      ) : data && data.length > 0 ? (
+      ) : data?.data != undefined && data?.data.length > 0 ? (
         <>
           <div className={"mb-3 w-full text-end"}>
             <FileCreateDialog>
@@ -36,7 +36,7 @@ const FilesTable: React.FC<FilesTableProps> = () => {
               </Button>
             </FileCreateDialog>
           </div>
-          <DataTable columns={fileColumns} data={data as FileDetails[]} />
+          <DataTable columns={fileColumns} data={data.data} />
         </>
       ) : (
         <IfNoFile />

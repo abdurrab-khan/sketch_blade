@@ -1,10 +1,9 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import { useToast } from "./use-toast.ts";
 import { RootState } from "../redux/store.ts";
 import { ApiResponse, AxiosQueryProps } from "../types/index.ts";
-import { useNavigate } from "react-router";
 import useApiClient from "./useApiClient.ts";
 
 interface type {
@@ -12,42 +11,41 @@ interface type {
   queryProps: AxiosQueryProps;
 }
 
-export const useResponse = ({ queryKeys, queryProps }: type) => {
+export const useResponse = <T,>({ queryKeys, queryProps }: type) => {
   const { _id: userClerkId } = useSelector((state: RootState) => state.auth);
-
   const { toast } = useToast();
-  const navigate = useNavigate();
   const apiClient = useApiClient();
 
-  const result = useQuery({
-    queryKey: [...queryKeys],
-    queryFn: async () => {
-      const response = (await apiClient.get(queryProps.uri)) as ApiResponse;
+  const memoizedQueryKey = useMemo(() => [...queryKeys], [queryKeys]);
+  const queryFn = useCallback(async () => {
+    const response = await apiClient.get<ApiResponse<T>>(queryProps.uri);
+    return response?.data ?? null;
+  }, [apiClient, queryProps.uri]);
 
-      return response?.data ?? null;
-    },
-    retry: 2,
+  const result = useQuery({
+    queryKey: memoizedQueryKey,
+    queryFn,
+    retry: 3,
     retryDelay: 1000,
     enabled: !!userClerkId,
   });
 
+  const errorMessage = useMemo(() => {
+    if (result.isError && result.error) {
+      return result.error.message || "An error occurred";
+    }
+    return null;
+  }, [result.isError, result.error]);
+
   useEffect(() => {
-    const { isError, error } = result;
-
-    if (isError) {
-      const axiosError = error as ApiResponse;
-
-      if (axiosError.statusCode === 403) {
-        navigate("/sign-in");
-      }
-
+    if (errorMessage) {
       toast({
         title: "Error",
-        description: axiosError.message || "An error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     }
-  }, [navigate, result, toast]);
+  }, [errorMessage, toast]);
 
   return result;
 };
