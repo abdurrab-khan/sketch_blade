@@ -31,8 +31,7 @@ import collaboratorRouter from "./routes/collaborator.route";
 import folderRouter from "./routes/folder.route";
 import ErrorMiddleware from "./middlewares/error.middleware";
 import canvasRouter from "./routes/canvas.router";
-import getUserAsCollaborator from "./controllers/user.controller";
-import { fstat } from "node:fs";
+import userRouter from "./routes/user.route";
 
 const COMMON_ROUTE = "/api/v1/";
 
@@ -41,7 +40,8 @@ app.use(COMMON_ROUTE + "file", fileRouter);
 app.use(COMMON_ROUTE + "collaborator", collaboratorRouter);
 app.use(COMMON_ROUTE + "folder", folderRouter);
 app.use(COMMON_ROUTE + "canvas", canvasRouter);
-app.post(COMMON_ROUTE + "users", getUserAsCollaborator);
+app.use(COMMON_ROUTE + "users", userRouter);
+
 // Error Middleware
 app.use(ErrorMiddleware);
 

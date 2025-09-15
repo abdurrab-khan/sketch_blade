@@ -12,7 +12,7 @@ export const createFolder = AsyncHandler(
 
       const folder = await FolderModel.create({
          name: folderName,
-         creatorId: userId,
+         ownerId: userId,
       });
 
       if (!folder) {
@@ -82,7 +82,7 @@ export const updateFolder = AsyncHandler(
       const updatedFolder = await FolderModel.findOneAndUpdate(
          {
             _id: id,
-            creatorId: userId,
+            ownerId: userId,
          },
          {
             $set: {
@@ -128,7 +128,7 @@ export const deleteFolder = AsyncHandler(
 
       const folder = await FolderModel.findOneAndDelete({
          _id: folderId,
-         creatorId: userId,
+         ownerId: userId,
       });
 
       if (!folder) {
@@ -164,13 +164,13 @@ export const getFolders = AsyncHandler(async (req: Request, res: Response) => {
    const folders = await FolderModel.aggregate([
       {
          $match: {
-            creatorId: userId,
+            ownerId: userId,
          },
       },
       {
          $lookup: {
             from: "users",
-            localField: "creatorId",
+            localField: "ownerId",
             foreignField: "clerkId",
             as: "creator",
             pipeline: [
@@ -188,7 +188,7 @@ export const getFolders = AsyncHandler(async (req: Request, res: Response) => {
       },
       {
          $project: {
-            folder_name: 1,
+            name: 1,
             createdAt: 1,
             updatedAt: 1,
             creator: {
@@ -225,7 +225,7 @@ export const getFoldersForFiles = AsyncHandler(
       }
 
       const folders = await FolderModel.find({
-         creatorId: userId,
+         ownerId: userId,
       });
 
       if (!folders || folders.length === 0) {
@@ -287,7 +287,7 @@ export const getFolderFiles = AsyncHandler(
                   {
                      $lookup: {
                         from: "users",
-                        localField: "creatorId",
+                        localField: "ownerId",
                         foreignField: "clerkId",
                         as: "creator",
                         pipeline: [
@@ -313,11 +313,11 @@ export const getFolderFiles = AsyncHandler(
                   {
                      $match: {
                         $or: [
-                           { creatorId: new Types.ObjectId(userId) },
+                           { ownerId: userId },
                            {
                               collaborators: {
                                  $elemMatch: {
-                                    userId: new Types.ObjectId(userId),
+                                    userId: userId,
                                  },
                               },
                            },
@@ -327,7 +327,7 @@ export const getFolderFiles = AsyncHandler(
                   {
                      $project: {
                         name: 1,
-                        creatorId: 1,
+                        ownerId: 1,
                         creator: 1,
                         isLocked: 1,
                         collaborators: 1,

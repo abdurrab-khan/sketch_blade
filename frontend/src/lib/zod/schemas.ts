@@ -4,11 +4,11 @@ import { z } from "zod";
 const fileSchema = z.object({
   fileName: z
     .string()
-    .min(3, "file name must be at least 3 characters long")
-    .max(50, "file name must not exceed 50 characters")
-    .nonempty("file name is required")
+    .nonempty("File name is required")
+    .min(3, "File name must be at least 3 characters long")
+    .max(50, "File name must not exceed 50 characters")
     .refine((value) => /^[a-zA-Z0-9_-]+$/.test(value), {
-      message: "file name can only contain letters, numbers, underscores, and hyphens",
+      message: "File name can only contain letters, numbers, underscores, and hyphens",
     }),
   description: z.string().optional(),
   collaborators: z
@@ -28,6 +28,7 @@ const fileSchema = z.object({
 const folderSchema = z.object({
   folderName: z
     .string()
+    .nonempty("Folder name is required")
     .min(3, {
       message: "Folder name must be at least 3 characters long",
     })

@@ -16,7 +16,8 @@ export const useResponse = <T,>({ queryKeys, queryProps }: type) => {
   const { toast } = useToast();
   const apiClient = useApiClient();
 
-  const memoizedQueryKey = useMemo(() => [...queryKeys], [queryKeys]);
+  const memoizedQueryKey = useMemo(() => [...queryKeys], [queryKeys]); // Memoize query keys.
+
   const queryFn = useCallback(async () => {
     const response = await apiClient.get<ApiResponse<T>>(queryProps.uri);
     return response?.data ?? null;
@@ -25,7 +26,7 @@ export const useResponse = <T,>({ queryKeys, queryProps }: type) => {
   const result = useQuery({
     queryKey: memoizedQueryKey,
     queryFn,
-    retry: 3,
+    retry: 0,
     retryDelay: 1000,
     enabled: !!userClerkId,
   });

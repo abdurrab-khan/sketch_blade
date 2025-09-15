@@ -216,6 +216,8 @@ export const svixController = AsyncHandler(
             }
             case "user.deleted": {
                try {
+                  console.log("Delete the user: ", evt.data);
+
                   const delResponse = await deleteUser(evt.data.id as string);
 
                   if (!delResponse) {
@@ -236,7 +238,6 @@ export const svixController = AsyncHandler(
                }
                break;
             }
-
             default:
                console.warn(`Unhandled event type: ${evt.type}`);
                throw new ErrorHandler({

@@ -11,6 +11,7 @@ import userMiddleware from "../middlewares/auth.middleware";
 import fileOwnershipValidator from "../middlewares/file.middleware";
 
 const router = Router();
+
 router.use(userMiddleware);
 
 router.route("/").post(createFile).get(getFiles);

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { startTransition, useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   Select,
   SelectContent,
@@ -23,8 +23,6 @@ import { AnimatePresence, motion } from "motion/react";
 import * as z from "zod";
 import { debounce } from "lodash";
 import { cn } from "../lib/utils.ts";
-import { useSelector } from "react-redux";
-import { RootState } from "../redux/store.ts";
 import { ApiResponse } from "@/types/index.ts";
 import { fileSchema } from "@/lib/zod/schemas.ts";
 import { UseFormSetValue } from "react-hook-form";
@@ -32,8 +30,9 @@ import useApiClient from "@/hooks/useApiClient.ts";
 import {
   CollaboratorActions,
   CollaboratorData,
-  ListCollaborator
+  ListCollaborator,
 } from "../types/user.ts";
+import { useToast } from "@/hooks/use-toast.ts";
 
 interface AddCollaboratorInputProps {
   collaborators: CollaboratorData[];
@@ -44,43 +43,69 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
   collaborators,
   setCollaborators,
 }) => {
+  const [isPending, setIsPending] = useState(false);
   const [listColl, setListColl] = useState<ListCollaborator[]>([]);
-  const [inputSearch, setInputSearch] = useState("");
+  const [email, setEmail] = useState("");
   const [role, setRole] = useState<CollaboratorActions>("view" as CollaboratorActions);
   const [selectedCollaborator, setSelectedCollaborator] = useState<CollaboratorData | null>(null);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { email } = useSelector((state: RootState) => state.auth);
+
   const apiClient = useApiClient();
+  const { toast } = useToast();
 
   const debouncedSearch = useMemo(
     () =>
-      debounce(async (searchTerm: { email: string; current_email: string }) => {
-        try {
-          const response = (await apiClient.post("/users", searchTerm)) as ApiResponse;
+      debounce(async (email: string) => {
+        startTransition(async () => {
+          try {
+            const response = await apiClient.get<ApiResponse<ListCollaborator>>(`/users?email=${email}`);
 
-          if (response.statusCode === 200) {
-            if (Array.isArray(response.data) && response.data.length) {
-              setListColl(response.data);
-            } else {
-              setListColl([]);
-            }
+            startTransition(() => {
+              if (response.status === 200) {
+                if (Array.isArray(response.data?.data) && response.data.data.length > 0) {
+                  setListColl(response.data.data);
+                }
+              }
+            });
+          } catch (e) {
+            const errMsg = (e as ApiResponse)?.message || "An error occurred during fetching collaborators."
+
+            toast({
+              title: "Error",
+              description: errMsg,
+              variant: "destructive"
+            });
+          } finally {
+            setIsPending(false);
           }
-        } catch (e) {
-          console.error(e);
-        }
-      }, 600),
-    [apiClient],
+        });
+      }, 400),
+    [apiClient, toast],
   );
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const searchItem = e.target.value;
-      setInputSearch(searchItem);
+      const email = e.target.value;
 
-      if (!searchItem) return;
-      debouncedSearch({ email: searchItem, current_email: email });
+      setEmail(email);
+      setIsPending(true);
+
+      // If there is no input text in input field.
+      if (email.trim() === "") {
+        // Cancel any pending debounced calls
+        debouncedSearch.cancel();
+
+        // Clear if there is collaborators, if input field having nothing.
+        if (listColl.length > 0) {
+          setListColl([]);
+        }
+        return;
+      }
+
+      debouncedSearch(email);
     },
-    [debouncedSearch, email],
+    [debouncedSearch, listColl.length],
   );
 
   const handleAddCollaborators = (collaboratorData: CollaboratorData) => {
@@ -189,7 +214,9 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
                   "placeholder:text-gray-400 dark:placeholder:text-gray-500",
                 )}
                 placeholder={"Search for collaborators by email"}
-                value={inputSearch}
+                inputMode="email"
+                autoComplete="email"
+                value={email}
                 onChange={handleInputChange}
                 onFocus={() => setSelectedCollaborator(null)}
               />
@@ -200,6 +227,7 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
           <Select
             defaultValue={"view"}
             value={role}
+            disabled={isPending}
             onValueChange={(value) => {
               if (selectedCollaborator) {
                 handleChangeRole(selectedCollaborator._id, value as CollaboratorActions);
@@ -219,50 +247,64 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
             </SelectContent>
           </Select>
         </div>
+        {/* Showing all Collaborators */}
         <AnimatePresence>
-          {listColl.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{
-                type: "spring",
-                stiffness: 500,
-                damping: 30,
-              }}
-              className="absolute top-[120%] max-h-40 w-full overflow-y-auto rounded-md border border-zinc-200 bg-tertiary p-2"
-            >
-              <div className={"flex flex-col gap-y-2"} ref={dropdownRef}>
-                {listColl.map((collaborator) => (
-                  <TooltipProvider key={collaborator._id}>
-                    <Tooltip>
-                      <TooltipTrigger
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleAddCollaborators({
-                            ...collaborator,
-                            actions: role,
-                          });
-                        }}
-                      >
-                        <div className="relative flex w-full items-center rounded-md bg-secondary px-1.5 py-2">
-                          <img
-                            src={collaborator.profileUrl}
-                            alt={collaborator.fullName}
-                            className="h-8 w-8 rounded-full"
-                          />
-                          <p className="ml-4">{collaborator.email}</p>
-                          <TooltipContent>
-                            <p>Click to add {collaborator.fullName} as a collaborator</p>
-                          </TooltipContent>
+          {
+            email.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 30,
+                }}
+                className="absolute top-[120%] max-h-40 w-full overflow-y-auto rounded-md border border-zinc-200 bg-tertiary p-2"
+              >
+                {
+                  isPending ? (
+                    <div>Loading.....</div>
+                  ) : (
+                    <div className={"flex flex-col gap-y-2"} ref={dropdownRef}>
+                      {listColl.length > 0 ? listColl.map((collaborator) =>
+                      (
+                        <TooltipProvider key={collaborator._id}>
+                          <Tooltip>
+                            <TooltipTrigger
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleAddCollaborators({
+                                  ...collaborator,
+                                  actions: role,
+                                });
+                              }}
+                            >
+                              <div className="relative flex w-full items-center rounded-md bg-secondary px-1.5 py-2">
+                                <img
+                                  src={collaborator.profileUrl}
+                                  alt={collaborator.fullName}
+                                  className="h-8 w-8 rounded-full"
+                                />
+                                <p className="ml-4">{collaborator.email}</p>
+                                <TooltipContent>
+                                  <p>Click to add {collaborator.fullName} as a collaborator</p>
+                                </TooltipContent>
+                              </div>
+                            </TooltipTrigger>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )) : (
+                        <div>
+                          No Collaborators found with this email {email}
                         </div>
-                      </TooltipTrigger>
-                    </Tooltip>
-                  </TooltipProvider>
-                ))}
-              </div>
-            </motion.div>
-          )}
+                      )}
+                    </div>
+                  )
+                }
+              </motion.div>
+            )
+          }
         </AnimatePresence>
       </div>
     </div >

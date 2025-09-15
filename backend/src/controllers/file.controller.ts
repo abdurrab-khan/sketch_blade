@@ -14,21 +14,21 @@ export const createFile = AsyncHandler(
       if (folderId && !isValidObjectId(folderId)) {
          throw new ErrorHandler({
             statusCode: 400,
-            message: "invalid folder id",
+            message: "Invalid folder id",
          });
       }
 
       const file = await FileModel.create({
          name: fileName,
          folderId: folderId ?? null,
-         creatorId: userId,
+         ownerId: userId,
          description,
       });
 
       if (!file) {
          throw new ErrorHandler({
             statusCode: 500,
-            message: "file not created, please try again",
+            message: "File not created, please try again",
          });
       }
 
@@ -43,15 +43,23 @@ export const createFile = AsyncHandler(
 
          throw new ErrorHandler({
             statusCode: 500,
-            message: "file not created, please try again",
+            message: "File not created, please try again",
          });
       }
+
+      const returnObj = {
+         name: file.name,
+         isLocked: file.isLocked,
+         description: file.description,
+         updatedAt: file.updatedAt,
+         createdAt: file.createdAt,
+      };
 
       res.status(201).json(
          new ApiResponse({
             statusCode: 201,
-            data: file,
-            message: "file created successfully",
+            data: returnObj,
+            message: "File created successfully",
          }),
       );
    },
@@ -66,14 +74,14 @@ export const updateFile = AsyncHandler(
       if (!fileName && !description) {
          throw new ErrorHandler({
             statusCode: 400,
-            message: "file name or description is required",
+            message: "File name or description is required",
          });
       }
 
       if (!file) {
          throw new ErrorHandler({
             statusCode: 403,
-            message: "you are not authorized to update this file",
+            message: "You are not authorized to update this file",
          });
       }
 
@@ -89,14 +97,14 @@ export const updateFile = AsyncHandler(
       if (!updatedFile) {
          throw new ErrorHandler({
             statusCode: 500,
-            message: "file not updated",
+            message: "File not updated",
          });
       }
 
       res.status(200).json(
          new ApiResponse({
             statusCode: 200,
-            message: "file updated successfully",
+            message: "File updated successfully",
          }),
       );
    },
@@ -111,7 +119,7 @@ export const deleteFile = AsyncHandler(
       if (!isValidObjectId(fileId)) {
          throw new ErrorHandler({
             statusCode: 400,
-            message: "invalid file id",
+            message: "Invalid file id",
          });
       }
 
@@ -119,15 +127,15 @@ export const deleteFile = AsyncHandler(
       if (!file) {
          throw new ErrorHandler({
             statusCode: 400,
-            message: "invalid file id: file not found with this id",
+            message: "Invalid file id: file not found with this id",
          });
       }
 
       if (!Array.isArray(ids) || ids?.length === 0) {
-         if (file.creatorId !== ownerId) {
+         if (file.ownerId !== ownerId) {
             throw new ErrorHandler({
                statusCode: 400,
-               message: "you are not authorized to delete this file",
+               message: "You are not authorized to delete this file",
             });
          }
       }
@@ -157,7 +165,7 @@ export const deleteFile = AsyncHandler(
          if (collaborationDelete.deletedCount === 0) {
             throw new ErrorHandler({
                statusCode: 500,
-               message: "failed to delete collaborators",
+               message: "Failed to delete collaborators",
             });
          }
 
@@ -166,7 +174,7 @@ export const deleteFile = AsyncHandler(
          if (!fileDelete) {
             throw new ErrorHandler({
                statusCode: 500,
-               message: "failed to delete file",
+               message: "Failed to delete file",
             });
          }
       }
@@ -174,7 +182,7 @@ export const deleteFile = AsyncHandler(
       res.status(200).json(
          new ApiResponse({
             statusCode: 200,
-            message: "file deleted successfully",
+            message: "File deleted successfully",
          }),
       );
    },
@@ -188,7 +196,7 @@ export const toggleLock = AsyncHandler(
       if (!file) {
          throw new ErrorHandler({
             statusCode: 403,
-            message: "your are not authorized to lock/unlock this file",
+            message: "Your are not authorized to lock/unlock this file",
          });
       }
 
@@ -210,7 +218,7 @@ export const toggleLock = AsyncHandler(
       res.status(200).json(
          new ApiResponse({
             statusCode: 200,
-            message: `file ${file.isLocked ? "unlock" : "lock"} successfully`,
+            message: `File ${file.isLocked ? "unlock" : "lock"} successfully`,
          }),
       );
    },
@@ -223,7 +231,7 @@ export const getFile = AsyncHandler(async (req: Request, res: Response) => {
    if (!isValidObjectId(fileId)) {
       throw new ErrorHandler({
          statusCode: 400,
-         message: "file id is invalid",
+         message: "File id is invalid",
       });
    }
 
@@ -245,7 +253,7 @@ export const getFile = AsyncHandler(async (req: Request, res: Response) => {
          $match: {
             $or: [
                {
-                  creatorId: userId,
+                  ownerId: userId,
                },
                {
                   collaborator: {
@@ -272,7 +280,7 @@ export const getFile = AsyncHandler(async (req: Request, res: Response) => {
       res.status(404).json(
          new ErrorHandler({
             statusCode: 404,
-            message: "file not found",
+            message: "File not found",
          }),
       );
       return;
@@ -282,7 +290,7 @@ export const getFile = AsyncHandler(async (req: Request, res: Response) => {
       new ApiResponse({
          statusCode: 200,
          data: file,
-         message: "file found successfully",
+         message: "File found successfully",
       }),
    );
 });
@@ -304,7 +312,7 @@ export const getFiles = AsyncHandler(
             $match: {
                $or: [
                   {
-                     creatorId: userId,
+                     ownerId: userId,
                   },
                   {
                      collaborator: {
@@ -319,7 +327,7 @@ export const getFiles = AsyncHandler(
          {
             $lookup: {
                from: "users",
-               localField: "creatorId",
+               localField: "ownerId",
                foreignField: "clerkId",
                as: "creator",
                pipeline: [
@@ -369,7 +377,7 @@ export const getFiles = AsyncHandler(
             new ApiResponse({
                statusCode: 200,
                data: null,
-               message: "no file found",
+               message: "No file found",
             }),
          );
          return;
@@ -379,7 +387,7 @@ export const getFiles = AsyncHandler(
          new ApiResponse({
             statusCode: 200,
             data: files,
-            message: "files found successfully",
+            message: "Files found successfully",
          }),
       );
    },

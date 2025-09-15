@@ -12,7 +12,7 @@ const folderSchema = new Schema<IFolder>(
          default: "Untitled Folder",
       },
       ownerId: {
-         type: Schema.Types.ObjectId,
+         type: String,
          ref: "User",
          required: true,
       },

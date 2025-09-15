@@ -4,9 +4,10 @@ import { AsyncHandler, ApiResponse } from "../utils";
 
 const getUserAsCollaborator = AsyncHandler(
    async (req: Request, res: Response) => {
-      const { email, currentEmail } = req.body;
+      const email = req.query?.email?.toString();
+      const userId = req.userId;
 
-      if ((!email || email.trim() === "") && !currentEmail) {
+      if (!email || email?.trim() === "") {
          return res.status(400).json(
             new ApiResponse({
                statusCode: 200,
@@ -17,7 +18,8 @@ const getUserAsCollaborator = AsyncHandler(
 
       const findUser = await User.find(
          {
-            email: { $regex: new RegExp(email, "i"), $ne: currentEmail },
+            email: { $regex: new RegExp(email, "i") },
+            clerkId: { $ne: userId },
          },
          {
             fullName: {
