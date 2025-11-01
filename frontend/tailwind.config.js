@@ -12,7 +12,7 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
-        primary: "var(--primary)",
+        primary: "#df0505",
         secondary: "var(--secondary)",
         tertiary: "var(--tertiary)",
         quaternary: "var(--quaternary)",

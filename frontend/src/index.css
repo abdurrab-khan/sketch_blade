@@ -1,6 +1,7 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
-@layer base {
+@layer theme {
   :root {
     --radius: 0.5rem;
     --primary: #1b262c;
@@ -13,25 +14,24 @@
   }
 }
 
-@layer utilities {
-  .size-screen {
-    height: 100vh;
-    width: 100vw;
-  }
-  .size-full {
-    height: 100%;
-    width: 100%;
-  }
-  .flex-center {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .flex-start {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-  }
+@theme {
+  /* custom border radius values */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  /* custom colors */
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-tertiary: var(--tertiary);
+  --color-quaternary: var(--quaternary);
+  --color-dark-secondary: var(--dark-secondary);
+  --color-btn: var(--btn);
+  --color-line: var(--line);
+}
+
+/* Adding Custom reusable component classes */
+@layer components {
   .main-container {
     width: 100%;
   }
@@ -92,5 +92,24 @@
     grid-template-columns: auto;
     grid-auto-flow: column;
     gap: 0.5rem;
+  }
+}
+
+/* Adding Custom utilities */
+@layer utilities {
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+  .size-screen {
+    @apply h-screen w-screen;
+  }
+  .size-full {
+    @apply h-full w-full;
+  }
+  .flex-start {
+    @apply flex items-center justify-start;
+  }
+  .flex-end {
+    @apply flex items-center justify-end;
   }
 }
