@@ -5,7 +5,7 @@ import { svixController } from "../controllers/svix.controller";
 const svixRouter = Router();
 
 svixRouter
-  .route("/webhook/clerk")
-  .post(bodyParser.raw({ type: "application/json" }), svixController);
+   .route("/webhook/clerk")
+   .post(bodyParser.raw({ type: "application/json" }), svixController);
 
 export default svixRouter;

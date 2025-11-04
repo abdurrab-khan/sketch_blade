@@ -1,20 +1,27 @@
-import express, { Router } from "express";
+import { Router } from "express";
 import {
-   createFile,
-   deleteFile,
+   getFile,
    getFiles,
+   deleteFile,
+   deleteFiles,
+   createFile,
    toggleLock,
    updateFile,
-   getFile,
 } from "../controllers/file.controller";
 import userMiddleware from "../middlewares/auth.middleware";
 import fileOwnershipValidator from "../middlewares/file.middleware";
 
 const router = Router();
 
-router.use(userMiddleware);
+router.use((req, _, next) => {
+   req.userId = "user_2y7ftsG6emsUYX9rLB4NcZt7EFu"; // TODO: Temporary hardcoded user ID for testing
+   // req.userId = "user_34uTpZC3C7LdkdG8EmVMrXSkbTl"; // Temporary hardcoded user ID for testing
+   next();
+});
 
-router.route("/").post(createFile).get(getFiles);
+// router.use(userMiddleware);
+
+router.route("/").post(createFile).get(getFiles).delete(deleteFiles);
 router
    .route("/:fileId")
    .get(getFile)

@@ -4,7 +4,7 @@ export interface File {
    _id: string;
    name: string;
    folderId: string;
-   creatorId: string;
+   ownerId: string;
    description: string;
    collaborators: CollaboratorPayload[] | CollaboratorPayload | null;
    isLocked: boolean;

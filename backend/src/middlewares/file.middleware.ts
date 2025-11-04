@@ -16,7 +16,7 @@ const fileOwnershipValidator = AsyncHandler(
       if (!isValidObjectId(fileId)) {
          throw new ErrorHandler({
             statusCode: 400,
-            message: "invalid file id",
+            message: "Invalid file id: there is no file with this id",
          });
       }
 
@@ -28,7 +28,7 @@ const fileOwnershipValidator = AsyncHandler(
             message: "file is not found",
          });
       } else {
-         if (file.creatorId.toString() !== userId) {
+         if (file.ownerId.toString() !== userId) {
             const collaborator = await Collaborator.findOne({
                fileId: new Types.ObjectId(fileId),
                userId: userId,
@@ -39,7 +39,7 @@ const fileOwnershipValidator = AsyncHandler(
 
             if (!collaborator) {
                req.file = null;
-               next();
+               return next();
             }
 
             file["collaborators"] =

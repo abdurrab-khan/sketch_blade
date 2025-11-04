@@ -1,162 +1,13 @@
-import { Request, Response } from "express";
-import { isValidObjectId, Types } from "mongoose";
 import File from "../models/file.model";
+import { Request, Response } from "express";
 import FolderModel from "../models/folder.model";
-import { CreateFolderRequest } from "../types/folder";
+import { isValidObjectId, Types } from "mongoose";
+import zodParserHelper from "../types/zod/zodParserHelper";
+import {
+   createFolderSchema,
+   updateFolderSchema,
+} from "../types/zod/folder.schema";
 import { AsyncHandler, ApiResponse, ErrorHandler } from "../utils";
-
-export const createFolder = AsyncHandler(
-   async (req: Request, res: Response): Promise<void> => {
-      const { folderName, files }: CreateFolderRequest = req.body;
-      const userId = req.userId;
-
-      const folder = await FolderModel.create({
-         name: folderName,
-         ownerId: userId,
-      });
-
-      if (!folder) {
-         throw new ErrorHandler({
-            statusCode: 500,
-            message: "folder not created, please try again.",
-         });
-      }
-
-      if (Array.isArray(files) && files.length > 0) {
-         const file = await File.updateMany(
-            {
-               _id: { $in: files },
-            },
-            {
-               folderId: folder._id,
-            },
-         );
-
-         if (file.matchedCount === 0) {
-            await FolderModel.findByIdAndDelete(folder._id);
-
-            throw new ErrorHandler({
-               statusCode: 500,
-               message: "folder not updated, please try again.",
-            });
-         }
-      }
-
-      res.status(201).json(
-         new ApiResponse({
-            statusCode: 201,
-            message: "folder created successfully",
-            data: folder,
-         }),
-      );
-   },
-);
-
-export const updateFolder = AsyncHandler(
-   async (req: Request, res: Response): Promise<void> => {
-      const { id } = req.params;
-      const { folderName } = req.body;
-      const userId = req.userId;
-
-      if (!folderName) {
-         throw new ErrorHandler({
-            statusCode: 400,
-            message: "folder name is required",
-         });
-      }
-
-      if (!userId) {
-         throw new ErrorHandler({
-            statusCode: 400,
-            message: "invalid creator id",
-         });
-      }
-
-      if (!isValidObjectId(id)) {
-         throw new ErrorHandler({
-            statusCode: 400,
-            message: "invalid folder id",
-         });
-      }
-
-      const updatedFolder = await FolderModel.findOneAndUpdate(
-         {
-            _id: id,
-            ownerId: userId,
-         },
-         {
-            $set: {
-               name: folderName,
-            },
-         },
-      );
-
-      if (!updatedFolder) {
-         throw new ErrorHandler({
-            statusCode: 500,
-            message: "folder not updated, please try again.",
-         });
-      }
-
-      res.status(200).json(
-         new ApiResponse({
-            statusCode: 200,
-            message: "folder updated successfully",
-         }),
-      );
-   },
-);
-
-export const deleteFolder = AsyncHandler(
-   async (req: Request, res: Response): Promise<void> => {
-      const { folderId } = req.params;
-      const userId = req.userId;
-
-      if (!userId) {
-         throw new ErrorHandler({
-            statusCode: 400,
-            message: "invalid creator id",
-         });
-      }
-
-      if (!isValidObjectId(folderId)) {
-         throw new ErrorHandler({
-            statusCode: 400,
-            message: "invalid folder id",
-         });
-      }
-
-      const folder = await FolderModel.findOneAndDelete({
-         _id: folderId,
-         ownerId: userId,
-      });
-
-      if (!folder) {
-         throw new ErrorHandler({
-            statusCode: 500,
-            message: "folder not deleted, please try again.",
-         });
-      }
-
-      await File.updateMany(
-         {
-            folderId: folderId,
-         },
-         {
-            $set: {
-               folderId: null,
-            },
-         },
-      );
-
-      res.status(200).json(
-         new ApiResponse({
-            statusCode: 200,
-            message: "folder deleted successfully",
-         }),
-      );
-   },
-);
 
 export const getFolders = AsyncHandler(async (req: Request, res: Response) => {
    const userId = req.userId;
@@ -189,6 +40,7 @@ export const getFolders = AsyncHandler(async (req: Request, res: Response) => {
       {
          $project: {
             name: 1,
+            ownerId: 1,
             createdAt: 1,
             updatedAt: 1,
             creator: {
@@ -198,53 +50,20 @@ export const getFolders = AsyncHandler(async (req: Request, res: Response) => {
       },
    ]);
 
-   if (!folders) {
+   if (folders.length === 0) {
       throw new ErrorHandler({
          statusCode: 404,
-         message: "folders are not found",
+         message: "Folders are not found",
       });
    }
    res.status(200).json(
       new ApiResponse({
          statusCode: 200,
-         message: "folders found successfully",
+         message: "Folders found successfully",
          data: folders,
       }),
    );
 });
-
-export const getFoldersForFiles = AsyncHandler(
-   async (req: Request, res: Response) => {
-      const userId = req.userId;
-
-      if (!userId) {
-         throw new ErrorHandler({
-            statusCode: 400,
-            message: "invalid creator id",
-         });
-      }
-
-      const folders = await FolderModel.find({
-         ownerId: userId,
-      });
-
-      if (!folders || folders.length === 0) {
-         throw new ErrorHandler({
-            statusCode: 200,
-            message:
-               "there are no folders to move the file, please create a folder",
-         });
-      }
-
-      res.status(200).json(
-         new ApiResponse({
-            statusCode: 200,
-            message: "folders found successfully",
-            data: folders,
-         }),
-      );
-   },
-);
 
 export const getFolderFiles = AsyncHandler(
    async (req: Request, res: Response) => {
@@ -254,14 +73,14 @@ export const getFolderFiles = AsyncHandler(
       if (!isValidObjectId(folderId)) {
          throw new ErrorHandler({
             statusCode: 400,
-            message: "invalid folder id",
+            message: "Invalid folder id",
          });
       }
 
       const folderFiles = await FolderModel.aggregate([
          {
             $match: {
-               folderId: new Types.ObjectId(folderId),
+               _id: new Types.ObjectId(folderId),
             },
          },
          {
@@ -330,7 +149,6 @@ export const getFolderFiles = AsyncHandler(
                         ownerId: 1,
                         creator: 1,
                         isLocked: 1,
-                        collaborators: 1,
                      },
                   },
                ],
@@ -347,12 +165,12 @@ export const getFolderFiles = AsyncHandler(
          },
       ]);
 
-      if (!folderFiles) {
-         res.status(200).json(
+      if (folderFiles.length === 0) {
+         res.status(404).json(
             new ApiResponse({
                data: null,
-               statusCode: 200,
-               message: "no files found in this folder",
+               statusCode: 404,
+               message: "No files found in this folder",
             }),
          );
       }
@@ -361,7 +179,142 @@ export const getFolderFiles = AsyncHandler(
          new ApiResponse({
             statusCode: 200,
             data: folderFiles,
-            message: "files found successfully",
+            message: "Files found successfully",
+         }),
+      );
+   },
+);
+
+export const createFolder = AsyncHandler(
+   async (req: Request, res: Response): Promise<void> => {
+      const { folderName, files } = zodParserHelper(
+         createFolderSchema,
+         req.body,
+      );
+      const userId = req.userId;
+
+      const folder = await FolderModel.create({
+         name: folderName,
+         ownerId: userId,
+      });
+
+      if (!folder) {
+         throw new ErrorHandler({
+            statusCode: 500,
+            message: "Folder not created, please try again.",
+         });
+      }
+
+      if (Array.isArray(files) && files.length > 0) {
+         const file = await File.updateMany(
+            {
+               _id: { $in: files },
+            },
+            {
+               folderId: folder._id,
+            },
+         );
+
+         if (file.matchedCount === 0) {
+            await FolderModel.findByIdAndDelete(folder._id);
+
+            throw new ErrorHandler({
+               statusCode: 500,
+               message: "Folder not created, please try again.",
+            });
+         }
+      }
+
+      res.status(201).json(
+         new ApiResponse({
+            statusCode: 201,
+            message: "Folder created successfully",
+            data: folder,
+         }),
+      );
+   },
+);
+
+export const updateFolder = AsyncHandler(
+   async (req: Request, res: Response): Promise<void> => {
+      const userId = req.userId;
+      const { folderId } = req.params;
+      const { folderName } = zodParserHelper(updateFolderSchema, req?.body);
+
+      if (!isValidObjectId(folderId)) {
+         throw new ErrorHandler({
+            statusCode: 400,
+            message: "Invalid folder id",
+         });
+      }
+
+      const updatedFolder = await FolderModel.findOneAndUpdate(
+         {
+            _id: folderId,
+            ownerId: userId,
+         },
+         {
+            $set: {
+               name: folderName,
+            },
+         },
+      );
+
+      if (!updatedFolder) {
+         throw new ErrorHandler({
+            statusCode: 500,
+            message: "Folder not updated, please try again.",
+         });
+      }
+
+      res.status(200).json(
+         new ApiResponse({
+            statusCode: 200,
+            message: "Folder updated successfully",
+         }),
+      );
+   },
+);
+
+export const deleteFolder = AsyncHandler(
+   async (req: Request, res: Response): Promise<void> => {
+      const { folderId } = req.params;
+      const userId = req.userId;
+
+      if (!isValidObjectId(folderId)) {
+         throw new ErrorHandler({
+            statusCode: 400,
+            message: "Invalid folder id",
+         });
+      }
+
+      const folder = await FolderModel.findOneAndDelete({
+         _id: folderId,
+         ownerId: userId,
+      });
+
+      if (!folder) {
+         throw new ErrorHandler({
+            statusCode: 500,
+            message: "Folder not deleted, please try again.",
+         });
+      }
+
+      await File.updateMany(
+         {
+            folderId: folderId,
+         },
+         {
+            $set: {
+               folderId: null,
+            },
+         },
+      );
+
+      res.status(200).json(
+         new ApiResponse({
+            statusCode: 200,
+            message: "Folder deleted successfully",
          }),
       );
    },
@@ -369,21 +322,20 @@ export const getFolderFiles = AsyncHandler(
 
 export const moveFileIntoFolder = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
-      const { folderId } = req.params;
-      const { fileId } = req.body;
+      const { fileId = null, folderId = null } = req.params;
       const userId = req.userId;
 
       if (!isValidObjectId(fileId) || !isValidObjectId(folderId)) {
          throw new ErrorHandler({
             statusCode: 400,
-            message: `invalid ${!isValidObjectId(fileId) ? "file" : "folder"} id`,
+            message: `Invalid ${!isValidObjectId(fileId) ? "file" : "folder"} id`,
          });
       }
 
-      const updatedFile = await File.updateOne(
+      const updatedFile = await File.findOneAndUpdate(
          {
             _id: fileId,
-            creator: userId,
+            ownerId: userId,
          },
          {
             $set: {
@@ -393,18 +345,17 @@ export const moveFileIntoFolder = AsyncHandler(
          { new: true },
       );
 
-      if (updatedFile.matchedCount === 0) {
+      if (updatedFile === null) {
          throw new ErrorHandler({
             statusCode: 403,
-            message: "you are not authorized to move this file.",
+            message: "You are not authorized to move this file.",
          });
       }
 
       res.status(200).json(
          new ApiResponse({
             statusCode: 200,
-            data: updatedFile,
-            message: "file moved successfully",
+            message: "File moved successfully",
          }),
       );
    },

@@ -1,22 +1,38 @@
 import { Request, Response } from "express";
-import { isValidObjectId, Types } from "mongoose";
+import { Error, isValidObjectId, Types } from "mongoose";
 import FileModel from "../models/file.model";
 import Collaborator from "../models/collaborators.model";
-import { FileCreationPayload, FileUpdatingPayload } from "../types/file/file";
 import { AsyncHandler, ApiResponse, ErrorHandler } from "../utils";
 import { CollaboratorAction } from "../types";
+import zodParserHelper from "../types/zod/zodParserHelper";
+import {
+   createFileSchema,
+   deleteFilesSchema,
+   updateFileSchema,
+} from "../types/zod/file.schema";
 
+// UTILS
+const deleteFileWithCollaborators = async (fileId: Types.ObjectId) => {
+   try {
+      await Collaborator.deleteMany({ fileId });
+      await FileModel.findByIdAndDelete(fileId);
+   } catch (error) {
+      const err = error as Error;
+      throw new ErrorHandler({
+         statusCode: 500,
+         message: err?.message || "File not deleted",
+      });
+   }
+};
+
+// CONTROLLERS
 export const createFile = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
-      const { fileName, folderId, description }: FileCreationPayload = req.body;
       const userId = req.userId;
-
-      if (folderId && !isValidObjectId(folderId)) {
-         throw new ErrorHandler({
-            statusCode: 400,
-            message: "Invalid folder id",
-         });
-      }
+      const { fileName, folderId, description } = zodParserHelper(
+         createFileSchema,
+         req.body ?? {},
+      );
 
       const file = await FileModel.create({
          name: fileName,
@@ -67,16 +83,7 @@ export const createFile = AsyncHandler(
 
 export const updateFile = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
-      const { fileId } = req.params;
-      const { fileName, description }: FileUpdatingPayload = req.body;
       const file = req.file;
-
-      if (!fileName && !description) {
-         throw new ErrorHandler({
-            statusCode: 400,
-            message: "File name or description is required",
-         });
-      }
 
       if (!file) {
          throw new ErrorHandler({
@@ -85,14 +92,23 @@ export const updateFile = AsyncHandler(
          });
       }
 
-      const updatedFile = await FileModel.findByIdAndUpdate(
-         fileId,
-         {
-            name: fileName,
-            description,
-         },
-         { new: true },
+      const { fileId } = req.params ?? {};
+      const { fileName, description } = zodParserHelper(
+         updateFileSchema,
+         req.body ?? {},
       );
+
+      if (!isValidObjectId(fileId)) {
+         throw new ErrorHandler({
+            statusCode: 400,
+            message: "Invalid file id: there is no file with this id",
+         });
+      }
+
+      const updatedFile = await FileModel.findByIdAndUpdate(fileId, {
+         name: fileName,
+         description,
+      });
 
       if (!updatedFile) {
          throw new ErrorHandler({
@@ -112,69 +128,33 @@ export const updateFile = AsyncHandler(
 
 export const deleteFile = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
-      const { ids = [] }: { ids: string[] } = req.body;
       const { fileId } = req.params;
-      const ownerId = req.userId;
+      const userId = req.userId;
 
       if (!isValidObjectId(fileId)) {
          throw new ErrorHandler({
-            statusCode: 400,
-            message: "Invalid file id",
+            statusCode: 403,
+            message: "Invalid file id provided",
          });
       }
 
-      const file = await FileModel.findById(fileId).lean();
-      if (!file) {
-         throw new ErrorHandler({
-            statusCode: 400,
-            message: "Invalid file id: file not found with this id",
-         });
-      }
+      const collaborators = await Collaborator.findOne({
+         fileId,
+         userId,
+      });
 
-      if (!Array.isArray(ids) || ids?.length === 0) {
-         if (file.ownerId !== ownerId) {
-            throw new ErrorHandler({
-               statusCode: 400,
-               message: "You are not authorized to delete this file",
-            });
-         }
-      }
-
-      if (ids?.length > 0) {
-         const result = await Collaborator.deleteMany({
-            fileId,
-            userId: {
-               $in: ids,
-            },
-            actions: {
-               $nin: [CollaboratorAction.Owner],
-            },
-         });
-
-         if (result.deletedCount === 0) {
-            throw new ErrorHandler({
-               statusCode: 404,
-               message: "No collaborators found with the provided ids",
-            });
-         }
+      if (collaborators?.actions.includes(CollaboratorAction.Owner)) {
+         await deleteFileWithCollaborators(new Types.ObjectId(fileId));
       } else {
-         const collaborationDelete = await Collaborator.deleteMany({
-            fileId: new Types.ObjectId(fileId),
+         const deleteCollaborator = Collaborator.deleteOne({
+            fileId,
+            userId,
          });
 
-         if (collaborationDelete.deletedCount === 0) {
+         if (!deleteCollaborator) {
             throw new ErrorHandler({
                statusCode: 500,
-               message: "Failed to delete collaborators",
-            });
-         }
-
-         const fileDelete = await FileModel.findByIdAndDelete(fileId);
-
-         if (!fileDelete) {
-            throw new ErrorHandler({
-               statusCode: 500,
-               message: "Failed to delete file",
+               message: "File not deleted",
             });
          }
       }
@@ -188,6 +168,61 @@ export const deleteFile = AsyncHandler(
    },
 );
 
+export const deleteFiles = AsyncHandler(async (req: Request, res: Response) => {
+   const userId = req.userId;
+   const { fileIds } = zodParserHelper(deleteFilesSchema, req.body ?? {});
+
+   const collaborators = await Collaborator.find({
+      fileId: { $in: fileIds },
+      userId: userId,
+   }).lean();
+
+   if (collaborators.length === 0) {
+      throw new ErrorHandler({
+         statusCode: 403,
+         message: "There are no files to delete",
+      });
+   }
+
+   // File delete
+   const deletePromise = collaborators.map((coll) => {
+      const fileId = coll.fileId.toString();
+      const isOwner = (coll.actions as CollaboratorAction[]).includes(
+         CollaboratorAction.Owner,
+      );
+
+      console.log("FileId:", fileId, "IsOwner:", isOwner);
+
+      if (isOwner) {
+         return deleteFileWithCollaborators(new Types.ObjectId(fileId));
+      } else {
+         return Collaborator.findOneAndDelete({
+            fileId,
+            userId: coll.userId,
+         });
+      }
+   });
+
+   const promiseResult = await Promise.allSettled(deletePromise);
+   const failedDeletions = promiseResult.filter(
+      (result) => result.status === "rejected",
+   );
+
+   if (failedDeletions.length > 0) {
+      throw new ErrorHandler({
+         statusCode: 500,
+         message: `${failedDeletions.length} files failed to delete`,
+      });
+   }
+
+   return res.status(200).json(
+      new ApiResponse({
+         statusCode: 200,
+         message: `${fileIds.length} files deleted successfully${failedDeletions.length > 0 ? ` with ${failedDeletions.length} failures` : ""}`,
+      }),
+   );
+});
+
 export const toggleLock = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
       const { fileId } = req.params;
@@ -200,7 +235,7 @@ export const toggleLock = AsyncHandler(
          });
       }
 
-      const updatedFile = await FileModel.updateOne(
+      const updatedFile = await FileModel.findOneAndUpdate(
          { _id: fileId },
          {
             isLocked: !file?.isLocked,
@@ -276,7 +311,7 @@ export const getFile = AsyncHandler(async (req: Request, res: Response) => {
       },
    ]);
 
-   if (!file.length) {
+   if (file.length === 0) {
       res.status(404).json(
          new ErrorHandler({
             statusCode: 404,
@@ -373,9 +408,9 @@ export const getFiles = AsyncHandler(
       ]);
 
       if (!files?.length) {
-         res.status(200).json(
+         res.status(404).json(
             new ApiResponse({
-               statusCode: 200,
+               statusCode: 404,
                data: null,
                message: "No file found",
             }),
