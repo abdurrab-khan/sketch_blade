@@ -8,7 +8,7 @@ import Collaborator from "../models/collaborators.model";
 import { File } from "../types/file/file";
 import { CollaboratorPayload } from "../types/file/collaborator";
 
-const fileOwnershipValidator = AsyncHandler(
+const validateFileOwnership = AsyncHandler(
    async (req: Request, _: Response, next: NextFunction) => {
       const { fileId } = req.params;
       const userId = req.userId;
@@ -24,17 +24,15 @@ const fileOwnershipValidator = AsyncHandler(
 
       if (!file) {
          throw new ErrorHandler({
-            statusCode: 400,
-            message: "file is not found",
+            statusCode: 404,
+            message: "File is not found",
          });
       } else {
          if (file.ownerId.toString() !== userId) {
             const collaborator = await Collaborator.findOne({
                fileId: new Types.ObjectId(fileId),
                userId: userId,
-               actions: {
-                  $in: [CollaboratorAction.Edit],
-               },
+               role: CollaboratorAction.Edit,
             });
 
             if (!collaborator) {
@@ -52,4 +50,4 @@ const fileOwnershipValidator = AsyncHandler(
    },
 );
 
-export default fileOwnershipValidator;
+export default validateFileOwnership;

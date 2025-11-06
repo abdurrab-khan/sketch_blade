@@ -1,7 +1,7 @@
 import zod from "zod";
 import { ErrorHandler } from "../../utils";
 
-const zodParserHelper = <T extends zod.ZodObject, V extends object>(
+const zodParserHelper = <T extends zod.ZodType, V extends unknown>(
    schema: T,
    value: V = {} as V,
 ) => {

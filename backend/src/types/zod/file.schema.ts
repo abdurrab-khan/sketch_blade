@@ -49,3 +49,9 @@ export const deleteFilesSchema = zod.object({
       )
       .min(1, "At least one file ID must be provided"),
 });
+
+export const transferOwnershipSchema = zod.object({
+   userId: zod.string().refine((val) => val.startsWith("user_"), {
+      message: "Invalid user id: there is no user with this id",
+   }),
+});

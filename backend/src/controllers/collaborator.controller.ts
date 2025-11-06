@@ -4,8 +4,13 @@ import { isValidObjectId, Types } from "mongoose";
 import Collaborator from "../models/collaborators.model";
 import { AsyncHandler, ApiResponse, ErrorHandler } from "../utils";
 
-import { CollaboratorAction } from "../types";
-import { CollaboratorPayload } from "../types/file/collaborator";
+import zodParserHelper from "../types/zod/zodParserHelper";
+import {
+   addCollaboratorSchema,
+   removeCollaboratorSchema,
+   updateCollaboratorSchema,
+} from "../types/zod/collaborators.schema";
+import { User } from "../models/user.model";
 
 export const getCollaborators = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
@@ -53,7 +58,7 @@ export const getCollaborators = AsyncHandler(
          {
             $project: {
                user: { $arrayElemAt: ["$user", 0] },
-               actions: 1,
+               role: 1,
             },
          },
       ]);
@@ -77,41 +82,59 @@ export const getCollaborators = AsyncHandler(
 
 export const addCollaborator = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
-      const { collaborators }: { collaborators: CollaboratorPayload[] } =
-         req.body;
       const file = req.file;
+      const collaboratorsData = zodParserHelper(
+         addCollaboratorSchema,
+         req.body ?? {},
+      );
 
       if (!file) {
          throw new ErrorHandler({
             statusCode: 400,
-            message: "User is not authorized to add new collaborators",
+            message: "You are not authorized to add collaborators",
          });
       }
 
-      if (!collaborators || !collaborators.length) {
+      const collaborators = await Promise.all(
+         collaboratorsData.map(async (collaborator) => {
+            const { email, role } = collaborator;
+
+            const user = await User.findOne({ email }).lean();
+
+            if (!user) {
+               throw new ErrorHandler({
+                  statusCode: 400,
+                  message: `User with email ${email} does not exist`,
+               });
+            }
+
+            return {
+               role: role,
+               fileId: file._id,
+               userId: user.clerkId,
+            };
+         }),
+      );
+
+      if (collaborators.length === 0) {
          throw new ErrorHandler({
             statusCode: 400,
-            message: "Collaborators is required",
+            message: "No valid collaborators to add",
          });
       }
 
-      let newCollaborators;
-      if (collaborators.length === 1) {
-         newCollaborators = await Collaborator.create(collaborators[0]);
-      } else {
-         newCollaborators = await Collaborator.insertMany(collaborators);
-      }
+      const createdCollaborators = await Collaborator.insertMany(collaborators);
 
-      if (!newCollaborators) {
+      if (!createdCollaborators || createdCollaborators.length === 0) {
          throw new ErrorHandler({
             statusCode: 500,
-            message: "Failed to add collaborator",
+            message: "Failed to add collaborators",
          });
       }
 
       res.status(200).json(
          new ApiResponse({
-            statusCode: 200,
+            statusCode: 201,
             message: "Collaborators are added successfully",
          }),
       );
@@ -120,7 +143,10 @@ export const addCollaborator = AsyncHandler(
 
 export const removeCollaborator = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
-      const { collaboratorIds }: { collaboratorIds: string[] } = req.body;
+      const { collaboratorId } = zodParserHelper(
+         removeCollaboratorSchema,
+         req.body ?? {},
+      );
       const file = req.file;
 
       if (!file) {
@@ -130,33 +156,21 @@ export const removeCollaborator = AsyncHandler(
          });
       }
 
-      if (!Array.isArray(collaboratorIds) || !collaboratorIds?.length) {
-         throw new ErrorHandler({
-            statusCode: 400,
-            message: "CollaboratorIds is required to remove collaborators",
-         });
-      }
-
-      let updatedFile;
-      if (collaboratorIds.length === 1) {
-         updatedFile = await Collaborator.findByIdAndDelete(collaboratorIds[0]);
-      } else {
-         updatedFile = await Collaborator.deleteMany({
-            userId: { $in: collaboratorIds },
-         });
-      }
+      const updatedFile = await Collaborator.findOneAndDelete({
+         fileId: file._id,
+         _id: new Types.ObjectId(collaboratorId),
+      });
 
       if (!updatedFile) {
          throw new ErrorHandler({
             statusCode: 500,
-            message: "Failed to remove collaborators",
+            message: "Failed to remove collaborator",
          });
       }
 
       res.status(200).json(
          new ApiResponse({
             statusCode: 200,
-            data: updatedFile,
             message: "Collaborators are removed successfully",
          }),
       );
@@ -165,8 +179,10 @@ export const removeCollaborator = AsyncHandler(
 
 export const changeCollaboratorPermission = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
-      const { actions }: { actions: CollaboratorAction[] } = req.body;
-      const userId = req.userId;
+      const { collaboratorId, role } = zodParserHelper(
+         updateCollaboratorSchema,
+         req.body ?? {},
+      );
       const file = req.file;
 
       if (!file) {
@@ -176,21 +192,14 @@ export const changeCollaboratorPermission = AsyncHandler(
          });
       }
 
-      if (!Array.isArray(actions) || !actions.length) {
-         throw new ErrorHandler({
-            statusCode: 400,
-            message: "Collaborator is required",
-         });
-      }
-
       const updatedCollaborator = await Collaborator.findOneAndUpdate(
          {
             fileId: file._id,
-            userId,
+            _id: new Types.ObjectId(collaboratorId),
          },
          {
             $set: {
-               actions: actions,
+               role,
             },
          },
       );
@@ -205,7 +214,7 @@ export const changeCollaboratorPermission = AsyncHandler(
       res.status(200).json(
          new ApiResponse({
             statusCode: 200,
-            message: "Collaborator permission changed successfully",
+            message: `Collaborator role is changed to ${role} successfully.`,
          }),
       );
    },

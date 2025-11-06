@@ -11,7 +11,7 @@ const createFolderSchema = zod.object({
          zod
             .string()
             .refine((id) => isValidObjectId(id), {
-               message: "Invalid file id: there is no file with this id",
+               error: "Invalid file id: there is no file with this id",
             })
             .transform((id) => new Types.ObjectId(id)),
       )

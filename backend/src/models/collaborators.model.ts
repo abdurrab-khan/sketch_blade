@@ -4,7 +4,7 @@ import { CollaboratorAction } from "../types";
 export interface ICollaborator extends Document {
    fileId: Schema.Types.ObjectId;
    userId: string;
-   actions: CollaboratorAction[];
+   role: CollaboratorAction;
 }
 
 const collaboratorSchema = new Schema<ICollaborator>({
@@ -17,21 +17,25 @@ const collaboratorSchema = new Schema<ICollaborator>({
       type: String,
       ref: "User",
       required: true,
-   },
-   actions: [
-      {
-         type: String,
-         enum: Object.values(CollaboratorAction),
-         required: true,
-         validate: {
-            validator: function (value: CollaboratorAction) {
-               return Object.values(CollaboratorAction).includes(value);
-            },
-            message: (props: { value: CollaboratorAction }) =>
-               `${props.value} is not a valid action`,
+      validate: {
+         validator: async function (v: string) {
+            const existingCollaborator = await this.model(
+               "Collaborator",
+            ).findOne({
+               fileId: this.fileId,
+               userId: v,
+            });
+            console.log("Validator check:", v, existingCollaborator);
+            return existingCollaborator === null;
          },
+         message: () => "User is already a collaborator for this file",
       },
-   ],
+   },
+   role: {
+      type: String,
+      enum: Object.values(CollaboratorAction),
+      required: true,
+   },
 });
 
 const Collaborator = model<ICollaborator>("Collaborator", collaboratorSchema);

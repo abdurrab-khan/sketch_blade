@@ -30,7 +30,7 @@ class DatabaseConnection {
                return Math.min(retries * 100, 3000);
             },
          },
-         password: "Abdul1234",
+         password: process.env.REDIS_PASSWORD || "Abdul1234",
       });
    }
 

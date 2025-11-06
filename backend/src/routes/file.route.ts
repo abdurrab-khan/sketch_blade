@@ -7,9 +7,10 @@ import {
    createFile,
    toggleLock,
    updateFile,
+   transferFileOwnership,
 } from "../controllers/file.controller";
 import userMiddleware from "../middlewares/auth.middleware";
-import fileOwnershipValidator from "../middlewares/file.middleware";
+import validateFileOwnership from "../middlewares/file.middleware";
 
 const router = Router();
 
@@ -25,9 +26,11 @@ router.route("/").post(createFile).get(getFiles).delete(deleteFiles);
 router
    .route("/:fileId")
    .get(getFile)
-   .put(fileOwnershipValidator, updateFile)
+   .put(validateFileOwnership, updateFile)
    .delete(deleteFile);
 
-router.route("/toggle-lock/:fileId").put(fileOwnershipValidator, toggleLock);
+router.route("/toggle-lock/:fileId").put(validateFileOwnership, toggleLock);
+
+router.route("/transfer-ownership/:fileId").post(transferFileOwnership);
 
 export default router;

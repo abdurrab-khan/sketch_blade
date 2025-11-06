@@ -7,7 +7,7 @@ services:
       - "6379:6379"
       - "8001:8001"
     environment:
-      REDIS_ARGS: --requirepass Abdul1234
+      REDIS_ARGS: --requirepass ${REDIS_PASSWORD}
     volumes:
       - ./dockerDB/redis-data:/data
 
@@ -18,8 +18,8 @@ services:
     ports:
       - "27013:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: excalidraw8850
-      MONGO_INITDB_ROOT_PASSWORD: Abdul1234
-      MONGO_INITDB_DATABASE: excalidraw
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - ./dockerDB/mongo-data:/data/db
