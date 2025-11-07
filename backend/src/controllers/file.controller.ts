@@ -11,6 +11,7 @@ import {
    transferOwnershipSchema,
    updateFileSchema,
 } from "../types/zod/file.schema";
+import { User } from "../models/user.model";
 
 // UTILS
 const deleteFileWithCollaborators = async (fileId: Types.ObjectId) => {
@@ -137,8 +138,11 @@ export const getFiles = AsyncHandler(
                   {
                      $project: {
                         _id: 0,
-                        fullName: { $concat: ["$firstName", " ", "$lastName"] },
+                        fullName: {
+                           $concat: ["$firstName", " ", "$lastName"],
+                        },
                         profileUrl: 1,
+                        email: 1,
                      },
                   },
                ],
@@ -166,12 +170,16 @@ export const getFiles = AsyncHandler(
                isLocked: 1,
                updatedAt: 1,
                createdAt: 1,
-               folder: { $arrayElemAt: ["$folder", 0] },
-               creator: { $arrayElemAt: ["$creator", 0] },
+               folder: {
+                  $arrayElemAt: ["$folder", 0],
+               },
+               creator: {
+                  $arrayElemAt: ["$creator", 0],
+               },
             },
          },
          {
-            $sort: { updatedAt: -1 }, // Sort by most recently updated
+            $sort: { createdAt: -1 }, // Sort by most recently updated
          },
       ]);
 
@@ -431,6 +439,10 @@ export const transferFileOwnership = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
       const { fileId } = req.params;
       const userId = req.userId;
+      const { userId: newOwnerId } = zodParserHelper(
+         transferOwnershipSchema,
+         req.body ?? {},
+      );
 
       const file = await FileModel.findById(fileId).lean();
       if (!file || file?.ownerId.toString() !== userId) {
@@ -440,10 +452,35 @@ export const transferFileOwnership = AsyncHandler(
          });
       }
 
-      // Transfer ownership logic goes here
-      const { userId: newOwnerId } = zodParserHelper(
-         transferOwnershipSchema,
-         req.body ?? {},
+      if (file.ownerId === newOwnerId) {
+         throw new ErrorHandler({
+            statusCode: 400,
+            message: "New owner id cannot be the same as current owner id",
+         });
+      }
+
+      const user = await User.findOne({ clerkId: newOwnerId }).lean();
+      if (!user) {
+         throw new ErrorHandler({
+            statusCode: 404,
+            message: "User not found",
+         });
+      }
+
+      // Update file ownerId
+      await FileModel.findByIdAndUpdate(fileId, {
+         $set: { ownerId: newOwnerId },
+      });
+
+      // Update collaborators
+      await Collaborator.updateMany(
+         { fileId: file._id, userId: newOwnerId },
+         { $set: { role: CollaboratorAction.Owner } },
+      );
+
+      await Collaborator.updateMany(
+         { fileId: file._id, userId: userId },
+         { $set: { role: CollaboratorAction.Edit } },
       );
 
       res.status(200).json(

@@ -57,7 +57,9 @@ export const getCollaborators = AsyncHandler(
          },
          {
             $project: {
-               user: { $arrayElemAt: ["$user", 0] },
+               user: { 
+                  $arrayElemAt: ["$user", 0] 
+               },
                role: 1,
             },
          },

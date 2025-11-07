@@ -41,7 +41,7 @@ export const deleteFilesSchema = zod.object({
    fileIds: zod
       .array(
          zod
-            .string()
+            .string("File ID must be a string")
             .refine((val) => isValidObjectId(val), {
                message: "Invalid file id: there is no file with this id",
             })
@@ -51,7 +51,9 @@ export const deleteFilesSchema = zod.object({
 });
 
 export const transferOwnershipSchema = zod.object({
-   userId: zod.string().refine((val) => val.startsWith("user_"), {
-      message: "Invalid user id: there is no user with this id",
-   }),
+   userId: zod
+      .string("User ID must be a string")
+      .refine((val) => val.startsWith("user_"), {
+         message: "Invalid user id: there is no user with this id",
+      }),
 });

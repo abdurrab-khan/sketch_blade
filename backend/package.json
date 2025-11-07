@@ -4,7 +4,7 @@
    "main": "src/index.ts",
    "scripts": {
       "build": "rimraf dist && npx tsc",
-      "start": "ts-node src/server.ts",
+      "start": "ts-node dist/index.js",
       "dev": "concurrently \"tsc -w\"   \"nodemon src/index.ts\"",
       "format": "prettier --write \"**/*.{js,ts,css,html}\"",
       "preinstall": "npx only-allow pnpm"

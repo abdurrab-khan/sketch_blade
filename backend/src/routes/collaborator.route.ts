@@ -10,12 +10,12 @@ import validateFileOwnership from "../middlewares/file.middleware";
 
 const router = Router();
 
-// router.use(userMiddleware);
+router.use(userMiddleware);
 
-router.use((req, _, next) => {
-   req.userId = "user_2y7ftsG6emsUYX9rLB4NcZt7EFu"; // TODO Temporary hardcoded user ID for testing
-   next();
-});
+// router.use((req, _, next) => {
+//    req.userId = "user_2y7ftsG6emsUYX9rLB4NcZt7EFu"; // TODO Temporary hardcoded user ID for testing
+//    next();
+// });
 
 router
    .route("/:fileId")
