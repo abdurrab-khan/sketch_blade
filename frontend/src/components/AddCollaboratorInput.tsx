@@ -31,7 +31,7 @@ import {
   CollaboratorActions,
   CollaboratorData,
   ListCollaborator,
-} from "../types/user.ts";
+} from "../types/collaborator.ts";
 import { useToast } from "@/hooks/use-toast.ts";
 
 interface AddCollaboratorInputProps {

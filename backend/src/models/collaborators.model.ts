@@ -1,5 +1,5 @@
 import { Schema, model, Document } from "mongoose";
-import { CollaboratorAction } from "../types";
+import { CollaboratorAction } from "@/types";
 
 export interface ICollaborator extends Document {
    fileId: Schema.Types.ObjectId;

@@ -3,7 +3,6 @@ import { Error, isValidObjectId, Types } from "mongoose";
 import FileModel from "../models/file.model";
 import Collaborator from "../models/collaborators.model";
 import { AsyncHandler, ApiResponse, ErrorHandler } from "../utils";
-import { CollaboratorAction } from "../types";
 import zodParserHelper from "../types/zod/zodParserHelper";
 import {
    createFileSchema,
@@ -12,6 +11,7 @@ import {
    updateFileSchema,
 } from "../types/zod/file.schema";
 import { User } from "../models/user.model";
+import { CollaboratorAction } from "../types";
 
 // UTILS
 const deleteFileWithCollaborators = async (fileId: Types.ObjectId) => {
@@ -183,22 +183,14 @@ export const getFiles = AsyncHandler(
          },
       ]);
 
-      if (!files?.length) {
-         res.status(404).json(
-            new ApiResponse({
-               statusCode: 404,
-               data: null,
-               message: "No file found",
-            }),
-         );
-         return;
-      }
-
       res.status(200).json(
          new ApiResponse({
             statusCode: 200,
             data: files,
-            message: "Files found successfully",
+            message:
+               files?.length === 0
+                  ? "No file found"
+                  : "Files fetched successfully",
          }),
       );
    },

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { verifyToken } from "@clerk/express";
-import AsyncHandler from "../utils/AsyncHandler";
-import ApiResponse from "../utils/ApiResponse";
+import AsyncHandler from "@/utils/AsyncHandler";
+import ApiResponse from "@/utils/ApiResponse";
 
 const userMiddleware = AsyncHandler(
    async (req: Request, res: Response, next: NextFunction) => {

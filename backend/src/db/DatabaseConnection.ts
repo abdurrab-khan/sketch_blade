@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { MONGO_NAME } from "../lib/constants";
+import { MONGO_NAME } from "@/lib/constants";
 import { createClient } from "redis";
 
 class DatabaseConnection {

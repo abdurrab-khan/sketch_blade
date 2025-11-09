@@ -50,16 +50,13 @@ export const getFolders = AsyncHandler(async (req: Request, res: Response) => {
       },
    ]);
 
-   if (folders.length === 0) {
-      throw new ErrorHandler({
-         statusCode: 404,
-         message: "Folders are not found",
-      });
-   }
    res.status(200).json(
       new ApiResponse({
          statusCode: 200,
-         message: "Folders found successfully",
+         message:
+            folders.length === 0
+               ? "No folders found"
+               : "Folders found successfully",
          data: folders,
       }),
    );

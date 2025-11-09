@@ -24,7 +24,10 @@ function ActionDropMenu({ _id, children, type }: ActionDropMenuProps) {
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger
+        title="Actions"
+        asChild
+      >
         <Button variant="none" className={"transition-all hover:text-tertiary"}>
           <BsThreeDots />
         </Button>

@@ -1,12 +1,12 @@
 import { NextFunction, Response, Request } from "express";
-import AsyncHandler from "../utils/AsyncHandler";
+import AsyncHandler from "@/utils/AsyncHandler";
 import { isValidObjectId, Types } from "mongoose";
-import ErrorHandler from "../utils/ErrorHandler";
-import FileModel from "../models/file.model";
-import { CollaboratorAction } from "../types";
-import Collaborator from "../models/collaborators.model";
-import { File } from "../types/file/file";
-import { CollaboratorPayload } from "../types/file/collaborator";
+import ErrorHandler from "@/utils/ErrorHandler";
+import FileModel from "@/models/file.model";
+import { CollaboratorAction } from "@/types";
+import Collaborator from "@/models/collaborators.model";
+import { File } from "@/types/file/file";
+import { CollaboratorPayload } from "@/types/file/collaborator";
 
 const validateFileOwnership = AsyncHandler(
    async (req: Request, _: Response, next: NextFunction) => {

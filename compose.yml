@@ -7,9 +7,15 @@ services:
       - "6379:6379"
       - "8001:8001"
     environment:
-      REDIS_ARGS: --requirepass ${REDIS_PASSWORD}
+      REDIS_ARGS: --requirepass ${REDIS_PASSWORD:?"ERROR:" Redis password is required}
     volumes:
       - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
 
   mongo-db:
     container_name: mongo-db
@@ -18,11 +24,17 @@ services:
     ports:
       - "27013:27017"
     environment:
-      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE:?"ERROR:" Database name is required}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME:?"ERROR:" Root username is required}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD:?"ERROR:" Root password is required}
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping').ok()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
 
   ngrok:
     container_name: ngrok-webhook
@@ -31,7 +43,47 @@ services:
       - "http"
       - "https://aware-wanted-puma.ngrok-free.app:8080"
     environment:
-      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:?"ERROR:" Ngrok authtoken is required}
+
+  api:
+    container_name: sketch-blade-api
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        - PORT=${PORT:?"ERROR:" Port is required}
+        - MONGO_URI=${MONGO_URI}
+        - CLERK_PUBLIC_KEY=${CLERK_PUBLIC_KEY}
+        - CLERK_SIGNING_SECRET=${CLERK_SIGNING_SECRET}
+        - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
+        - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+        - REDIS_HOST=${REDIS_HOST}
+        - REDIS_PORT=${REDIS_PORT}
+        - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - 8080:8080
+    depends_on:
+      mongo-db:
+        condition: service_healthy
+        required: true
+      redis-db:
+        condition: service_healthy
+        required: true
+      ngrok:
+        condition: service_started
+    develop:
+      watch:
+        - path: ./backend/src
+          action: sync
+          target: /home/excalidraw-api
+          ignore:
+            - node_modules
+            - .git
+            - dist
+            - build
+        - path: ./backend/package.json
+          action: rebuild
+          target: /home/excalidraw-api/package.json
 
 volumes:
   redis-data:

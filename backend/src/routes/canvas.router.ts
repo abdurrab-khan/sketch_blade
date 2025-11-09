@@ -3,8 +3,8 @@ import {
    createCanvasState,
    deleteCanvasState,
    updateCanvasState,
-} from "../controllers/canvas.controller";
-import userMiddleware from "../middlewares/auth.middleware";
+} from "@/controllers/canvas.controller";
+import userMiddleware from "@/middlewares/auth.middleware";
 
 const router = Router();
 

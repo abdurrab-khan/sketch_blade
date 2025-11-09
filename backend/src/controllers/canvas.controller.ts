@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import AsyncHandler from "../utils/AsyncHandler";
+import AsyncHandler from "@/utils/AsyncHandler";
 
 export const updateCanvasState = AsyncHandler(
    async (req: Request, res: Response) => {},

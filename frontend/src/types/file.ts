@@ -1,4 +1,5 @@
-import { CreatorDetails, ActiveCollaborators, CollaboratorData } from "./user";
+import { ActiveCollaborators, CollaboratorData } from "./collaborator.ts";
+import { CreatorDetails } from "./user.ts";
 
 export interface File {
   _id: string;

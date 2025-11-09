@@ -1,62 +1,14 @@
-import { useState } from "react";
-import { ColumnDef, Column } from "@tanstack/react-table";
-import { Checkbox } from "../../ui/checkbox.tsx";
-import { ArrowUpDown, Move } from "lucide-react";
-import { Button } from "../../ui/button.tsx";
-import ProfileImg from "../../ProfileImg.tsx";
 import { Link } from "react-router";
-import ActionDropMenu from "../../dialogs/ActionDropMenu.tsx";
-import { DropdownMenuItem } from "../../ui/dropdown-menu.tsx";
-import axios, { AxiosResponse } from "axios";
-import DeleteDialog from "../../dialogs/DeleteDialog.tsx";
-import useMutate from "../../../hooks/useMutate.ts";
-import { FileCreateDialog } from "../../dialogs/FileCreateDialog.tsx";
-import MoveFileDialog from "../../dialogs/MoveFileDialog.tsx";
-import { FaEdit } from "react-icons/fa";
-import { FileDetails } from "@/types/file.ts";
-import { getFormattedTime } from "@/utils/AppUtils.ts";
-import { ActiveCollaborators as ActiveCollaboratorsType } from "@/types/user.ts";
+import { File } from "@/types/file.ts";
+import ShowDate from "./rows/DisplayDate.tsx"
+import FileAction from "./rows/FileAction.tsx";
+import { ColumnDef } from "@tanstack/react-table";
+import { Checkbox } from "@/components/ui/checkbox.tsx";
+import SortableHeader from "./rows/SortableHeader.tsx";
+import ProfileImg from "@/components/ProfileImg.tsx";
+import ActiveCollaborators from "./rows/ActiveCollaborators.tsx";
 
-type ColumnType = Column<FileDetails>;
-
-const createSortableHeader = (label: string) => {
-  return ({ column }: { column: ColumnType }) => (
-    <div className={"w-full"}>
-      <Button
-        variant="none"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="mx-auto flex items-center gap-1"
-      >
-        {label}
-        <ArrowUpDown className="h-4 w-4" />
-      </Button>
-    </div>
-  );
-};
-
-const TimeDisplay = ({ value }: { value: string | null }) => (
-  <div className="capitalize">{value ? getFormattedTime(value) : "-"}</div>
-);
-
-const ActiveCollaborators = ({ collaborators }: { collaborators: ActiveCollaboratorsType[] }) => {
-  if (!collaborators?.length) return null;
-
-  return (
-    <div className="flex -space-x-4">
-      {collaborators.slice(0, 3).map((collaborator, index) => (
-        <div
-          key={collaborator.fullName || index}
-          className="relative overflow-hidden rounded-full"
-          style={{ zIndex: 3 - index }}
-        >
-          <ProfileImg profileUrl={collaborator.profileUrl} fullName={collaborator.fullName} />
-        </div>
-      ))}
-    </div>
-  );
-};
-
-export const fileColumns: ColumnDef<FileDetails>[] = [
+export const fileColumns: ColumnDef<File>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -83,7 +35,7 @@ export const fileColumns: ColumnDef<FileDetails>[] = [
   {
     id: "name",
     accessorKey: "file_name",
-    header: createSortableHeader("NAME"),
+    header: SortableHeader<File>("NAME"),
     cell: ({ row }) => (
       <span className={"transition-all hover:text-tertiary"}>
         <Link to={`/file/${row.original._id}`}>{row.original.name}</Link>
@@ -92,20 +44,22 @@ export const fileColumns: ColumnDef<FileDetails>[] = [
   },
   {
     accessorKey: "folder",
-    header: createSortableHeader("LOCATION"),
+    header: SortableHeader<File>("LOCATION"),
     cell: ({ row }) => (
-      <>{row.original.folder ? <span>{row.original.folder?.name}</span> : <>-</>}</>
+      <div className="empty:bg-yellow-500 size-full">
+        {row.original.folder ? <span>{row.original.folder?.name}</span> : null}
+      </div>
     ),
   },
   {
     accessorKey: "createdAt",
-    header: createSortableHeader("CREATED"),
-    cell: ({ row }) => <TimeDisplay value={row.getValue("createdAt")} />,
+    header: SortableHeader<File>("CREATED"),
+    cell: ({ row }) => <ShowDate value={row.getValue("createdAt")} />,
   },
   {
     accessorKey: "updatedAt",
-    header: createSortableHeader("UPDATED"),
-    cell: ({ row }) => <TimeDisplay value={row.getValue("updatedAt")} />,
+    header: SortableHeader<File>("UPDATED"),
+    cell: ({ row }) => <ShowDate value={row.getValue("updatedAt")} />,
   },
   {
     accessorKey: "active_collaborators",
@@ -132,41 +86,6 @@ export const fileColumns: ColumnDef<FileDetails>[] = [
   {
     accessorKey: "_id",
     header: "ACTIONS",
-    cell: ({ row }) => {
-      const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-      const mutate = useMutate({
-        isShowToast: true,
-        options: { queryKey: ["getFiles"] },
-        finallyFn: () => setDeleteDialogOpen(false),
-      });
-
-      const handleDeleteFile = () => {
-        mutate.mutate({ uri: `/file/${row.original._id}`, method: "delete" });
-      };
-
-      return (
-        <ActionDropMenu _id={row.original._id} type={"file"}>
-          <FileCreateDialog _id={row.original._id} fileData={row.original}>
-            <DropdownMenuItem onSelect={(event) => event.preventDefault()} className={"w-full"}>
-              <FaEdit className="h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-          </FileCreateDialog>
-          <DeleteDialog
-            isOpen={deleteDialogOpen}
-            handleDelete={handleDeleteFile}
-            setOpen={setDeleteDialogOpen}
-            isLoading={mutate?.isPending}
-          />
-          <MoveFileDialog _id={row.original._id} existingFolderId={row.original.folder?._id}>
-            <DropdownMenuItem onSelect={(event) => event.preventDefault()} className={"w-full"}>
-              <Move className="h-4 w-4" />
-              Move File
-            </DropdownMenuItem>
-          </MoveFileDialog>
-        </ActionDropMenu>
-      );
-    },
+    cell: ({ row }) => <FileAction row={row} />
   },
 ];

@@ -29,13 +29,13 @@ app.use(
 );
 
 // Routes
-import svixRouter from "./routes/svix.route";
-import fileRouter from "./routes/file.route";
-import collaboratorRouter from "./routes/collaborator.route";
-import folderRouter from "./routes/folder.route";
+import svixRouter from "@/routes/svix.route";
+import fileRouter from "@/routes/file.route";
+import collaboratorRouter from "@/routes/collaborator.route";
+import folderRouter from "@/routes/folder.route";
 import ErrorMiddleware from "./middlewares/error.middleware";
-import canvasRouter from "./routes/canvas.router";
-import userRouter from "./routes/user.route";
+import canvasRouter from "@/routes/canvas.router";
+import userRouter from "@/routes/user.route";
 
 const COMMON_ROUTE = "/api/v1/";
 

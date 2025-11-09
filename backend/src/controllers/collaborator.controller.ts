@@ -23,7 +23,7 @@ export const getCollaborators = AsyncHandler(
          });
       }
 
-      const findFileCollaborators = await Collaborator.aggregate([
+      const fileCollaborators = await Collaborator.aggregate([
          {
             $match: {
                fileId: new Types.ObjectId(fileId),
@@ -57,26 +57,22 @@ export const getCollaborators = AsyncHandler(
          },
          {
             $project: {
-               user: { 
-                  $arrayElemAt: ["$user", 0] 
+               user: {
+                  $arrayElemAt: ["$user", 0],
                },
                role: 1,
             },
          },
       ]);
 
-      if (!findFileCollaborators.length) {
-         throw new ErrorHandler({
-            statusCode: 404,
-            message: "Collaborators are not found",
-         });
-      }
-
       res.status(200).json(
          new ApiResponse({
             statusCode: 200,
-            data: findFileCollaborators,
-            message: "Collaborators are found successfully.",
+            data: fileCollaborators,
+            message:
+               fileCollaborators.length === 0
+                  ? "No collaborators found"
+                  : "Collaborators fetched successfully",
          }),
       );
    },

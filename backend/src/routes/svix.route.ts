@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
 import bodyParser from "body-parser";
-import { svixController } from "../controllers/svix.controller";
+import { svixController } from "@/controllers/svix.controller";
 
 const svixRouter = Router();
 
