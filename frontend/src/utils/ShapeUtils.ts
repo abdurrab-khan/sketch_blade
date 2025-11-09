@@ -13,11 +13,7 @@ import {
   ShapeStyles,
   ToolType,
 } from "../types/shapes";
-import {
-  ArrowSupportedShapes as ShapesThatSupportArrow,
-  MAX_ARROW_LIMIT,
-  ArrowSupportedShapes as ArrowSupportedShapeList,
-} from "../lib/constant";
+import { ArrowSupportedShapes as ShapesThatSupportArrow, MAX_ARROW_LIMIT } from "../lib/constant";
 import {
   calculatePointDistance,
   filterArrowProps,

@@ -25,6 +25,8 @@ export const shapeStyleProperties: ShapeStyle = {
   ellipse: {
     x: 0,
     y: 0,
+    radiusX: 0,
+    radiusY: 0,
     height: 0,
     width: 0,
     rotation: 0,

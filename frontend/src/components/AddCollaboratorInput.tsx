@@ -1,4 +1,4 @@
-import React, { startTransition, useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import React, { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -116,7 +116,6 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
     setCollaborators("collaborators", collaborators.concat(collaboratorData)); // Concat previous and new collaborators
 
     setListColl([]);
-    setInputSearch("");
   };
 
   const handleChangeRole = (_id: string, role: CollaboratorActions) => {

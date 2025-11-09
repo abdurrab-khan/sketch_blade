@@ -9,10 +9,10 @@ interface EditFileProps {
   fileName: string;
 }
 
-const EditFile: React.FC<EditFileProps> = ({ fileId, fileName = "Untitled" }) => {
+const EditFile: React.FC<EditFileProps> = ({ fileName = "Untitled" }) => {
   const [inputText, setInputText] = useState(fileName);
   const [isEditable, setIsEditable] = useState(false);
-  const input = useRef(null);
+  const input = useRef<HTMLInputElement | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = () => {

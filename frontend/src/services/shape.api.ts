@@ -1,11 +1,11 @@
 import { LOCALSTORAGE_KEY } from "@/lib/constant";
-import { Shape } from "@/types/shapes";
+import { Shapes } from "@/types/shapes";
 
-const setInLocalStorage = (key: string, value: Shape | Shape[]) => {
+const setInLocalStorage = (key: string, value: Shapes | Shapes[]) => {
   localStorage.setItem(key, JSON.stringify(value));
 };
 
-export const getAllShapes = (): Promise<Shape[]> => {
+export const getAllShapes = (): Promise<Shapes[]> => {
   const shapes = JSON.parse(localStorage.getItem(LOCALSTORAGE_KEY) ?? "[]");
 
   return shapes;
@@ -13,13 +13,13 @@ export const getAllShapes = (): Promise<Shape[]> => {
 
 // export const getShape = (id: string): Promise<Shape> => {};
 
-export const insertNewShape = async (shape: Shape) => {
+export const insertNewShape = async (shape: Shapes) => {
   const prevShapes = await getAllShapes();
 
   setInLocalStorage(LOCALSTORAGE_KEY, [...prevShapes, shape]);
 };
 
-export const updateShapes = async (ids: string[], props: Partial<Shape>): Promise<void> => {
+export const updateShapes = async (ids: string[], props: Partial<Shapes>): Promise<void> => {
   const prevShapes = await getAllShapes();
 
   const updatedShapeProps = prevShapes.map((s) => {
@@ -32,7 +32,7 @@ export const updateShapes = async (ids: string[], props: Partial<Shape>): Promis
     return s;
   });
 
-  setInLocalStorage(LOCALSTORAGE_KEY, updatedShapeProps as Shape[]);
+  setInLocalStorage(LOCALSTORAGE_KEY, updatedShapeProps as Shapes[]);
 };
 
 export const deleteShapesAPI = async (ids: string[]) => {

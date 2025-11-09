@@ -13,12 +13,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { FileDetails } from "../../types/file.ts";
+import { File } from "@/types/file.ts";
 
 interface FileEditDialogProps {
   _id: string;
   children: React.ReactNode;
-  fileData: FileDetails;
+  fileData: File;
 }
 
 const formSchema = z.object({

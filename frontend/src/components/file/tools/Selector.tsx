@@ -62,40 +62,40 @@ const Selector: React.FC<SelectorProps> = ({ stageRef, trRef, isHovered, setIsHo
   );
 
   // <===================> Handle Mouse Events <========================>
-  const handleShapeSelectionByClick = useCallback(
-    (e: KonvaEventObject<MouseEvent>) => {
-      const tr = trRef.current;
-      if (!tr || e.target.nodeType !== "Shape") return;
+  // const handleShapeSelectionByClick = useCallback(
+  //   (e: KonvaEventObject<MouseEvent>) => {
+  //     const tr = trRef.current;
+  //     if (!tr || e.target.nodeType !== "Shape") return;
 
-      const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
-      const isSelected = tr.nodes().indexOf(e.target) >= 0;
+  //     const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
+  //     const isSelected = tr.nodes().indexOf(e.target) >= 0;
 
-      if (!metaPressed) {
-        tr.nodes([e.target]);
-      } else {
-        let nodes = [];
+  //     if (!metaPressed) {
+  //       tr.nodes([e.target]);
+  //     } else {
+  //       let nodes = [];
 
-        if (isSelected) {
-          nodes = tr.nodes().slice();
-          nodes.splice(nodes.indexOf(e.target), 1);
-        } else {
-          nodes = tr.nodes().slice();
-          nodes.push(e.target);
-        }
+  //       if (isSelected) {
+  //         nodes = tr.nodes().slice();
+  //         nodes.splice(nodes.indexOf(e.target), 1);
+  //       } else {
+  //         nodes = tr.nodes().slice();
+  //         nodes.push(e.target);
+  //       }
 
-        tr.nodes(nodes);
-      }
+  //       tr.nodes(nodes);
+  //     }
 
-      if (Array.isArray(tr.nodes()) && tr.nodes().length > 0) {
-        const nodesAttr = tr.nodes().map((shape) => shape.attrs);
-        const ids = nodesAttr.map((attr) => attr.id);
+  //     if (Array.isArray(tr.nodes()) && tr.nodes().length > 0) {
+  //       const nodesAttr = tr.nodes().map((shape) => shape.attrs);
+  //       const ids = nodesAttr.map((attr) => attr.id);
 
-        dispatch(changeToolBarProperties(nodesAttr));
-        dispatch(handleSelectedIds({ _id: ids, purpose: "FOR_EDITING" }));
-      }
-    },
-    [dispatch, trRef],
-  );
+  //       dispatch(changeToolBarProperties(nodesAttr));
+  //       dispatch(handleSelectedIds({ _id: ids, purpose: "FOR_EDITING" }));
+  //     }
+  //   },
+  //   [dispatch, trRef],
+  // );
 
   const handleMouseDown = useCallback(
     (e: KonvaEventObject<MouseEvent, Stage>) => {

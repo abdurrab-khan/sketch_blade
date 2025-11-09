@@ -4,27 +4,11 @@ import { ToggleGroup, ToggleGroupItem } from "../../ui/toggle-group.tsx";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store.ts";
 import { updateToolBarProperties, updateExistingShapes } from "../../../redux/slices/appSlice.ts";
-import { AllToolBarPropertiesKeys } from "@/types/tools/common.ts";
-
-interface ContainerProps {
-  children: React.ReactNode;
-  label: string;
-}
+import { CombineShapeStyle } from "@/types/shapes/style-properties.ts";
 
 interface MainToggleGroup {
-  toolKey: AllToolBarPropertiesKeys;
+  toolKey: keyof CombineShapeStyle;
 }
-
-const Container: React.FC<ContainerProps> = ({ children, label }) => {
-  return (
-    <div className={"flex flex-col gap-y-2"}>
-      <span>
-        <p className={"text-xs font-medium"}>{label}</p>
-      </span>
-      <div className={"flex flex-wrap gap-2"}>{children}</div>
-    </div>
-  );
-};
 
 const ToolItem = ({ propsValue }: { propsValue: IToolBarPropertiesValue | string }) => {
   const value = typeof propsValue === "string" ? propsValue : propsValue.value;
@@ -43,7 +27,7 @@ const ToolItem = ({ propsValue }: { propsValue: IToolBarPropertiesValue | string
 };
 
 const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
-  const selector = useSelector((state: RootState) => state.app.toolBarProperties);
+  const selector = useSelector((state: RootState) => state.app.shapeStyles);
   const selectedShapeId = useSelector((state: RootState) => state.app.selectedShapesId?._id);
 
   const dispatch = useDispatch();
@@ -124,30 +108,35 @@ const AllActions: React.FC<MainToggleGroup> = ({ toolKey }) => {
   }, [toolKey]);
 
   return (
-    <Container label={label}>
-      {toolKey === "opacity" || toolKey === "eraserRadius" ? (
-        <input
-          type="range"
-          className={"w-full"}
-          value={(selector ?? {})[toolKey] ?? 0}
-          min={toolKey === "eraserRadius" ? 10 : 0.15}
-          max={toolKey === "eraserRadius" ? 100 : 1}
-          step={toolKey === "eraserRadius" ? 1 : 0.01}
-          onChange={(e) => handleValueChange(e.target.value)}
-        />
-      ) : (
-        <ToggleGroup
-          type="single"
-          className="gap-2"
-          value={((selector ?? {})[toolKey] ?? "") as string}
-          onValueChange={handleValueChange}
-        >
-          {ToolActionsProperties[toolKey].map((value, index) => {
-            return <ToolItem key={index} propsValue={value} />;
-          })}
-        </ToggleGroup>
-      )}
-    </Container>
+    <div className={"flex flex-col gap-y-2"}>
+      <span>
+        <p className={"text-xs font-medium"}>{label}</p>
+      </span>
+      <div className={"flex flex-wrap gap-2"}>
+        {toolKey === "opacity" || toolKey === "eraserRadius" ? (
+          <input
+            type="range"
+            className={"w-full"}
+            value={(selector ?? {})[toolKey] ?? 0}
+            min={toolKey === "eraserRadius" ? 10 : 0.15}
+            max={toolKey === "eraserRadius" ? 100 : 1}
+            step={toolKey === "eraserRadius" ? 1 : 0.01}
+            onChange={(e) => handleValueChange(e.target.value)}
+          />
+        ) : (
+          <ToggleGroup
+            type="single"
+            className="gap-2"
+            value={((selector ?? {})[toolKey] ?? "") as string}
+            onValueChange={handleValueChange}
+          >
+            {ToolActionsProperties[toolKey].map((value, index) => {
+              return <ToolItem key={index} propsValue={value} />;
+            })}
+          </ToggleGroup>
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -10,7 +10,7 @@ interface ShapeGroupProps {
   groupRef?: RefObject<Konva.Group>;
 }
 
-export default function ShapeGroup({ _id, x, y, groupRef, children }: ShapeGroupProps) {
+export default function ShapeGroup({ x, y, groupRef, children }: ShapeGroupProps) {
   return (
     <Group
       ref={groupRef}

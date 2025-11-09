@@ -21,11 +21,12 @@ ENV PORT=${PORT} \
  REDIS_PORT=${REDIS_PORT} \
  REDIS_PASSWORD=${REDIS_PASSWORD}
 
-# Installing pnpm globally
+
+ # Installing pnpm globally
 RUN npm install -g pnpm 
 
 # Set working directory
-WORKDIR /home/excalidraw-api
+WORKDIR /home/sketch-blade-api
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./

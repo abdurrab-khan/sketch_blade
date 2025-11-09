@@ -9,7 +9,6 @@ import {
   StrokeWidth,
   TextAlign,
 } from "../../../types/shapes";
-import { AllToolBarProperties } from "@/types/tools/tool";
 import { FaAlignCenter, FaAlignLeft, FaAlignRight } from "react-icons/fa";
 import { CiText } from "react-icons/ci";
 

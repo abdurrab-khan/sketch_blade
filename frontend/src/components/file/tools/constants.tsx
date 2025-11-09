@@ -6,8 +6,7 @@ import { PiRectangle } from "react-icons/pi";
 import { FaEraser, FaPencilAlt } from "react-icons/fa";
 import { RiText } from "react-icons/ri";
 import { BsArrow90DegDown } from "react-icons/bs";
-import { Upload } from "lucide-react";
-import { ToolType } from "../../../types/tools/tool.ts";
+import { ToolType } from "@/types/shapes";
 
 const ToolIcons: { [key in ToolType]: React.ReactElement } = {
   hand: <FaHand />,
@@ -17,8 +16,8 @@ const ToolIcons: { [key in ToolType]: React.ReactElement } = {
   "free hand": <FaPencilAlt />,
   text: <RiText />,
   eraser: <FaEraser />,
-  "point arrow": <BsArrow90DegDown />,
-  upload: <Upload />,
+  "arrow": <BsArrow90DegDown />,
+  // upload: <Upload />,
 };
 
 export { ToolIcons };

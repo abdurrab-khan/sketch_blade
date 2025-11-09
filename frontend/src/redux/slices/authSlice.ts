@@ -5,6 +5,7 @@ const initialState: User = {
   _id: "",
   name: "",
   email: "",
+  clerkId: "",
 };
 
 export const authSlice = createSlice({

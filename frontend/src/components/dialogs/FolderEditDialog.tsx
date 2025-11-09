@@ -16,7 +16,7 @@ interface FolderEditDialogProps {
   children: React.ReactNode;
 }
 
-export function FolderEditDialog({ children, _id }: FolderEditDialogProps) {
+export function FolderEditDialog({ children }: FolderEditDialogProps) {
 
   const childrenArray = React.Children.toArray(children);
   return (

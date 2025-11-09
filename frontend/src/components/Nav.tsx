@@ -16,11 +16,11 @@ const Nav = () => {
 };
 export default Nav;
 
-const MobileNav = () => {
-  return (
-    <nav className={"flex h-20 w-full items-center justify-between px-12"}>
-      Nav
-      <div>hello</div>
-    </nav>
-  );
-};
+// const MobileNav = () => {
+//   return (
+//     <nav className={"flex h-20 w-full items-center justify-between px-12"}>
+//       Nav
+//       <div>hello</div>
+//     </nav>
+//   );
+// };

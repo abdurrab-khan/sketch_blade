@@ -92,6 +92,6 @@ type ShapeEx<T extends Shapes> = T extends { arrowProps?: ArrowProps[] } ? T : n
 export type ArrowSupportedShapes = ShapeEx<Shapes>;
 
 // <========================> TEXT SUPPORTED SHAPES <========================>
-type TextShapeEx<T extends Shapes> = T extends { text?: any } ? T : never;
+type TextShapeEx<T extends Shapes> = T extends { text?: unknown } ? T : never;
 
 export type TextSupportedShapes = TextShapeEx<Shapes>;

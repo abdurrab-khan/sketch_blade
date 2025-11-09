@@ -8,7 +8,7 @@ import SortableHeader from "./rows/SortableHeader.tsx";
 import ProfileImg from "@/components/ProfileImg.tsx";
 import ActiveCollaborators from "./rows/ActiveCollaborators.tsx";
 
-export const fileColumns: ColumnDef<File>[] = [
+const fileColumns: ColumnDef<File>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -34,7 +34,7 @@ export const fileColumns: ColumnDef<File>[] = [
   },
   {
     id: "name",
-    accessorKey: "file_name",
+    accessorKey: "name",
     header: SortableHeader<File>("NAME"),
     cell: ({ row }) => (
       <span className={"transition-all hover:text-tertiary"}>
@@ -62,7 +62,7 @@ export const fileColumns: ColumnDef<File>[] = [
     cell: ({ row }) => <ShowDate value={row.getValue("updatedAt")} />,
   },
   {
-    accessorKey: "active_collaborators",
+    accessorKey: "activeCollaborator",
     header: "ACTIVE",
     cell: ({ row }) => (
       <div className="flex items-center justify-center rounded-lg">
@@ -89,3 +89,5 @@ export const fileColumns: ColumnDef<File>[] = [
     cell: ({ row }) => <FileAction row={row} />
   },
 ];
+
+export default fileColumns;

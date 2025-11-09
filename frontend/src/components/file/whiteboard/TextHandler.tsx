@@ -37,7 +37,7 @@ interface TextWrapResult {
 const LINE_HEIGHT = 1.2;
 
 // Utility function to get clicked x, y, height, width
-const getTextAreaPos = (x: number, y: number, fontSize: number, fontFamily: string) => {
+const getTextAreaPos = (x: number, y: number, fontSize: number) => {
   const height = fontSize * LINE_HEIGHT;
   const width = fontSize * 0.65;
 
@@ -224,7 +224,7 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
       }
 
       // Extracting all text style properties.
-      const { fontSize, fontFamily } = getKonvaStyle(newTextProps.styleProperties) as KonvaTextStyle;
+      const { fontSize } = getKonvaStyle(newTextProps.styleProperties) as KonvaTextStyle;
 
       const shapeAndTextProps = extractTextShapeProps(e);
       if (shapeAndTextProps?.oldText) {
@@ -247,7 +247,6 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
           newShape.x,
           newShape.y,
           fontSize,
-          fontFamily,
         );
 
         setTextProps({
@@ -282,7 +281,7 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
         if (textProps == null) return;
 
         // Extracting all text style properties.
-        const { fontSize, fontFamily } = getKonvaStyle(textProps.styleProperties) as KonvaTextStyle;
+        const { fontSize } = getKonvaStyle(textProps.styleProperties) as KonvaTextStyle;
 
         // Updating the global toolBarProperties.
         dispatch(removeUpdateToolBarProperties(newTextProps));
@@ -302,7 +301,6 @@ export default function TextHandler({ stageRef, trRef }: TextHandlerProps) {
           shapeProperties.x,
           shapeProperties.y,
           fontSize,
-          fontFamily,
         );
 
         setTextProps({

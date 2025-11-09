@@ -1,23 +1,19 @@
 import { Loader2 } from "lucide-react";
-import { Suspense, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { ApiResponse } from "../../types/index.ts";
 import { useToast } from "../../hooks/use-toast.ts";
-import { Nav } from "../../components/file/Nav.tsx";
-import { Footer } from "../../components/file/Footer.tsx";
 import { useResponse } from "../../hooks/useResponse.tsx";
-import ToolActions from "../../components/file/tools/ToolActions.tsx";
-import Whiteboard from "../../components/file/whiteboard/Whiteboard.tsx";
 
-const LoadingLayout = () => {
-  return (
-    <div className="z-2 fixed right-1/2 top-0 size-full translate-x-1/2 flex-center" >
-      <p className="text-2xl">
-        Loading...
-      </p>
-    </div>
-  )
-}
+// const LoadingLayout = () => {
+//   return (
+//     <div className="z-2 fixed right-1/2 top-0 size-full translate-x-1/2 flex-center" >
+//       <p className="text-2xl">
+//         Loading...
+//       </p>
+//     </div>
+//   )
+// }
 
 const File = () => {
   const fileId = useParams().id;
@@ -57,15 +53,15 @@ const File = () => {
 
   return (
     <main className={"size-screen relative bg-primary text-quaternary"}>
-      <div className="flex size-full flex-col justify-between">
+      {/* <div className="flex size-full flex-col justify-between">
         <Nav fileId={fileId as string} />
         <ToolActions />
         <Footer />
-      </div>
+      </div> */}
       {/* Konva -- Canvas */}
-      <Suspense fallback={<LoadingLayout />}>
+      {/* <Suspense fallback={<LoadingLayout />}>
         <Whiteboard />
-      </Suspense>
+      </Suspense> */}
     </main>
   );
 };

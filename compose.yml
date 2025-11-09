@@ -30,7 +30,7 @@ services:
     volumes:
       - mongo-data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping').ok()"]
+      test: ["CMD-SHELL", 'mongosh --eval "db.adminCommand(''ping'').ok"']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -41,9 +41,14 @@ services:
     image: ngrok/ngrok:latest
     command:
       - "http"
-      - "https://aware-wanted-puma.ngrok-free.app:8080"
+      - "api:8080"
+      - "--domain=aware-wanted-puma.ngrok-free.app"
     environment:
       NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:?"ERROR:" Ngrok authtoken is required}
+    ports:
+      - "4040:4040"
+    depends_on:
+      - api
 
   api:
     container_name: sketch-blade-api
@@ -52,38 +57,55 @@ services:
       dockerfile: Dockerfile
       args:
         - PORT=${PORT:?"ERROR:" Port is required}
-        - MONGO_URI=${MONGO_URI}
-        - CLERK_PUBLIC_KEY=${CLERK_PUBLIC_KEY}
-        - CLERK_SIGNING_SECRET=${CLERK_SIGNING_SECRET}
-        - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
-        - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
-        - REDIS_HOST=${REDIS_HOST}
-        - REDIS_PORT=${REDIS_PORT}
-        - REDIS_PASSWORD=${REDIS_PASSWORD}
+        - MONGO_URI=${MONGO_URI:?"ERROR:" MongoDB URI is required}
+        - CLERK_PUBLIC_KEY=${CLERK_PUBLIC_KEY:?"ERROR:" Clerk public key is required}
+        - CLERK_SIGNING_SECRET=${CLERK_SIGNING_SECRET:?"ERROR:" Clerk signing secret is required}
+        - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY:?"ERROR:" Clerk publishable key is required}
+        - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:?"ERROR:" Clerk secret key is required}
+        - REDIS_HOST=${REDIS_HOST:?"ERROR:" Redis host is required}
+        - REDIS_PORT=${REDIS_PORT:?"ERROR:" Redis port is required}
+        - REDIS_PASSWORD=${REDIS_PASSWORD:?"ERROR:" Redis password is required}
     ports:
       - 8080:8080
     depends_on:
       mongo-db:
         condition: service_healthy
         required: true
+        restart: true
       redis-db:
         condition: service_healthy
         required: true
-      ngrok:
-        condition: service_started
     develop:
       watch:
         - path: ./backend/src
           action: sync
-          target: /home/excalidraw-api
-          ignore:
-            - node_modules
-            - .git
-            - dist
-            - build
+          target: /home/sketch-blade-api/src
         - path: ./backend/package.json
           action: rebuild
-          target: /home/excalidraw-api/package.json
+          target: /home/sketch-blade-api/package.json
+
+  web:
+    container_name: sketch-blade-web
+    build:
+      context: ./frontend
+      args:
+        - VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
+        - VITE_API_URL=${VITE_API_URL}
+    ports:
+      - 5173:5173
+    depends_on:
+      api:
+        condition: service_started
+    develop:
+      watch:
+        - path: ./frontend/src
+          action: sync
+          target: /home/sketch-blade-web/src
+          ignore:
+            - vite-env.d.ts
+        - path: ./frontend/package.json
+          action: rebuild
+          target: /home/sketch-blade-web/package.json
 
 volumes:
   redis-data:
