@@ -15,7 +15,7 @@ export default defineConfig({
     host: "0.0.0.0",
     proxy: {
       "/api/v1": {
-        target: "http://localhost:8080",
+        target: "http://sketch-blade-api:8080",
         changeOrigin: true,
         secure: false,
       },

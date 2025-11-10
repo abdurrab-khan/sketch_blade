@@ -22,8 +22,8 @@ ENV PORT=${PORT} \
  REDIS_PASSWORD=${REDIS_PASSWORD}
 
 
- # Installing pnpm globally
-RUN npm install -g pnpm 
+# Installing pnpm
+RUN npm install -g pnpm
 
 # Set working directory
 WORKDIR /home/sketch-blade-api

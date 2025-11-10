@@ -53,7 +53,7 @@ services:
   api:
     container_name: sketch-blade-api
     build:
-      context: ./backend
+      context: ./apps/api
       dockerfile: Dockerfile
       args:
         - PORT=${PORT:?"ERROR:" Port is required}
@@ -71,23 +71,21 @@ services:
       mongo-db:
         condition: service_healthy
         required: true
-        restart: true
       redis-db:
         condition: service_healthy
-        required: true
     develop:
       watch:
-        - path: ./backend/src
+        - path: ./apps/api/src
           action: sync
           target: /home/sketch-blade-api/src
-        - path: ./backend/package.json
+        - path: ./apps/api/package.json
           action: rebuild
           target: /home/sketch-blade-api/package.json
 
   web:
     container_name: sketch-blade-web
     build:
-      context: ./frontend
+      context: ./apps/web
       args:
         - VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
         - VITE_API_URL=${VITE_API_URL}
@@ -98,12 +96,13 @@ services:
         condition: service_started
     develop:
       watch:
-        - path: ./frontend/src
+        - path: ./apps/web/src
           action: sync
           target: /home/sketch-blade-web/src
           ignore:
             - vite-env.d.ts
-        - path: ./frontend/package.json
+
+        - path: ./apps/web/package.json
           action: rebuild
           target: /home/sketch-blade-web/package.json
 
