@@ -3,6 +3,7 @@
 
 @layer theme {
   :root {
+    --side-bar: 320px;
     --radius: 0.5rem;
     --primary: #1b262c;
     --secondary: #0f4c75;
@@ -11,6 +12,20 @@
     --dark-secondary: #0f4c75;
     --btn: #1571ae;
     --line: #b8a5a5;
+
+    /* BACKGROUND-COLORS */
+    --primary-bg-light: #ffffff;
+    --secondary-bg-light: ;
+
+    --primary-bg-dark: #0f172a;
+    --secondary-bg-dark: #1e293b;
+
+    /* TEXT-COLORS */
+    --primary-text-light: #1e293b;
+    --secondary-text-light: #475569;
+
+    --primary-text-dark: #f1f5f9;
+    --secondary-text-dark: #cbd5e1;
   }
 }
 
@@ -20,41 +35,23 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  /* custom colors */
-  --color-primary: var(--primary);
-  --color-secondary: var(--secondary);
-  --color-tertiary: var(--tertiary);
-  --color-quaternary: var(--quaternary);
-  --color-dark-secondary: var(--dark-secondary);
-  --color-btn: var(--btn);
-  --color-line: var(--line);
+  --color-blue: #000000;
+
+  /* Custom Background */
+  --color-primary-bg-light: var(--primary-bg-light);
+  --color-secondary-bg-light: var(--secondary-bg-light);
+  --color-primary-bg-dark: var(--primary-bg-dark);
+  --color-secondary-bg-dark: var(--secondary-bg-dark);
+
+  /* Custom Text */
+  --color-primary-text-light: var(--primary-text-light);
+  --color-secondary-text-light: var(--primary-text-light);
+  --color-primary-text-dark: var(--primary-text-dark);
+  --color-secondary-text-dark: var(--secondary-text-dark);
 }
 
 /* Adding Custom reusable component classes */
 @layer components {
-  .main-container {
-    width: 100%;
-  }
-  @media (min-width: 640px) {
-    .main-container {
-      width: 600px;
-    }
-  }
-  @media (min-width: 768px) {
-    .main-container {
-      width: 750px;
-    }
-  }
-  @media (min-width: 1024px) {
-    .main-container {
-      width: 1000px;
-    }
-  }
-  @media (min-width: 1280px) {
-    .main-container {
-      width: 1300px;
-    }
-  }
   .size-icon {
     height: 3rem;
     width: 3rem;
@@ -84,9 +81,6 @@
     width: 2px;
     background-color: rgb(107 114 128 / 0.3);
   }
-}
-
-@layer components {
   .tool__bar {
     display: grid;
     grid-template-columns: auto;
@@ -98,18 +92,26 @@
 /* Adding Custom utilities */
 @layer utilities {
   .flex-center {
-    @apply flex items-center justify-center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   .size-screen {
-    @apply h-screen w-screen;
+    height: 100vh;
+    width: 100vw;
   }
   .size-full {
-    @apply h-full w-full;
+    height: 100%;
+    width: 100%;
   }
   .flex-start {
-    @apply flex items-center justify-start;
+    display: flex;
+    justify-content: start;
+    align-items: center;
   }
   .flex-end {
-    @apply flex items-center justify-end;
+    display: flex;
+    justify-content: end;
+    align-items: center;
   }
 }
