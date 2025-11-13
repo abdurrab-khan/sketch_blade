@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import ProfileImg from "@/components/ProfileImg.tsx";
 import { getFormattedTime } from "@/utils/AppUtils.ts";
 import { Checkbox } from "@/components/ui/checkbox.tsx";
-import FolderAction from "@/components/Table/columns/rows/FolderAction"
+import FolderAction from "@/components/ui/table/columns/rows/FolderAction"
 
 export const folderColumns: ColumnDef<FolderDetails>[] = [
   {

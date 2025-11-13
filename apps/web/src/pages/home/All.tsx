@@ -1,13 +1,9 @@
 import Container from "./Container.tsx";
-import FilesTable from "../../components/Table/FilesTable.tsx";
+import FilesTable from "@/components/ui/table/FilesTable.tsx";
 
 const All = () => {
   return (
-    <Container>
-      <div className={"size-full"}>
-        <FilesTable type={"all"} />
-      </div>
-    </Container>
+    <FilesTable type={"all"} />
   );
 };
 export default All;

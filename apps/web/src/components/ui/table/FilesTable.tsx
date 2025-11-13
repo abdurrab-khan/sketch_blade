@@ -1,12 +1,11 @@
 import React from "react";
 import { DataTable } from "./Data-table.tsx";
 import fileColumns from "./columns/FileColumns.tsx";
-import { Button } from "../ui/button.tsx";
+import { Button } from "../button.tsx";
 import { Loader2, PlusIcon } from "lucide-react";
-import { useResponse } from "../../hooks/useResponse.tsx";
-import { FileCreateDialog } from "../dialogs/FileCreateDialog.tsx";
-import { FaFileCirclePlus } from "react-icons/fa6";
-import { File as FileType } from "../../types/file.ts";
+import { useResponse } from "@/hooks/useResponse.tsx";
+import { FileCreateDialog } from "@/components/dialogs/FileCreateDialog.tsx";
+import { File as FileType } from "@/types/file.ts";
 
 interface FilesTableProps {
   type: "all" | "my";
@@ -27,17 +26,7 @@ const FilesTable: React.FC<FilesTableProps> = () => {
           </div>
         </div>
       ) : data?.data != undefined && data?.data.length > 0 ? (
-        <>
-          <div className={"mb-3 w-full text-end"}>
-            <FileCreateDialog>
-              <Button className="hover:bg-tertiary/90 bg-tertiary px-6">
-                Create File
-                <FaFileCirclePlus className="ml-2" />
-              </Button>
-            </FileCreateDialog>
-          </div>
-          <DataTable columns={fileColumns} data={data.data} />
-        </>
+        <DataTable columns={fileColumns} data={data.data} />
       ) : (
         <IfNoFile />
       )}

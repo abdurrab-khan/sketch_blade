@@ -24,6 +24,8 @@ const buttonVariants = cva(
         app: "bg-tertiary text-zinc-50 hover:bg-tertiary/90 dark:bg-tertiary dark:text-zinc-50 hover:text-zinc-200 dark:hover:bg-tertiary/90",
         delete:
           "bg-red-500 text-zinc-50 hover:bg-red-500/90 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/90",
+        createDiagram:
+          "transition-transform text-zinc-50 hover:bg-red-500/90 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/90",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -42,7 +44,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 

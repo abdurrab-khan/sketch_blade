@@ -4,6 +4,8 @@
 @layer theme {
   :root {
     --side-bar: 320px;
+    --dashboard-header: 4rem;
+
     --radius: 0.5rem;
     --primary: #1b262c;
     --secondary: #0f4c75;
@@ -48,6 +50,10 @@
   --color-secondary-text-light: var(--primary-text-light);
   --color-primary-text-dark: var(--primary-text-dark);
   --color-secondary-text-dark: var(--secondary-text-dark);
+}
+
+main::-webkit-scrollbar {
+  display: none;
 }
 
 /* Adding Custom reusable component classes */

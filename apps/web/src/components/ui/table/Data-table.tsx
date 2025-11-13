@@ -11,9 +11,10 @@ import {
   useReactTable,
   ColumnDef,
 } from "@tanstack/react-table";
-import { Button } from "../ui/button.tsx";
-import { Input } from "../ui/input.tsx";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table.tsx";
+import { Button } from "../button.tsx";
+import { Input } from "../input.tsx";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table.tsx";
+
 import { File, Folder } from "@/types/file.ts";
 
 interface DataTableProps<T> {
@@ -49,19 +50,11 @@ export function DataTable<T extends File | Folder>({ columns, data }: DataTableP
   });
 
   return (
-    <div className="flex w-full flex-col gap-2" style={{ height: "calc(100% - 3.25rem)" }}>
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Filter by name..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) => table?.getColumn("name")?.setFilterValue(event.target.value)}
-          className="max-w-full"
-        />
-      </div>
-      <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 size-full flex flex-col gap-2">
+      <div className="flex min-h-0 flex-1 flex-col justify-between">
+        <div className="flex-1 bg-primary-bg-light rounded-xl shadow-2xl shadow-slate-500/50">
           <div className="flex flex-col gap-y-8">
-            <div className="flex-1 rounded-md border">
+            <div className="flex-1 rounded-md">
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
@@ -110,8 +103,8 @@ export function DataTable<T extends File | Folder>({ columns, data }: DataTableP
             </div>
           </div>
         </div>
-        <div className="mt-4 flex items-center justify-end space-x-2 py-4">
-          <div className="text-muted-foreground flex-1 text-sm">
+        <div className="mt-4 text-primary-text-light/80 pb-3 flex items-center justify-end space-x-2">
+          <div className="text-muted-foreground flex-1 text-base font-medium">
             {table.getFilteredSelectedRowModel().rows.length} of{" "}
             {table.getFilteredRowModel().rows.length} row(s) selected.
           </div>

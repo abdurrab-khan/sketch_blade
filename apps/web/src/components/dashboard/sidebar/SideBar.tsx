@@ -2,7 +2,7 @@ import React from 'react'
 
 function SideBar() {
     return (
-        <div className='size-full bg-yellow-500'>
+        <div className='size-full bg-slate-300/20'>
         </div>
     )
 }

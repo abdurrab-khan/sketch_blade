@@ -1,9 +1,10 @@
 import { folderColumns } from "./columns/FolderColumns.tsx";
 import { DataTable } from "./Data-table.tsx";
-import { useResponse } from "../../hooks/useResponse.tsx";
+import { useResponse } from "@/hooks/useResponse.tsx";
 import { Loader2 } from "lucide-react";
-import { Button } from "../ui/button.tsx";
+import { Button } from "@/components/ui/button.tsx";
 import { FaFolderPlus } from "react-icons/fa";
+
 import {
   Dialog,
   DialogContent,
@@ -12,16 +13,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog";
-import { Input } from "../ui/input";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import useMutate from "../../hooks/useMutate.ts";
+import useMutate from "@/hooks/useMutate.ts";
 import { FolderDetails } from "@/types/file.ts";
 import { folderSchema } from "@/lib/zod/schemas.ts";
 import { z } from "zod"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form.tsx";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form.tsx";
 
 
 const FolderTable = () => {
