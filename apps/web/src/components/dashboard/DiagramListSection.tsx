@@ -18,8 +18,8 @@ function DiagramListSection() {
                     </p>
                 </div>
                 <Button
-                    variant={"createDiagram"}
-                    className='py-6 px-8 rounded-xl bg-linear-to-r from-blue-400 to-blue-600 shadow-xl shadow-slate-400/10 hover:scale-105 hover:shadow-2xl hover:shadow-slate-400'
+                    variant={"primary"}
+                    className='py-6 px-8 rounded-xl shadow-xl shadow-slate-400/10 hover:scale-105 hover:shadow-2xl hover:shadow-slate-400'
                 >
                     <PlusIcon className='h-6! w-6!' />
                     <span className='text-base'>

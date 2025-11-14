@@ -24,8 +24,8 @@ const buttonVariants = cva(
         app: "bg-tertiary text-zinc-50 hover:bg-tertiary/90 dark:bg-tertiary dark:text-zinc-50 hover:text-zinc-200 dark:hover:bg-tertiary/90",
         delete:
           "bg-red-500 text-zinc-50 hover:bg-red-500/90 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/90",
-        createDiagram:
-          "transition-transform text-zinc-50 hover:bg-red-500/90 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/90",
+        primary:
+          "transition-transform text-primary-text-light text-zinc-50 bg-linear-to-r from-blue-400 to-blue-600 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/90",
       },
       size: {
         default: "h-10 px-4 py-2",
