@@ -7,36 +7,29 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from "../ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from "../ui/form";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+} from "../ui/dialog.tsx";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form.tsx";
+import { Button } from "../ui/button.tsx";
+import { Input } from "../ui/input.tsx";
 import { Loader2 } from "lucide-react";
-import { Textarea } from "../ui/textarea";
+import { Textarea } from "../ui/textarea.tsx";
 
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import useMutate from "../../hooks/useMutate.ts";
 import { fileSchema } from "@/lib/zod/schemas.ts";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { File as FileType } from "../../types/file.ts";
+import { File } from "../../types/file.ts";
 import AddCollaboratorInput from "../AddCollaboratorInput.tsx";
 
 // Zod Validation Schema: for creation of file
-interface FileCreateDialogProps {
+interface FileFormProps {
   children: React.ReactNode;
   _id?: string;
-  fileData?: FileType;
+  fileData?: Partial<File>;
 }
 
-export function FileCreateDialog({ children, _id, fileData }: FileCreateDialogProps) {
+function FileForm({ children, _id, fileData }: FileFormProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const form = useForm<z.infer<typeof fileSchema>>({
@@ -58,7 +51,7 @@ export function FileCreateDialog({ children, _id, fileData }: FileCreateDialogPr
 
   const handleNewFileCreation = (data: z.infer<typeof fileSchema>) => {
     if (_id) {
-      // Handle File Updation 
+      // Handle File Updation
       mutation.mutate({ method: "put", data, uri: `/file/${_id}` });
     } else {
       // Creating a new File
@@ -68,7 +61,7 @@ export function FileCreateDialog({ children, _id, fileData }: FileCreateDialogPr
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogTrigger>{children}</DialogTrigger>
       <DialogContent className="dark-container sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create New File</DialogTitle>
@@ -130,3 +123,5 @@ export function FileCreateDialog({ children, _id, fileData }: FileCreateDialogPr
     </Dialog>
   );
 }
+
+export default FileForm;

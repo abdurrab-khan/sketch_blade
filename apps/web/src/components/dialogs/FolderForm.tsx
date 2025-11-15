@@ -11,17 +11,15 @@ import {
 import { Button } from "../ui/button.tsx";
 import { Input } from "../ui/input.tsx";
 
-interface FolderEditDialogProps {
-  _id: string;
+interface FolderFormProps {
+  _id?: string;
   children: React.ReactNode;
 }
 
-export function FolderEditDialog({ children }: FolderEditDialogProps) {
-
-  const childrenArray = React.Children.toArray(children);
+function FolderForm({ children, _id }: FolderFormProps) {
   return (
     <Dialog>
-      <DialogTrigger className={"w-full"}>{childrenArray[0]}</DialogTrigger>
+      <DialogTrigger>{children}</DialogTrigger>
       <DialogContent className="dark-container sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit</DialogTitle>
@@ -39,3 +37,5 @@ export function FolderEditDialog({ children }: FolderEditDialogProps) {
     </Dialog>
   );
 }
+
+export default FolderForm;

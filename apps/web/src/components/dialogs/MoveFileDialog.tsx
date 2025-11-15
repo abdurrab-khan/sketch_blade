@@ -67,20 +67,25 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({ children, _id, existing
   };
 
   const debounceSearchFolder = useCallback(
-    () => debounce((searchQuery) => {
-      startTransition(async () => {
-        const folders = await apiClient.get<ApiResponse<FolderDetails[]>>(`/folder/${searchQuery}`);
+    () =>
+      debounce((searchQuery) => {
+        startTransition(async () => {
+          const folders = await apiClient.get<ApiResponse<FolderDetails[]>>(
+            `/folder/${searchQuery}`,
+          );
 
-        // Set Fetched Folders
-        startTransition(() => {
-          const folderData = folders.data?.data;
+          // Set Fetched Folders
+          startTransition(() => {
+            const folderData = folders.data?.data;
 
-          if (folderData != undefined && folderData.length !== 0) {
-            setListFolders(folderData);
-          }
-        })
-      })
-    }, 300), [apiClient])
+            if (folderData != undefined && folderData.length !== 0) {
+              setListFolders(folderData);
+            }
+          });
+        });
+      }, 300),
+    [apiClient],
+  );
 
   const handleSearchFolder = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
@@ -102,7 +107,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({ children, _id, existing
             <Label>Search Folder</Label>
             <Input
               className={cn(
-                "rounded-none border-0 border-b !bg-transparent shadow-none outline-none ring-0 focus:border-0 focus:border-b focus:placeholder-gray-500 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0",
+                "rounded-none border-0 border-b bg-transparent! shadow-none ring-0 outline-none focus:border-0 focus:border-b focus:placeholder-gray-500 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
                 "placeholder:text-gray-400 dark:placeholder:text-gray-500",
               )}
               placeholder={"Search folder to move"}

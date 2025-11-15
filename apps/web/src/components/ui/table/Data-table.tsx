@@ -12,7 +12,6 @@ import {
   ColumnDef,
 } from "@tanstack/react-table";
 import { Button } from "../button.tsx";
-import { Input } from "../input.tsx";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table.tsx";
 
 import { File, Folder } from "@/types/file.ts";
@@ -50,9 +49,9 @@ export function DataTable<T extends File | Folder>({ columns, data }: DataTableP
   });
 
   return (
-    <div className="flex-1 size-full flex flex-col gap-2">
+    <div className="flex size-full flex-1 flex-col gap-2">
       <div className="flex min-h-0 flex-1 flex-col justify-between">
-        <div className="flex-1 bg-primary-bg-light rounded-xl shadow-2xl shadow-slate-500/50">
+        <div className="bg-primary-bg-light flex-1 rounded-xl shadow-2xl shadow-slate-500/50">
           <div className="flex flex-col gap-y-8">
             <div className="flex-1 rounded-md">
               <Table>
@@ -63,7 +62,7 @@ export function DataTable<T extends File | Folder>({ columns, data }: DataTableP
                         return (
                           <TableHead
                             key={header.id}
-                            className={"text-center uppercase text-zinc-50 dark:text-zinc-900"}
+                            className={"text-center text-zinc-50 uppercase dark:text-zinc-900"}
                           >
                             {header.isPlaceholder
                               ? null
@@ -103,7 +102,7 @@ export function DataTable<T extends File | Folder>({ columns, data }: DataTableP
             </div>
           </div>
         </div>
-        <div className="mt-4 text-primary-text-light/80 pb-3 flex items-center justify-end space-x-2">
+        <div className="text-primary-text-light/80 mt-4 flex items-center justify-end space-x-2 pb-3">
           <div className="text-muted-foreground flex-1 text-base font-medium">
             {table.getFilteredSelectedRowModel().rows.length} of{" "}
             {table.getFilteredRowModel().rows.length} row(s) selected.
@@ -114,6 +113,7 @@ export function DataTable<T extends File | Folder>({ columns, data }: DataTableP
               size="sm"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
+              className="text-primary-text-light hover:text-primary-text-light/80 rounded-xl border-none px-3.5 transition-all outline-none hover:shadow-xl hover:shadow-slate-400/30"
             >
               Previous
             </Button>
@@ -122,6 +122,7 @@ export function DataTable<T extends File | Folder>({ columns, data }: DataTableP
               size="sm"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
+              className="rounded-xl border-none bg-linear-to-r from-blue-400 to-blue-600 px-3.5 text-white transition-all outline-none hover:text-white/80 hover:shadow-xl hover:shadow-slate-400/30"
             >
               Next
             </Button>

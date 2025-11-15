@@ -1,13 +1,16 @@
-import Header from '@/components/dashboard/Header'
-import DiagramListSection from '@/components/dashboard/DiagramListSection'
+import { useState } from "react";
+import Body from "@/components/dashboard/mainpanel/Body";
+import Header from "@/components/dashboard/mainpanel/Header";
 
 function DashboardLayout() {
-    return (
-        <div className='size-full'>
-            <Header />
-            <DiagramListSection />
-        </div>
-    )
+  const [query, setQuery] = useState("");
+
+  return (
+    <div className="size-full">
+      <Header query={query} setQuery={setQuery} />
+      <Body />
+    </div>
+  );
 }
 
-export default DashboardLayout
+export default DashboardLayout;

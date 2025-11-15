@@ -18,7 +18,7 @@ import { File } from "@/types/file.ts";
 interface FileEditDialogProps {
   _id: string;
   children: React.ReactNode;
-  fileData: File;
+  fileData: Partial<File>;
 }
 
 const formSchema = z.object({
@@ -31,7 +31,7 @@ const formSchema = z.object({
   // description: z.string().nonempty("Description is required"),
 });
 
-export function FileEditDialog({ children, _id, fileData }: FileEditDialogProps) {
+function FileFoDialog({ children, _id, fileData }: FileEditDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
