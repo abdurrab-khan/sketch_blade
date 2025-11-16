@@ -11,7 +11,7 @@ function Body() {
       <div className="flex shrink flex-wrap gap-x-0 gap-y-3 sm:gap-x-4 sm:gap-y-4 xl:gap-x-12">
         <StatManager />
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-1 flex-col">
         <Outlet />
       </div>
     </div>

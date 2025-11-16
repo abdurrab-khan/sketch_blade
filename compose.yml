@@ -1,5 +1,5 @@
 services:
-  redis-db:
+  redis:
     container_name: redis-db
     image: redis/redis-stack
     ports:
@@ -16,7 +16,7 @@ services:
       retries: 3
       start_period: 5s
 
-  mongo-db:
+  mongo:
     container_name: mongo-db
     image: mongo:latest
     ports:
@@ -56,20 +56,19 @@ services:
       args:
         - PORT=${PORT:?"ERROR:" Port is required}
         - MONGO_URI=${MONGO_URI:?"ERROR:" MongoDB URI is required}
-        - CLERK_PUBLIC_KEY=${CLERK_PUBLIC_KEY:?"ERROR:" Clerk public key is required}
-        - CLERK_SIGNING_SECRET=${CLERK_SIGNING_SECRET:?"ERROR:" Clerk signing secret is required}
-        - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY:?"ERROR:" Clerk publishable key is required}
-        - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:?"ERROR:" Clerk secret key is required}
+        - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:?"ERROR:" Clerk signing secret is required}
+        - CLERK_PUBLIC_KEY=${CLERK_PUBLIC_KEY:?"ERROR:" Clean public key is required}
         - REDIS_HOST=${REDIS_HOST:?"ERROR:" Redis host is required}
         - REDIS_PORT=${REDIS_PORT:?"ERROR:" Redis port is required}
+        - REDIS_URL=${REDIS_URL:?"ERROR:" Redis URL is required}
         - REDIS_PASSWORD=${REDIS_PASSWORD:?"ERROR:" Redis password is required}
     ports:
       - 8080:8080
     depends_on:
-      mongo-db:
+      mongo:
         condition: service_healthy
         required: true
-      redis-db:
+      redis:
         condition: service_healthy
     develop:
       watch:
@@ -85,8 +84,8 @@ services:
     build:
       context: ./apps/web
       args:
-        - VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
         - VITE_API_URL=${VITE_API_URL}
+        - VITE_CLERK_PUBLIC_KEY=${VITE_CLERK_PUBLIC_KEY}
     ports:
       - 5173:5173
     depends_on:

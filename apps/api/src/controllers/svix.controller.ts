@@ -107,13 +107,13 @@ const deleteUser = async (clerkId: string) => {
 export const svixController = AsyncHandler(
    async (req: Request, res: Response): Promise<any> => {
       try {
-         const CLERK_SIGNING_SECRET = process.env.CLERK_SIGNING_SECRET;
+         const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
 
-         if (!CLERK_SIGNING_SECRET) {
-            throw new Error("missing CLERK_SIGNING_SECRET env variable");
+         if (!CLERK_SECRET_KEY) {
+            throw new Error("missing CLERK_SECRET_KEY env variable");
          }
 
-         const wh = new Webhook(CLERK_SIGNING_SECRET);
+         const wh = new Webhook(CLERK_SECRET_KEY);
          const headers = req.headers;
          const payload = Buffer.isBuffer(req.body)
             ? req.body

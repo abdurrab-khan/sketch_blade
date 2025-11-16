@@ -11,7 +11,11 @@ const app = express();
 const server = createServer(app);
 
 // Middleware
-app.use(clerkMiddleware());
+app.use(
+   clerkMiddleware({
+      publishableKey: process.env.CLERK_PUBLIC_KEY || "",
+   }),
+);
 app.use(cookieParser());
 app.use(
    express.json({

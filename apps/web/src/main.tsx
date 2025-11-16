@@ -17,7 +17,7 @@ import { Toaster } from "@/components/ui/toaster.tsx";
 import All from "./pages/home/All.tsx";
 
 const queryClient = new QueryClient();
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLIC_KEY;
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");
