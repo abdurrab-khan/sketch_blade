@@ -61,6 +61,7 @@ function SideBar() {
           {NavLinks.map(({ name, href, icon: Icon }) => (
             <NavLink
               to={href}
+              key={name}
               className={({ isActive }) =>
                 clsx(
                   isActive

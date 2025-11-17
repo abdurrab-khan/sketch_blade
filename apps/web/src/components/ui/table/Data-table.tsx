@@ -49,7 +49,7 @@ export function DataTable<T extends File | Folder>({ columns, data }: DataTableP
   });
 
   return (
-    <div className="flex size-full flex-1 flex-col gap-2">
+    <div className="flex size-full flex-col gap-2">
       <div className="flex min-h-0 flex-1 flex-col justify-between">
         <div className="bg-primary-bg-light flex-1 rounded-xl shadow-2xl shadow-slate-500/50">
           <div className="flex flex-col gap-y-8">

@@ -18,7 +18,7 @@ const FilesTable: React.FC<FilesTableProps> = () => {
   });
 
   return (
-    <>
+    <div className="size-full">
       {isPending ? (
         <div className={"flex-center size-full"}>
           <div>
@@ -30,7 +30,7 @@ const FilesTable: React.FC<FilesTableProps> = () => {
       ) : (
         <IfNoFile />
       )}
-    </>
+    </div>
   );
 };
 export default FilesTable;

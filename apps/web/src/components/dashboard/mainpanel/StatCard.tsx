@@ -1,12 +1,11 @@
 import clsx from "clsx";
-import React from "react";
 import { IconType } from "react-icons";
 import { MdGroups } from "react-icons/md";
 import { FaFile, FaFolder, FaShareNodes } from "react-icons/fa6";
 
 function StatManager() {
   return (
-    <React.Fragment>
+    <div className="flex shrink flex-wrap gap-x-0 gap-y-3 sm:gap-x-4 sm:gap-y-4 xl:gap-x-12">
       <StatCard icon={FaFile} count={200} title="Total Diagrams" />
       <StatCard icon={MdGroups} count={18} title="Collaborators" />
       <StatCard icon={FaFolder} count={80} title="Folders" />
@@ -16,7 +15,7 @@ function StatManager() {
         title="Shared Files"
         style="from-red-400 to-red-500"
       />
-    </React.Fragment>
+    </div>
   );
 }
 
@@ -29,7 +28,7 @@ interface StatCardProps {
 
 function StatCard({ icon: Icon, count, title, style = "" }: StatCardProps) {
   return (
-    <div className="bg-primary-bg-light h-50 w-full rounded-2xl border border-slate-300/25 px-8 py-6 shadow-lg shadow-slate-400/40 transition-shadow select-none hover:shadow-slate-400/50 sm:w-[calc(50%-0.5rem)] md:w-64 2xl:w-[20rem]">
+    <div className="bg-primary-bg-light h-50 w-full rounded-2xl border border-slate-300/25 px-8 py-6 shadow-lg shadow-slate-400/40 transition-all duration-300 select-none hover:-translate-y-0.5 hover:shadow-slate-400/50 md:w-[calc(50%-0.5rem)] lg:w-64 2xl:w-[20rem]">
       <div className="flex size-full flex-col justify-center">
         <div
           className={clsx(

@@ -1,18 +1,18 @@
 import FileForm from "@/components/dialogs/FileForm";
 import FolderForm from "@/components/dialogs/FolderForm";
-import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import React from "react";
 import { useLocation } from "react-router";
 
 const MButton = ({ title }: { title: string }) => (
-  <Button
-    variant={"primary"}
-    className="rounded-xl px-8 py-6 shadow-xl shadow-slate-400/10 hover:scale-105 hover:shadow-2xl hover:shadow-slate-400"
-  >
-    <PlusIcon className="h-6! w-6!" />
-    <span className="text-base">{title}</span>
-  </Button>
+  <div className="overflow-hidden rounded-xl shadow-xl shadow-slate-400/10 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-slate-400">
+    <div className="bg-linear-to-r from-blue-400 to-blue-600 px-8 py-3.5 text-white/90 transition-opacity hover:opacity-90">
+      <div className="text-nowrap">
+        <PlusIcon className="inline h-6! w-6!" />
+        <span className="ml-3 text-base">{title}</span>
+      </div>
+    </div>
+  </div>
 );
 
 const BannerContent: Record<
@@ -65,17 +65,17 @@ function Banner() {
   const { title, description, button: TButton } = BannerContent[pathname]!;
 
   return (
-    <React.Fragment>
+    <div className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
       <div>
         <span className="text-primary-text-light block text-4xl">
           <h3 className="font-bold">{title}</h3>
         </span>
-        <span className="text-secondary-text-light/75 mt-2.5 block text-lg">
+        <span className="text-secondary-text-light/75 mt-1 block text-lg md:mt-2.5">
           <p className="font-medium">{description}</p>
         </span>
       </div>
-      {TButton}
-    </React.Fragment>
+      <div className="w-full text-end md:w-fit">{TButton}</div>
+    </div>
   );
 }
 
