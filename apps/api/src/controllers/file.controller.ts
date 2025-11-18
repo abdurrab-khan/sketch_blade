@@ -359,8 +359,6 @@ export const deleteFiles = AsyncHandler(async (req: Request, res: Response) => {
       const fileId = coll.fileId.toString();
       const isOwner = coll.role === CollaboratorAction.Owner;
 
-      console.log("FileId:", fileId, "IsOwner:", isOwner);
-
       if (isOwner) {
          return deleteFileWithCollaborators(new Types.ObjectId(fileId));
       } else {

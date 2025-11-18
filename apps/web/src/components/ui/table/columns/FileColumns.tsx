@@ -1,12 +1,13 @@
 import { Link } from "react-router";
 import { File } from "@/types/file.ts";
-import ShowDate from "./rows/DisplayDate.tsx"
+import ShowDate from "./rows/DisplayDate.tsx";
 import FileAction from "./rows/FileAction.tsx";
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox.tsx";
-import SortableHeader from "./rows/SortableHeader.tsx";
 import ProfileImg from "@/components/ProfileImg.tsx";
 import ActiveCollaborators from "./rows/ActiveCollaborators.tsx";
+import HeaderLabel from "./rows/HeaderLabel.tsx";
+import { Badge } from "../../badge.tsx";
 
 const fileColumns: ColumnDef<File>[] = [
   {
@@ -18,7 +19,7 @@ const fileColumns: ColumnDef<File>[] = [
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
-        className={"border-zinc-200"}
+        className={"border-black/70"}
       />
     ),
     cell: ({ row }) => (
@@ -26,7 +27,7 @@ const fileColumns: ColumnDef<File>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
-        className={"border-zinc-200"}
+        className={"border-black/70"}
       />
     ),
     enableSorting: false,
@@ -35,44 +36,16 @@ const fileColumns: ColumnDef<File>[] = [
   {
     id: "name",
     accessorKey: "name",
-    header: SortableHeader<File>("NAME"),
+    header: HeaderLabel("Name"),
     cell: ({ row }) => (
-      <span className={"transition-all hover:text-tertiary"}>
+      <span className={"hover:text-tertiary transition-all"}>
         <Link to={`/file/${row.original._id}`}>{row.original.name}</Link>
       </span>
     ),
   },
   {
-    accessorKey: "folder",
-    header: SortableHeader<File>("LOCATION"),
-    cell: ({ row }) => (
-      <div className="empty:bg-yellow-500 size-full">
-        {row.original.folder ? <span>{row.original.folder?.name}</span> : null}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "createdAt",
-    header: SortableHeader<File>("CREATED"),
-    cell: ({ row }) => <ShowDate value={row.getValue("createdAt")} />,
-  },
-  {
-    accessorKey: "updatedAt",
-    header: SortableHeader<File>("UPDATED"),
-    cell: ({ row }) => <ShowDate value={row.getValue("updatedAt")} />,
-  },
-  {
-    accessorKey: "activeCollaborator",
-    header: "ACTIVE",
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center rounded-lg">
-        <ActiveCollaborators collaborators={row.getValue("active_collaborators")} />
-      </div>
-    ),
-  },
-  {
     accessorKey: "creator",
-    header: "AUTHOR",
+    header: HeaderLabel("Creator"),
     cell: ({ row }) =>
       row.original.creator ? (
         <ProfileImg
@@ -84,9 +57,41 @@ const fileColumns: ColumnDef<File>[] = [
       ),
   },
   {
+    accessorKey: "createdAt",
+    header: HeaderLabel("Created"),
+    cell: ({ row }) => <ShowDate value={row.getValue("createdAt")} />,
+  },
+  {
+    accessorKey: "updatedAt",
+    header: HeaderLabel("Updated"),
+    cell: ({ row }) => <ShowDate value={row.getValue("updatedAt")} />,
+  },
+  {
+    accessorKey: "activeCollaborator",
+    header: HeaderLabel("Collaborators"),
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center rounded-lg">
+        <ActiveCollaborators collaborators={row.getValue("active_collaborators")} />
+      </div>
+    ),
+  },
+  {
+    accessorKey: "folder",
+    header: HeaderLabel("Folder"),
+    cell: ({ row }) => (
+      <div className="size-full empty:bg-yellow-500">
+        {row.original.folder ? (
+          <Badge className="bg-blue-500 text-white">{row.original.folder?.name}</Badge>
+        ) : (
+          "-"
+        )}
+      </div>
+    ),
+  },
+  {
     accessorKey: "_id",
-    header: "ACTIONS",
-    cell: ({ row }) => <FileAction row={row} />
+    header: HeaderLabel("Actions"),
+    cell: ({ row }) => <FileAction row={row} />,
   },
 ];
 

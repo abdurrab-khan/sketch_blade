@@ -8,7 +8,7 @@ function DashboardLayout() {
   return (
     <div className="size-full">
       <Header query={query} setQuery={setQuery} />
-      <Body />
+      <Body query={query} setQuery={setQuery} />
     </div>
   );
 }

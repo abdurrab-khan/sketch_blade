@@ -25,7 +25,6 @@ const collaboratorSchema = new Schema<ICollaborator>({
                fileId: this.fileId,
                userId: v,
             });
-            console.log("Validator check:", v, existingCollaborator);
             return existingCollaborator === null;
          },
          message: () => "User is already a collaborator for this file",

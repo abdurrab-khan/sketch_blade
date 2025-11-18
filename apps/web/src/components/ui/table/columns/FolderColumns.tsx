@@ -1,10 +1,10 @@
 import { FolderDetails } from "@/types/file.ts";
-import SortableHeader from "./rows/SortableHeader";
+import HeaderLabel from "./rows/HeaderLabel";
 import { ColumnDef } from "@tanstack/react-table";
 import ProfileImg from "@/components/ProfileImg.tsx";
 import { getFormattedTime } from "@/utils/AppUtils.ts";
 import { Checkbox } from "@/components/ui/checkbox.tsx";
-import FolderAction from "@/components/ui/table/columns/rows/FolderAction"
+import FolderAction from "@/components/ui/table/columns/rows/FolderAction";
 
 export const folderColumns: ColumnDef<FolderDetails>[] = [
   {
@@ -31,22 +31,22 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
   {
     id: "name",
     accessorKey: "folder_name",
-    header: SortableHeader<FolderDetails>("NAME"),
+    header: HeaderLabel("Name"),
     cell: ({ row }) => <span>{row.original.name}</span>,
   },
   {
     accessorKey: "createdAt",
-    header: SortableHeader<FolderDetails>("CREATED"),
+    header: HeaderLabel("Created"),
     cell: ({ row }) => <div>{getFormattedTime(row.original.createdAt)}</div>,
   },
   {
     accessorKey: "updatedAt",
-    header: SortableHeader<FolderDetails>("EDITED"),
+    header: HeaderLabel("Updated"),
     cell: ({ row }) => <div>{getFormattedTime(row.original.updatedAt)}</div>,
   },
   {
     accessorKey: "creator",
-    header: "AUTHOR",
+    header: HeaderLabel("Creator"),
     cell: ({ row }) => (
       <ProfileImg
         profileUrl={row.original.creator.profileUrl}
@@ -56,7 +56,7 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
   },
   {
     accessorKey: "files",
-    header: "ACTIONS",
+    header: HeaderLabel("Files"),
     cell: ({ row }) => <FolderAction row={row} />,
   },
 ];

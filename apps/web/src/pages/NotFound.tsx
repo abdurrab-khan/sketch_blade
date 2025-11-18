@@ -28,7 +28,7 @@ const NotFound = () => {
               opacity: 1,
               y: 0,
             }}
-            className={"text-center text-2xl font-bold text-tertiary"}
+            className={"text-tertiary text-center text-2xl font-bold"}
           >
             404 Not Found
           </motion.h1>

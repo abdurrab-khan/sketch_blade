@@ -11,14 +11,9 @@ const ProfileImg: React.FC<ProfileImgProps> = ({ profileUrl, fullName, container
   return (
     <div
       title={fullName}
-      className={cn("mx-auto h-8 w-8 overflow-hidden rounded-full", containerClassName)}
+      className={cn("mx-auto h-8 w-8 overflow-hidden rounded-lg", containerClassName)}
     >
-      <img
-        src={profileUrl}
-        className={"size-full object-cover"}
-        alt={fullName}
-        loading={"lazy"}
-      />
+      <img src={profileUrl} className={"size-full object-cover"} alt={fullName} loading={"lazy"} />
     </div>
   );
 };
