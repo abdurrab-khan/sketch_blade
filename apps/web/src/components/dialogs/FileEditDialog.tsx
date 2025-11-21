@@ -17,8 +17,8 @@ import { File } from "@/types/file.ts";
 
 interface FileEditDialogProps {
   _id: string;
-  children: React.ReactNode;
   fileData: Partial<File>;
+  children?: React.ReactNode;
 }
 
 const formSchema = z.object({
@@ -31,7 +31,7 @@ const formSchema = z.object({
   // description: z.string().nonempty("Description is required"),
 });
 
-function FileFoDialog({ children, _id, fileData }: FileEditDialogProps) {
+function FileFoDialog({ _id, fileData, children }: FileEditDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -46,7 +46,7 @@ function FileFoDialog({ children, _id, fileData }: FileEditDialogProps) {
 
   return (
     <Dialog>
-      <DialogTrigger className={"w-full"}>{children}</DialogTrigger>
+      {children && <DialogTrigger>{children}</DialogTrigger>}
       <DialogContent className="dark-container sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit</DialogTitle>

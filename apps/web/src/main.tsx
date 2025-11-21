@@ -15,6 +15,8 @@ import AuthProtection from "@/components/AuthProtection.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { Toaster } from "@/components/ui/toaster.tsx";
 import All from "./pages/home/All.tsx";
+import FolderFiles from "./pages/home/FolderFiles.tsx";
+import Folder from "./pages/home/Folder.tsx";
 
 const queryClient = new QueryClient();
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLIC_KEY;
@@ -27,7 +29,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
       <Route
-        path=""
+        path="/"
         element={
           <AuthProtection>
             <App />
@@ -35,12 +37,16 @@ const router = createBrowserRouter(
         }
       >
         <Route index element={<All />} />
-        <Route path="my-files" element={<>My FILES</>} />
+        <Route path="folders">
+          <Route index element={<Folder />} />
+          <Route path=":folderId" element={<FolderFiles />} />
+        </Route>
         <Route path="shared-with-me" element={<>Shared with me</>} />
         <Route path="favorite" element={<>Favorite</>} />
         <Route path="recent" element={<>Recent</>} />
         <Route path="trash" element={<>Trash</>} />
       </Route>
+
       <Route
         path="file/:id"
         element={
@@ -49,8 +55,10 @@ const router = createBrowserRouter(
           </AuthProtection>
         }
       />
+
       <Route path="sign-in" element={<Sign_In />} />
       <Route path="sign-up" element={<Sign_Up />} />
+
       <Route path="*" element={<NotFound />} />
     </Route>,
   ),

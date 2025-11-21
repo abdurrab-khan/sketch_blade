@@ -23,15 +23,22 @@ import { debounce } from "lodash";
 
 interface MoveFileDialogProps {
   _id: string;
-  children: React.ReactNode;
+  isOpen: boolean;
+  children?: React.ReactNode;
   existingFolderId?: string;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const MoveFileDialog: React.FC<MoveFileDialogProps> = ({ children, _id, existingFolderId }) => {
+const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
+  _id,
+  isOpen,
+  setIsOpen,
+  children,
+  existingFolderId,
+}) => {
   const [inputSearch, setInputSearch] = useState<string>("");
   const [selectedFolder, setSelectedFolder] = useState<string>(existingFolderId || "");
   const [listFolders, setListFolders] = useState<FolderDetails[]>([]);
-  const [openDialog, setOpenDialog] = useState(false);
 
   const apiClient = useApiClient();
   const [isPending, startTransition] = useTransition();
@@ -59,11 +66,6 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({ children, _id, existing
       uri: `/folder/file/${_id}`,
       data: { folderId: selectedFolder },
     });
-  };
-
-  const handleOpenChange = () => {
-    if (fileUpdateMutation.isPending) return;
-    setOpenDialog((prev) => !prev);
   };
 
   const debounceSearchFolder = useCallback(
@@ -95,8 +97,8 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({ children, _id, existing
   };
 
   return (
-    <Dialog open={openDialog} onOpenChange={handleOpenChange}>
-      <DialogTrigger className={"w-full"}>{children}</DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      {children && <DialogTrigger>{children}</DialogTrigger>}
       <DialogContent className="dark-container sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Move Folder</DialogTitle>

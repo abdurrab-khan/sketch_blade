@@ -1,10 +1,10 @@
-import FileForm from "@/components/dialogs/FileForm";
-import FolderForm from "@/components/dialogs/FolderForm";
 import { PlusIcon } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { useLocation } from "react-router";
+import FileForm from "@/components/dialogs/FileFormDialog";
+import FolderForm from "@/components/dialogs/FolderFormDialog";
 
-const MButton = ({ title }: { title: string }) => (
+const Button = ({ title }: { title: string }) => (
   <div className="overflow-hidden rounded-xl shadow-xl shadow-slate-400/10 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-slate-400">
     <div className="bg-linear-to-r from-blue-400 to-blue-600 px-8 py-3.5 text-white/90 transition-opacity hover:opacity-90">
       <div className="text-nowrap">
@@ -15,6 +15,25 @@ const MButton = ({ title }: { title: string }) => (
   </div>
 );
 
+const FileDialog = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <FileForm isOpen={isOpen} setIsOpen={setIsOpen}>
+      <Button title="New Diagram" />
+    </FileForm>
+  );
+};
+
+const FolderDialog = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <FolderForm isOpen={isOpen} setIsOpen={setIsOpen}>
+      <Button title="New Folder" />
+    </FolderForm>
+  );
+};
+
 const BannerContent: Record<
   string,
   { title: string; description: string; button: React.ReactNode | null }
@@ -22,20 +41,12 @@ const BannerContent: Record<
   "/": {
     title: "My Diagrams",
     description: "Manage and collaborate on your diagram projects",
-    button: (
-      <FileForm>
-        <MButton title="New Diagram" />
-      </FileForm>
-    ),
+    button: <FileDialog />,
   },
-  "/my-files": {
-    title: "My Files",
-    description: "Manage and organize all your diagram files in a single place.",
-    button: (
-      <FolderForm>
-        <MButton title="New Folder" />
-      </FolderForm>
-    ),
+  "/folders": {
+    title: "My Folders",
+    description: "Organize your diagrams and files into folders for better management.",
+    button: <FolderDialog />,
   },
   "/shared-with-me": {
     title: "Shared with Me",
@@ -61,7 +72,9 @@ const BannerContent: Record<
 };
 
 function Banner() {
-  const { pathname } = useLocation();
+  const location = useLocation();
+
+  const pathname = location.pathname.startsWith("/folders/") ? "/folders" : location.pathname;
   const { title, description, button: TButton } = BannerContent[pathname]!;
 
   return (

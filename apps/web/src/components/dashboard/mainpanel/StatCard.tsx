@@ -12,7 +12,7 @@ function StatManager() {
       <StatCard
         icon={FaShareNodes}
         count={64}
-        title="Shared Files"
+        title="Shared Diagrams"
         style="from-red-400 to-red-500"
       />
     </div>

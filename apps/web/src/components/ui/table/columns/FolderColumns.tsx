@@ -5,6 +5,7 @@ import ProfileImg from "@/components/ProfileImg.tsx";
 import { getFormattedTime } from "@/utils/AppUtils.ts";
 import { Checkbox } from "@/components/ui/checkbox.tsx";
 import FolderAction from "@/components/ui/table/columns/rows/FolderAction";
+import { Link } from "react-router";
 
 export const folderColumns: ColumnDef<FolderDetails>[] = [
   {
@@ -16,7 +17,7 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
-        className={"border-zinc-200"}
+        className={"border-black/70"}
       />
     ),
     cell: ({ row }) => (
@@ -24,25 +25,19 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
-        className={"border-zinc-200"}
+        className={"border-black/70"}
       />
     ),
   },
   {
     id: "name",
-    accessorKey: "folder_name",
+    accessorKey: "name",
     header: HeaderLabel("Name"),
-    cell: ({ row }) => <span>{row.original.name}</span>,
-  },
-  {
-    accessorKey: "createdAt",
-    header: HeaderLabel("Created"),
-    cell: ({ row }) => <div>{getFormattedTime(row.original.createdAt)}</div>,
-  },
-  {
-    accessorKey: "updatedAt",
-    header: HeaderLabel("Updated"),
-    cell: ({ row }) => <div>{getFormattedTime(row.original.updatedAt)}</div>,
+    cell: ({ row }) => (
+      <span className={"hover:text-tertiary transition-all"}>
+        <Link to={`/folders/${row.original._id}`}>{row.original.name}</Link>
+      </span>
+    ),
   },
   {
     accessorKey: "creator",
@@ -53,6 +48,16 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
         fullName={row.original.creator.fullName}
       />
     ),
+  },
+  {
+    accessorKey: "createdAt",
+    header: HeaderLabel("Created"),
+    cell: ({ row }) => <div>{getFormattedTime(row.original.createdAt)}</div>,
+  },
+  {
+    accessorKey: "updatedAt",
+    header: HeaderLabel("Updated"),
+    cell: ({ row }) => <div>{getFormattedTime(row.original.updatedAt)}</div>,
   },
   {
     accessorKey: "files",

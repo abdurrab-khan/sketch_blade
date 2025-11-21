@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { IoIosSearch, IoMdNotificationsOutline } from "react-icons/io";
-import { Settings } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 interface HeaderProps {
   query: string;
@@ -26,12 +26,10 @@ function Header({ query, setQuery }: HeaderProps) {
           </div>
         </div>
         <div className="ml-3">
-          <Button variant={"outline"} size={"icon"}>
+          <Button variant={"outline"} size={"icon"} className="mr-2">
             <IoMdNotificationsOutline />
           </Button>
-          <Button variant={"outline"} size={"icon"} className="ml-1.5">
-            <Settings />
-          </Button>
+          <ThemeToggle />
         </div>
       </div>
     </header>

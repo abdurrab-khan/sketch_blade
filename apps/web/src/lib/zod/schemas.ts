@@ -14,11 +14,11 @@ const fileSchema = z.object({
   collaborators: z
     .array(
       z.object({
-        _id: z.string(),
-        fullName: z.string(),
-        profileUrl: z.string(),
-        email: z.string().email(),
-        actions: z.literal(["editor", "viewer", "owner", "commenter"]),
+        _id: z.string("Collaborator ID is required"),
+        fullName: z.string("Full name is required"),
+        profileUrl: z.url("Profile URL must be a valid URL"),
+        email: z.email("Valid email is required"),
+        actions: z.literal(["edit", "view", "owner"]),
       }),
     )
     .optional(),

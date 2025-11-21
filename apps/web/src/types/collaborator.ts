@@ -1,10 +1,9 @@
-export type CollaboratorActions = "owner" | "editor" | "viewer" | "commenter";
+export type CollaboratorActions = "owner" | "edit" | "view";
 
 export enum CollaboratorAction {
   Owner = "owner",
   Edit = "edit",
   View = "view",
-  Comment = "comment",
 }
 
 export interface CollaboratorUser {
@@ -28,8 +27,8 @@ export interface CollaboratorData {
   _id: string;
   fullName: string;
   profileUrl: string;
-  actions: CollaboratorActions;
   email: string;
+  actions: CollaboratorActions;
 }
 
 export interface ListCollaborator {

@@ -1,37 +1,42 @@
-import { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { Textarea } from "@/components/ui/textarea.tsx";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form.tsx";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from "../ui/dialog.tsx";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form.tsx";
-import { Button } from "../ui/button.tsx";
-import { Input } from "../ui/input.tsx";
-import { Loader2 } from "lucide-react";
-import { Textarea } from "../ui/textarea.tsx";
+} from "@/components/ui/dialog.tsx";
 
 import * as z from "zod";
 import { useForm } from "react-hook-form";
-import useMutate from "../../hooks/useMutate.ts";
+import { File } from "@/types/file.ts";
+import useMutate from "@/hooks/useMutate.ts";
 import { fileSchema } from "@/lib/zod/schemas.ts";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { File } from "../../types/file.ts";
 import AddCollaboratorInput from "../AddCollaboratorInput.tsx";
 
 // Zod Validation Schema: for creation of file
 interface FileFormProps {
-  children: React.ReactNode;
   _id?: string;
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   fileData?: Partial<File>;
+  children?: React.ReactNode;
 }
 
-function FileForm({ children, _id, fileData }: FileFormProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
+function FileForm({ children, isOpen, setIsOpen, _id, fileData }: FileFormProps) {
   const form = useForm<z.infer<typeof fileSchema>>({
     resolver: zodResolver(fileSchema),
     defaultValues: {
@@ -40,52 +45,47 @@ function FileForm({ children, _id, fileData }: FileFormProps) {
       description: fileData?.description ?? "",
     },
   });
+  const { handleSubmit, reset, control, setValue, watch } = form;
 
   const mutation = useMutate({
     options: { queryKey: ["getFiles"] },
     finallyFn: () => {
-      form.reset();
+      reset();
       setIsOpen(false);
     },
   });
 
   const handleNewFileCreation = (data: z.infer<typeof fileSchema>) => {
     if (_id) {
-      // Handle File Updation
       mutation.mutate({ method: "put", data, uri: `/file/${_id}` });
     } else {
-      // Creating a new File
       mutation.mutate({ method: "post", data, uri: "/file" });
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger>{children}</DialogTrigger>
-      <DialogContent className="dark-container sm:max-w-md">
+      {children && <DialogTrigger>{children}</DialogTrigger>}
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New File</DialogTitle>
-          <DialogDescription>Enter file details and add collaborators.</DialogDescription>
+          <DialogTitle className="text-2xl">{!_id ? "Create New File" : "Update File"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleNewFileCreation)} className="space-y-6">
+          <form onSubmit={handleSubmit(handleNewFileCreation)} className="space-y-6">
             <FormField
-              control={form.control}
+              control={control}
               name="fileName"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>File Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter file name" {...field} className="dark-input" />
+                    <Input placeholder="Enter file name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <AddCollaboratorInput
-              setCollaborators={form.setValue}
-              collaborators={form.getValues("collaborators") ?? []}
-            />
+            <AddCollaboratorInput setValue={setValue} watch={watch} />
             <FormField
               control={form.control}
               name="description"
@@ -93,18 +93,14 @@ function FileForm({ children, _id, fileData }: FileFormProps) {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Enter file description"
-                      {...field}
-                      className="dark-input"
-                    />
+                    <Textarea placeholder="Enter file description" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <DialogFooter>
-              <Button type="submit" variant={"app"} className={"w-full"}>
+              <Button type="submit" variant={"primary"} className={"w-full"}>
                 {mutation.isPending ? (
                   <>
                     {fileData ? "Updating..." : "Creating..."}

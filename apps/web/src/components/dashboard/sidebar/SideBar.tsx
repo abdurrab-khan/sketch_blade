@@ -12,8 +12,8 @@ const NavLinks = [
     icon: MdSpaceDashboard,
   },
   {
-    name: "My Files",
-    href: "/my-files",
+    name: "My Folders",
+    href: "folders",
     icon: FaFolder,
   },
   {
@@ -65,7 +65,7 @@ function SideBar() {
               className={({ isActive }) =>
                 clsx(
                   isActive
-                    ? "bg-linear-to-r from-blue-400 to-blue-600 text-white/95 shadow-xl shadow-slate-300/80"
+                    ? "bg-linear-to-r from-blue-400 to-blue-600 text-white/95 shadow-xl shadow-slate-300/50"
                     : "text-primary-text-light/85 bg-none",
                   "group cursor-pointer justify-start rounded-xl px-5 py-4",
                 )

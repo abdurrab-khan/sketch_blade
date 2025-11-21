@@ -15,7 +15,6 @@ import { Button } from "../button.tsx";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table.tsx";
 
 import { File, Folder } from "@/types/file.ts";
-
 interface DataTableProps<T> {
   columns: ColumnDef<T>[];
   data: T[];
@@ -51,7 +50,7 @@ export function DataTable<T extends File | Folder>({ columns, data }: DataTableP
   console.log(data[0]);
 
   return (
-    <div className="flex size-full flex-col gap-2">
+    <div className="flex size-full flex-col gap-4">
       <div className="flex min-h-0 flex-1 flex-col justify-between">
         <div className="bg-primary-bg-light flex-1 rounded-xl shadow-2xl shadow-slate-500/50">
           <div className="flex flex-col gap-y-8">

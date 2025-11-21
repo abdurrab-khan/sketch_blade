@@ -1,49 +1,27 @@
-import { Button } from "../ui/button.tsx";
+import React from "react";
+import { BsThreeDots } from "react-icons/bs";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuGroup,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu.tsx";
-import { BsThreeDots } from "react-icons/bs";
-import React, { useState } from "react";
-import { useNavigate } from "react-router";
-import { AiFillFolderOpen } from "react-icons/ai";
-import { Share2 } from "lucide-react";
+} from "@/components/ui/dropdown-menu";
+import { Button } from "../ui/button";
 
 interface ActionDropMenuProps {
-  _id: string;
   children: React.ReactNode;
-  type: "file" | "folder";
 }
 
-function ActionDropMenu({ _id, children, type }: ActionDropMenuProps) {
-  const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
-  const childrenArray = React.Children.toArray(children);
-
+function ActionDropMenu({ children }: ActionDropMenuProps) {
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger
-        title="Actions"
-        asChild
-      >
-        <Button variant="none" className={"transition-all hover:text-tertiary"}>
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger title="Actions" asChild>
+        <Button variant="none" className="text-zinc-700 hover:text-zinc-700/50">
           <BsThreeDots />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="dark-container w-40">
-        <DropdownMenuItem onSelect={() => navigate(type === "folder" ? `${_id}` : `/file/${_id}`)}>
-          <AiFillFolderOpen className="h-4 w-4" />
-          Open
-        </DropdownMenuItem>
-        {childrenArray[0]}
-        {childrenArray[1]}
-        {childrenArray[2]}
-        <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
-          <Share2 className="h-4 w-4" />
-          Share
-        </DropdownMenuItem>
+      <DropdownMenuContent align="end">
+        <DropdownMenuGroup>{children}</DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
