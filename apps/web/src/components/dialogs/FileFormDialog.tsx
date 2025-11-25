@@ -20,8 +20,8 @@ import {
 } from "@/components/ui/dialog.tsx";
 
 import * as z from "zod";
-import { useForm } from "react-hook-form";
 import { File } from "@/types/file.ts";
+import { useForm } from "react-hook-form";
 import useMutate from "@/hooks/useMutate.ts";
 import { fileSchema } from "@/lib/zod/schemas.ts";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -54,13 +54,15 @@ function FileForm({ children, isOpen, setIsOpen, _id, fileData }: FileFormProps)
       setIsOpen(false);
     },
   });
+  const { isPending } = mutation;
 
-  const handleNewFileCreation = (data: z.infer<typeof fileSchema>) => {
-    if (_id) {
-      mutation.mutate({ method: "put", data, uri: `/file/${_id}` });
-    } else {
-      mutation.mutate({ method: "post", data, uri: "/file" });
-    }
+  const handleFileSubmit = (data: z.infer<typeof fileSchema>) => {
+    if(isPending) return;
+
+    const method = _id ? "put" : "post";
+    const uri = `/file${_id ? "/" + _id : ""}`
+
+    mutation.mutate({ method, data, uri });
   };
 
   return (
@@ -68,10 +70,10 @@ function FileForm({ children, isOpen, setIsOpen, _id, fileData }: FileFormProps)
       {children && <DialogTrigger>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl">{!_id ? "Create New File" : "Update File"}</DialogTitle>
+          <DialogTitle className="text-2xl">{_id ? "Update File" : "Create New File"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={handleSubmit(handleNewFileCreation)} className="space-y-6">
+          <form onSubmit={handleSubmit(handleFileSubmit)} className="space-y-4">
             <FormField
               control={control}
               name="fileName"
@@ -100,7 +102,12 @@ function FileForm({ children, isOpen, setIsOpen, _id, fileData }: FileFormProps)
               )}
             />
             <DialogFooter>
-              <Button type="submit" variant={"primary"} className={"w-full"}>
+              <Button 
+                type="submit"
+                variant={"primary"}
+                disabled={isPending}
+                className={"w-full cursor-pointer"}
+              >
                 {mutation.isPending ? (
                   <>
                     {fileData ? "Updating..." : "Creating..."}

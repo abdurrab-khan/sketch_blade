@@ -62,6 +62,33 @@ export const getFolders = AsyncHandler(async (req: Request, res: Response) => {
    );
 });
 
+export const searchFolders = AsyncHandler(
+   async (req: Request, res: Response) => {
+      const query = req.query;
+
+      res.status(200).json(
+         new ApiResponse({
+            statusCode: 200,
+            message: "Search folders successfully",
+            data: [
+               {
+                  _id: "64b7f8e2c9e77b6f4d8e4a1a",
+                  name: "Project Ideas",
+                  createdAt: "2024-07-20T10:15:30.000Z",
+                  updatedAt: "2024-07-22T14:25:45.000Z",
+               },
+               {
+                  _id: "64b7f9a3c9e77b6f4d8e4a1b",
+                  name: "Work Documents",
+                  createdAt: "2024-07-18T09:05:20.000Z",
+                  updatedAt: "2024-07-21T11:30:55.000Z",
+               },
+            ],
+         }),
+      );
+   },
+);
+
 export const getFolderFiles = AsyncHandler(
    async (req: Request, res: Response) => {
       const { folderId } = req.params;

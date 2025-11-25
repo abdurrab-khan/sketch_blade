@@ -46,14 +46,12 @@ function FileDeleteDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {children && <DialogTrigger>{children}</DialogTrigger>}
-      <DialogContent className="dark-container sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
             <span className="text-red-500">Delete File</span>
           </DialogTitle>
-          <DialogDescription className={"text-quaternary"}>
-            Are you sure you want to delete this file?
-          </DialogDescription>
+          <DialogDescription>Are you sure you want to delete this file?</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4"></div>
@@ -61,16 +59,9 @@ function FileDeleteDialog({
         <DialogFooter>
           <div className={"flex w-full items-center justify-between"}>
             <DialogClose asChild>
-              <Button type="button" variant={"app"}>
-                Cancel
-              </Button>
+              <Button type="button">Cancel</Button>
             </DialogClose>
-            <Button
-              type="button"
-              variant={"delete"}
-              onClick={handleDelete}
-              disabled={mutate.isPending}
-            >
+            <Button type="button" onClick={handleDelete} disabled={mutate.isPending}>
               {mutate.isPending ? (
                 <>
                   Deleting...

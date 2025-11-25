@@ -1,4 +1,7 @@
-import React from "react";
+import React, { useTransition } from "react";
+import { LoaderCircle } from "lucide-react";
+import { Input } from "@/components/ui/input.tsx";
+import { Button } from "@/components/ui/button.tsx";
 import {
   Dialog,
   DialogContent,
@@ -7,10 +10,23 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog.tsx";
-import { Button } from "../ui/button.tsx";
-import { Input } from "../ui/input.tsx";
+} from "@/components/ui/dialog.tsx";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+
+import * as z from "zod";
 import { Folder } from "@/types/file.ts";
+import { useForm } from "react-hook-form";
+import useMutate from "@/hooks/useMutate.ts"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { folderSchema } from "@/lib/zod/schemas.ts";
 
 interface FolderFormProps {
   _id?: string;
@@ -21,26 +37,71 @@ interface FolderFormProps {
 }
 
 function FolderForm({ _id, children, isOpen, setIsOpen, folderData }: FolderFormProps) {
-  const [folderName, setFolderName] = React.useState(folderData?.name || "");
+  const form = useForm<z.infer<typeof folderSchema>>({
+    resolver: zodResolver(folderSchema),
+    defaultValues:{
+      folderName: folderData?.name ?? null
+    }
+  });
+  const { control, handleSubmit } = form;
+
+  const mutation = useMutate({
+    options: { queryKey: ["getFolders"] },
+    isShowToast: true,
+    finallyFn: () => setIsOpen(false),
+  });
+  const { isPending } = mutation;
+
+  const handleFolderSubmit = (data: z.infer<typeof folderSchema>) => {
+    if(isPending) return;
+
+    const method = _id ? "put" : "post";
+    const uri = `/folder${_id ? "/" + _id : "" }`;
+
+    mutation.mutate({ uri, method, data });
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      {children ? <DialogTrigger>{children}</DialogTrigger> : null}
-      <DialogContent className="sm:max-w-md">
+      {children && <DialogTrigger>{children}</DialogTrigger>}
+      <DialogContent className="sm:max-w-md"> 
         <DialogHeader>
-          <DialogTitle>{_id ? "Edit Folder" : "Create New Folder"}</DialogTitle>
-          <DialogDescription>
-            {_id ? "Edit your folder details here." : "Fill the form to create a new folder."}
-          </DialogDescription>
+          <DialogTitle className="text-2xl">{_id ? "Update Folder" : "Create New Folder"}</DialogTitle>
         </DialogHeader>
-        <div>
-          <Input value={folderName} onChange={(e) => setFolderName(e.target.value)} />
-        </div>
-        <DialogFooter>
-          <Button variant={"primary"} className={"w-full"}>
-            Submit
-          </Button>
-        </DialogFooter>
+        <Form {...form}>
+          <form onSubmit={handleSubmit(handleFolderSubmit)} className="space-y-4">
+            <FormField
+              control={control}
+              name="folderName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Folder Name
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter folder name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          <DialogFooter>
+            <Button 
+              type="submit" 
+              variant={"primary"}
+              disabled={isPending}
+              className="w-full cursor-pointer"
+            >
+              {
+                _id ? "Update folder" : "Create folder"
+              }
+              {
+                isPending && <LoaderCircle className="animate-spin" />
+              }
+            </Button>
+          </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

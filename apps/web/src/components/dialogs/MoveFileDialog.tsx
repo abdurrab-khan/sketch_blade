@@ -1,4 +1,9 @@
-import React, { useCallback, useState, useTransition } from "react";
+import React, { useMemo, useState, useTransition } from "react";
+
+import { Label } from "@/components/ui/label.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { Separator } from "@/components/ui/separator.tsx";
 import {
   Dialog,
   DialogContent,
@@ -7,19 +12,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog.tsx";
-import { Input } from "../ui/input.tsx";
-import { Button } from "../ui/button.tsx";
-import { Label } from "../ui/label.tsx";
-import { Separator } from "../ui/separator.tsx";
-import { Loader2 } from "lucide-react";
-import useMutate from "../../hooks/useMutate.ts";
-import { FolderDetails } from "../../types/file.ts";
-import { cn } from "../../lib/utils.ts";
-import { getFormattedTime } from "../../utils/AppUtils.ts";
-import useApiClient from "@/hooks/useApiClient.ts";
+} from "@/components/ui/dialog.tsx";
+
 import { ApiResponse } from "@/types/index.ts";
+
 import { debounce } from "lodash";
+import { cn } from "@/lib/utils.ts";
+import { Loader2 } from "lucide-react";
+import useMutate from "@/hooks/useMutate.ts";
+import { FolderDetails } from "@/types/file.ts";
+import useApiClient from "@/hooks/useApiClient.ts";
+import { getFormattedTime } from "@/utils/AppUtils.ts";
 
 interface MoveFileDialogProps {
   _id: string;
@@ -50,14 +53,14 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
   const fileUpdateMutation = useMutate({
     options: { queryKey: ["getFiles"] },
     isShowToast: true,
-    finallyFn: () => setOpenDialog(false),
+    finallyFn: () => setIsOpen(false),
   });
 
   const handleMoveIntoFolder = () => {
     if (!selectedFolder) return;
 
     if (existingFolderId === selectedFolder) {
-      setOpenDialog(false);
+      setIsOpen(false);
       return;
     }
 
@@ -68,38 +71,38 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
     });
   };
 
-  const debounceSearchFolder = useCallback(
+  const searchFolders = useMemo(
     () =>
-      debounce((searchQuery) => {
+      debounce((searchQuery: string) => {
         startTransition(async () => {
-          const folders = await apiClient.get<ApiResponse<FolderDetails[]>>(
-            `/folder/${searchQuery}`,
-          );
+          try {
+            const folders = await apiClient.get<ApiResponse<FolderDetails[]>>(
+              `/folder/search?name=${encodeURIComponent(searchQuery)}`,
+            );
 
-          // Set Fetched Folders
-          startTransition(() => {
-            const folderData = folders.data?.data;
-
-            if (folderData != undefined && folderData.length !== 0) {
-              setListFolders(folderData);
-            }
-          });
+            startTransition(() => {
+              if (folders.data?.data) {
+                const data = folders.data.data;
+                setListFolders(data);
+              }
+            });
+          } catch (err) {
+            console.error("Error occurred during finding folders: ", err);
+          }
         });
-      }, 300),
+      }, 500),
     [apiClient],
   );
 
   const handleSearchFolder = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-
-    setInputSearch(inputValue);
-    debounceSearchFolder(); // Performing Debounce search to search folder
+    setInputSearch(e.target.value);
+    searchFolders(e.target.value);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {children && <DialogTrigger>{children}</DialogTrigger>}
-      <DialogContent className="dark-container sm:max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Move Folder</DialogTitle>
           <DialogDescription>Move the folder to another location</DialogDescription>
@@ -159,12 +162,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
           </div>
         </div>
         <DialogFooter>
-          <Button
-            variant={"app"}
-            className={"w-full"}
-            disabled={!selectedFolder}
-            onClick={handleMoveIntoFolder}
-          >
+          <Button className={"w-full"} disabled={!selectedFolder} onClick={handleMoveIntoFolder}>
             {fileUpdateMutation.isPending ? (
               <>
                 Moving... <Loader2 className={"h-8 w-8 animate-spin"} />

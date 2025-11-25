@@ -60,8 +60,8 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
     cell: ({ row }) => <div>{getFormattedTime(row.original.updatedAt)}</div>,
   },
   {
-    accessorKey: "files",
-    header: HeaderLabel("Files"),
+    accessorKey: "Actions",
+    header: HeaderLabel("Actions"),
     cell: ({ row }) => <FolderAction row={row} />,
   },
 ];

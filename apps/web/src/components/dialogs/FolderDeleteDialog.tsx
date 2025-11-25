@@ -33,9 +33,11 @@ function FolderDeleteDialog({
     options: { queryKey: queryKey },
     finallyFn: () => setIsOpen(false),
   });
+  const { isPending } = mutate;
 
   const handleDelete = () => {
-    if (mutate.isPending) return;
+  console.log("handleDelete")
+    if (isPending) return;
 
     mutate.mutate({
       method: "delete",
@@ -69,7 +71,7 @@ function FolderDeleteDialog({
               onClick={handleDelete}
               disabled={mutate.isPending}
             >
-              {mutate.isPending ? (
+              {isPending ? (
                 <>
                   Deleting...
                   <Loader2 className={"ml-1 h-6 w-6 animate-spin"} />
