@@ -1,9 +1,7 @@
 import React from "react";
-import { Loader2 } from "lucide-react";
 import { DataTable } from "./Data-table.tsx";
-import { File as FileType } from "@/types/file.ts";
+import type { File } from "@/types/file.ts";
 import fileColumns from "./columns/FileColumns.tsx";
-import { useResponse } from "@/hooks/useResponse.tsx";
 import { FaFilter } from "react-icons/fa6";
 import { FaSortAmountDownAlt } from "react-icons/fa";
 import {
@@ -18,26 +16,13 @@ import {
 import { Button } from "../button.tsx";
 
 interface FilesTableProps {
-  type: "all" | "my";
+  data: File[]
 }
 
-const FilesTable: React.FC<FilesTableProps> = () => {
-  const { data, isPending } = useResponse<FileType[]>({
-    queryKeys: ["getFiles"],
-    queryProps: { uri: "/file" },
-  });
-
+const FilesTable: React.FC<FilesTableProps> = ({ data }) => {
   return (
-    <div className="size-full">
-      {isPending ? (
-        <div className={"flex-center size-full"}>
-          <div>
-            <Loader2 className={"h-8 w-8 animate-spin"} />
-          </div>
-        </div>
-      ) : (
-        <React.Fragment>
-          <div className="mb-2.5">
+    <div className="size-full flex-1 flex flex-col">
+          <div className="mb-2.5 h-fit">
             <div className="flex flex-wrap gap-x-2 gap-y-4">
               <Button variant={"outline"}>
                 <span className="flex items-center text-slate-600">
@@ -68,10 +53,9 @@ const FilesTable: React.FC<FilesTableProps> = () => {
               </Select>
             </div>
           </div>
-          <DataTable columns={fileColumns} data={data?.data ?? []} />
-        </React.Fragment>
-      )}
+          <DataTable columns={fileColumns} data={data} />
     </div>
   );
 };
+
 export default FilesTable;

@@ -19,7 +19,7 @@ interface UseResponseParams<T> {
   >;
 }
 
-export const useResponse = <T,>({
+const useResponse = <T,>({
   queryKeys,
   queryProps,
   queryOptions,
@@ -46,7 +46,6 @@ export const useResponse = <T,>({
     retry: 3,
     retryDelay: 1000,
     enabled: !!userClerkId,
-    refetchOnMount: false,
     refetchOnReconnect: true,
     ...queryOptions,
   });
@@ -70,3 +69,5 @@ export const useResponse = <T,>({
 
   return result;
 };
+
+export default useResponse;

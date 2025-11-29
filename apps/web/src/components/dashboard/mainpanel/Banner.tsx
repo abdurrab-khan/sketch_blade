@@ -6,10 +6,10 @@ import FolderForm from "@/components/dialogs/FolderFormDialog";
 
 const Button = ({ title }: { title: string }) => (
   <div className="overflow-hidden rounded-xl shadow-xl shadow-slate-400/10 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-slate-400">
-    <div className="bg-linear-to-r from-blue-400 to-blue-600 px-8 py-3.5 text-white/90 transition-opacity hover:opacity-90">
+    <div className="bg-linear-to-r from-blue-400 to-blue-600 px-8 py-3 text-white/90 transition-opacity hover:opacity-90">
       <div className="text-nowrap">
         <PlusIcon className="inline h-6! w-6!" />
-        <span className="ml-3 text-base">{title}</span>
+        <span className="ml-3 text-base font-semibold">{title}</span>
       </div>
     </div>
   </div>

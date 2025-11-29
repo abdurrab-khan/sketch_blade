@@ -1,6 +1,7 @@
+import React from "react";
 import { Loader2 } from "lucide-react";
 import { DataTable } from "./Data-table.tsx";
-import { useResponse } from "@/hooks/useResponse.tsx";
+import useResponse from "@/hooks/useResponse.tsx";
 import { folderColumns } from "./columns/FolderColumns.tsx";
 
 import { FolderDetails } from "@/types/file.ts";
@@ -11,8 +12,10 @@ const FolderTable = () => {
     queryProps: { uri: "/folder" },
   });
 
+  console.log(data)
+
   return (
-    <>
+    <React.Fragment>
       {isPending ? (
         <div className={"flex-center size-full"}>
           <div>
@@ -22,7 +25,7 @@ const FolderTable = () => {
       ) : (
         <DataTable columns={folderColumns} data={data?.data ?? []} />
       )}
-    </>
+    </React.Fragment>
   );
 };
 

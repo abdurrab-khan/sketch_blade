@@ -102,92 +102,116 @@ export const getFolderFiles = AsyncHandler(
       }
 
       const folderFiles = await FolderModel.aggregate([
-         {
-            $match: {
-               _id: new Types.ObjectId(folderId),
+  {
+    $match: {
+        _id: new Types.ObjectId(folderId),
+    },
+  },
+  {
+    $lookup: {
+      from: "files",
+      let: { folderId: "$_id" },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$folderId", "$$folderId"]
+            }
+          }
+        },
+        {
+          $lookup: {
+            from: "collaborators",
+            localField: "_id",
+            foreignField: "fileId",
+            as: "collaborators"
+          }
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "ownerId",
+            foreignField: "clerkId",
+            as: "creator",
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  fullName: {
+                    $concat: [
+                      "$firstName",
+                      " ",
+                      "$lastName"
+                    ]
+                  },
+                  profileUrl: 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          $addFields: {
+            creator: {
+              $arrayElemAt: ["$creator", 0]
+            }
+          }
+        },
+        {
+          $match: {
+            $or: [
+                { ownerId: userId },
+                {
+                  collaborators: {
+                      $elemMatch: {
+                        userId: userId,
+                      },
+                  },
+                },
+            ],
+          }
+        },
+        {
+          $lookup: {
+            from: "folders",
+            localField: "folderId",
+            foreignField: "_id",
+            as: "folder",
+            pipeline: [
+              {
+                $project: {
+                  name: 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          $project: {
+            name: 1,
+            ownerId: 1,
+            creator: 1,
+            isLocked: 1,
+            folder: {
+              $arrayElemAt: ["$folder", 0]
             },
-         },
-         {
-            $lookup: {
-               from: "files",
-               let: { folderId: "$_id" },
-               pipeline: [
-                  {
-                     $match: {
-                        $expr: {
-                           $eq: ["$folderId", "$$folderId"],
-                        },
-                     },
-                  },
-                  {
-                     $lookup: {
-                        from: "collaborators",
-                        localField: "_id",
-                        foreignField: "fileId",
-                        as: "collaborators",
-                     },
-                  },
-                  {
-                     $lookup: {
-                        from: "users",
-                        localField: "ownerId",
-                        foreignField: "clerkId",
-                        as: "creator",
-                        pipeline: [
-                           {
-                              $project: {
-                                 _id: 0,
-                                 fullName: {
-                                    $concat: ["$firstName", " ", "$lastName"],
-                                 },
-                                 profileUrl: 1,
-                              },
-                           },
-                        ],
-                     },
-                  },
-                  {
-                     $addFields: {
-                        creator: {
-                           $arrayElemAt: ["$creator", 0],
-                        },
-                     },
-                  },
-                  {
-                     $match: {
-                        $or: [
-                           { ownerId: userId },
-                           {
-                              collaborators: {
-                                 $elemMatch: {
-                                    userId: userId,
-                                 },
-                              },
-                           },
-                        ],
-                     },
-                  },
-                  {
-                     $project: {
-                        name: 1,
-                        ownerId: 1,
-                        creator: 1,
-                        isLocked: 1,
-                     },
-                  },
-               ],
-               as: "files",
-            },
-         },
-         {
-            $project: {
-               name: 1,
-               files: 1,
-               createdAt: 1,
-               updatedAt: 1,
-            },
-         },
-      ]);
+            createdAt: 1,
+            updatedAt: 1
+          }
+        }
+      ],
+      as: "files"
+    }
+  },
+  {
+    $project: {
+      name: 1,
+      files: 1,
+      createdAt: 1,
+      updatedAt: 1
+    }
+  }
+]);
 
       if (folderFiles.length === 0) {
          res.status(404).json(
@@ -202,7 +226,7 @@ export const getFolderFiles = AsyncHandler(
       res.status(200).json(
          new ApiResponse({
             statusCode: 200,
-            data: folderFiles,
+            data: folderFiles[0],
             message: "Files found successfully",
          }),
       );

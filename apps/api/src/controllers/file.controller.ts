@@ -481,3 +481,57 @@ export const transferFileOwnership = AsyncHandler(
       );
    },
 );
+
+export const getSharedFiles = AsyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.userId;
+
+    const collaborators = await Collaborator.find({
+      userId: {
+        $eq: userId
+      },
+      role: {
+        $ne: "owner"
+      }
+    });
+
+    res.status(200).json(
+      new ApiResponse({
+        statusCode: 200,
+        data: collaborators,
+        message: "File found successfully."
+      })
+    );
+});
+
+export const getFavoriteFiles = AsyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.userId;
+    const { fileId } = req.params;
+
+    res.status(200).json(
+      new ApiResponse({
+        statusCode: 200,
+        data: null,
+        message: "File found successfully."
+      })
+    );
+});
+
+export const toggleFavoriteFile = AsyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.userId;
+    const { fileId } = req.params;
+
+    res.status(200).json(
+      new ApiResponse({
+        statusCode: 200,
+        data: null,
+        message: "File found successfully."
+      })
+    );
+});
+
+
+
+

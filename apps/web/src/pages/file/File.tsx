@@ -1,19 +1,9 @@
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import { ApiResponse } from "../../types/index.ts";
-import { useToast } from "../../hooks/use-toast.ts";
-import { useResponse } from "../../hooks/useResponse.tsx";
-
-// const LoadingLayout = () => {
-//   return (
-//     <div className="z-2 fixed right-1/2 top-0 size-full translate-x-1/2 flex-center" >
-//       <p className="text-2xl">
-//         Loading...
-//       </p>
-//     </div>
-//   )
-// }
+import { ApiResponse } from "@/types/index.ts";
+import { useToast } from "@/hooks/use-toast.ts";
+import useResponse  from "@/hooks/useResponse.tsx";
 
 const File = () => {
   const fileId = useParams().id;

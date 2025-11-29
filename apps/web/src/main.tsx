@@ -14,7 +14,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AuthProtection from "@/components/AuthProtection.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { Toaster } from "@/components/ui/toaster.tsx";
-import All from "./pages/home/All.tsx";
+import Files from "./pages/home/File.tsx";
 import FolderFiles from "./pages/home/FolderFiles.tsx";
 import Folder from "./pages/home/Folder.tsx";
 
@@ -36,7 +36,7 @@ const router = createBrowserRouter(
           </AuthProtection>
         }
       >
-        <Route index element={<All />} />
+        <Route index element={<Files />} />
         <Route path="folders">
           <Route index element={<Folder />} />
           <Route path=":folderId" element={<FolderFiles />} />

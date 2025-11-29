@@ -2,6 +2,7 @@ import { FaPencilRuler } from "react-icons/fa";
 import { Link, NavLink } from "react-router";
 import { MdGroups, MdSpaceDashboard } from "react-icons/md";
 import { FaClockRotateLeft, FaFolder, FaStar, FaTrash } from "react-icons/fa6";
+import AuthBtn from "@/components/AuthBtn.tsx";
 import clsx from "clsx";
 import { useUser } from "@clerk/clerk-react";
 
@@ -79,6 +80,7 @@ function SideBar() {
           ))}
         </div>
       </div>
+      <AuthBtn />
       <button className="cursor-pointer rounded-lg px-2.5 py-2.5">
         <div className="flex items-center gap-x-2">
           <div className="size-9 overflow-hidden rounded-lg bg-blue-500">
