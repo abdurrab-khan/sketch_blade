@@ -16,6 +16,7 @@ app.use(
       publishableKey: process.env.CLERK_PUBLIC_KEY || "",
    }),
 );
+
 app.use(cookieParser());
 app.use(
    express.json({

@@ -99,6 +99,9 @@ export const addCollaborator = AsyncHandler(
 
             const user = await User.findOne({ email }).lean();
 
+            console.log("User is: ", user);
+            console.log("Email ID is: ", email);
+
             if (!user) {
                throw new ErrorHandler({
                   statusCode: 400,

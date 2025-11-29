@@ -35,7 +35,7 @@ export const getFile = AsyncHandler(async (req: Request, res: Response) => {
    if (!isValidObjectId(fileId)) {
       throw new ErrorHandler({
          statusCode: 400,
-         message: "File id is invalid",
+         message: "Invalid file id",
       });
    }
 
@@ -93,7 +93,7 @@ export const getFile = AsyncHandler(async (req: Request, res: Response) => {
    res.status(200).json(
       new ApiResponse({
          statusCode: 200,
-         data: file,
+         data: file[0],
          message: "File found successfully",
       }),
    );
@@ -133,7 +133,7 @@ export const getFiles = AsyncHandler(
                from: "users",
                localField: "ownerId",
                foreignField: "clerkId",
-               as: "creator",
+               as: "owner",
                pipeline: [
                   {
                      $project: {
@@ -173,8 +173,8 @@ export const getFiles = AsyncHandler(
                folder: {
                   $arrayElemAt: ["$folder", 0],
                },
-               creator: {
-                  $arrayElemAt: ["$creator", 0],
+               owner: {
+                  $arrayElemAt: ["$owner", 0],
                },
             },
          },
@@ -483,55 +483,103 @@ export const transferFileOwnership = AsyncHandler(
 );
 
 export const getSharedFiles = AsyncHandler(
-  async (req: Request, res: Response): Promise<void> => {
-    const userId = req.userId;
+   async (req: Request, res: Response): Promise<void> => {
+      const userId = req.userId;
 
-    const collaborators = await Collaborator.find({
-      userId: {
-        $eq: userId
-      },
-      role: {
-        $ne: "owner"
+      const collaborators = await Collaborator.find({
+         userId: {
+            $eq: userId,
+         },
+         role: {
+            $ne: "owner",
+         },
+      });
+
+      const fileIds = collaborators.map(
+         (c) => new Types.ObjectId(c.fileId.toString()),
+      );
+      let files = [];
+
+      if (fileIds.length > 0) {
+         files = await FileModel.aggregate([
+            {
+               $match: {
+                  _id: {
+                     $in: fileIds,
+                  },
+               },
+            },
+            {
+               $lookup: {
+                  from: "users",
+                  localField: "ownerId",
+                  foreignField: "clerkId",
+                  as: "owner",
+                  pipeline: [
+                     {
+                        $project: {
+                           _id: 0,
+                           fullName: {
+                              $concat: ["$firstName", " ", "$lastName"],
+                           },
+                           profileUrl: 1,
+                           email: 1,
+                        },
+                     },
+                  ],
+               },
+            },
+            {
+               $project: {
+                  name: 1,
+                  isLocked: 1,
+                  description: 1,
+                  updatedAt: 1,
+                  createdAt: 1,
+                  owner: {
+                     $arrayElemAt: ["$owner", 0],
+                  },
+               },
+            },
+         ]);
       }
-    });
 
-    res.status(200).json(
-      new ApiResponse({
-        statusCode: 200,
-        data: collaborators,
-        message: "File found successfully."
-      })
-    );
-});
+      res.status(200).json(
+         new ApiResponse({
+            statusCode: 200,
+            data: files,
+            message: "File found successfully.",
+         }),
+      );
+   },
+);
 
 export const getFavoriteFiles = AsyncHandler(
-  async (req: Request, res: Response): Promise<void> => {
-    const userId = req.userId;
-    const { fileId } = req.params;
+   async (req: Request, res: Response): Promise<void> => {
+      const userId = req.userId;
+      const { fileId } = req.params;
 
-    res.status(200).json(
-      new ApiResponse({
-        statusCode: 200,
-        data: null,
-        message: "File found successfully."
-      })
-    );
-});
+      res.status(200).json(
+         new ApiResponse({
+            statusCode: 200,
+            data: null,
+            message: "File found successfully.",
+         }),
+      );
+   },
+);
 
 export const toggleFavoriteFile = AsyncHandler(
-  async (req: Request, res: Response): Promise<void> => {
-    const userId = req.userId;
-    const { fileId } = req.params;
+   async (req: Request, res: Response): Promise<void> => {
+      const userId = req.userId;
+      const { fileId } = req.params;
 
-    res.status(200).json(
-      new ApiResponse({
-        statusCode: 200,
-        data: null,
-        message: "File found successfully."
-      })
-    );
-});
-
-
-
-
+      res.status(200).json(
+         new ApiResponse({
+            statusCode: 200,
+            data: null,
+            message: "File found successfully.",
+         }),
+      );
+   },
+);

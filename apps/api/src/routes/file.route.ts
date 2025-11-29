@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { Request, Response } from "express";
 import {
    getFile,
    getFiles,
@@ -19,15 +20,19 @@ const router = Router();
 
 router.use(userMiddleware);
 
+router.route("/shared").get(getSharedFiles);
+router.route("/toggle-lock/:fileId").put(validateFileOwnership, toggleLock);
+router.route("/transfer-ownership/:fileId").post(transferFileOwnership);
+
 router.route("/").post(createFile).get(getFiles).delete(deleteFiles);
 router
    .route("/:fileId")
    .get(getFile)
    .put(validateFileOwnership, updateFile)
    .delete(deleteFile);
-router.route("/toggle-lock/:fileId").put(validateFileOwnership, toggleLock);
-router.route("/transfer-ownership/:fileId").post(transferFileOwnership);
-router.route("/shared").get(getSharedFiles)
-router.route("/favorite/:fileId").get(getFavoriteFiles).post(toggleFavoriteFile);
+router
+   .route("/favorite/:fileId")
+   .get(getFavoriteFiles)
+   .post(toggleFavoriteFile);
 
 export default router;

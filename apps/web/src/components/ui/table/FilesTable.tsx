@@ -20,6 +20,7 @@ interface FilesTableProps {
 }
 
 const FilesTable: React.FC<FilesTableProps> = ({ data }) => {
+  
   return (
     <div className="size-full flex-1 flex flex-col">
           <div className="mb-2.5 h-fit">
@@ -30,7 +31,7 @@ const FilesTable: React.FC<FilesTableProps> = ({ data }) => {
                   <span className="ml-2">Filter</span>
                 </span>
               </Button>
-              <Button variant={"outline"}>
+                      <Button variant={"outline"}>
                 <span className="flex items-center text-slate-600">
                   <FaSortAmountDownAlt />
                   <span className="ml-2">Filter</span>
