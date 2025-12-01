@@ -1,22 +1,21 @@
 import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import "./index.css";
-import App from "@/App.tsx";
 import { Provider } from "react-redux";
 import { store } from "@/redux/store.ts";
-import { createRoutesFromElements, Route, RouterProvider } from "react-router";
+import { createRoot } from "react-dom/client";
+import { ClerkProvider } from "@clerk/clerk-react";
 import { createBrowserRouter } from "react-router";
+import { Toaster } from "@/components/ui/toaster.tsx";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createRoutesFromElements, Route, RouterProvider } from "react-router";
+
+import "./index.css";
+import App from "@/App.tsx";
+import File from "./pages/file/File.tsx";
+import NotFound from "./pages/NotFound.tsx";
 import Sign_In from "@/pages/auth/Sign_In.tsx";
 import Sign_Up from "@/pages/auth/Sign_Up.tsx";
-import { ClerkProvider } from "@clerk/clerk-react";
-import File from "./pages/file/File.tsx";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AuthProtection from "@/components/AuthProtection.tsx";
-import NotFound from "./pages/NotFound.tsx";
-import { Toaster } from "@/components/ui/toaster.tsx";
-import Files from "./pages/home/File.tsx";
-import FolderFiles from "./pages/home/FolderFiles.tsx";
-import Folder from "./pages/home/Folder.tsx";
+import { Files, Folder, FolderFiles, Shared, Favorite, Recent, Trash } from "@/pages/home";
 
 const queryClient = new QueryClient();
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLIC_KEY;
@@ -41,10 +40,10 @@ const router = createBrowserRouter(
           <Route index element={<Folder />} />
           <Route path=":folderId" element={<FolderFiles />} />
         </Route>
-        <Route path="shared-with-me" element={<>Shared with me</>} />
-        <Route path="favorite" element={<>Favorite</>} />
-        <Route path="recent" element={<>Recent</>} />
-        <Route path="trash" element={<>Trash</>} />
+        <Route path="shared-with-me" element={<Shared />} />
+        <Route path="favorite" element={<Favorite />} />
+        <Route path="recent" element={<Recent />} />
+        <Route path="trash" element={<Trash />} />
       </Route>
 
       <Route

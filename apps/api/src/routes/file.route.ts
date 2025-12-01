@@ -21,18 +21,18 @@ const router = Router();
 router.use(userMiddleware);
 
 router.route("/shared").get(getSharedFiles);
-router.route("/toggle-lock/:fileId").put(validateFileOwnership, toggleLock);
+router.route("/toggle-lock/:fileId").post(validateFileOwnership, toggleLock);
+router.route("/favorite").get(getFavoriteFiles);
 router.route("/transfer-ownership/:fileId").post(transferFileOwnership);
 
 router.route("/").post(createFile).get(getFiles).delete(deleteFiles);
+router
+   .route("/toggle-favorite/:fileId")
+   .post(validateFileOwnership, toggleFavoriteFile);
 router
    .route("/:fileId")
    .get(getFile)
    .put(validateFileOwnership, updateFile)
    .delete(deleteFile);
-router
-   .route("/favorite/:fileId")
-   .get(getFavoriteFiles)
-   .post(toggleFavoriteFile);
 
 export default router;

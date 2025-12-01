@@ -7,12 +7,20 @@ import { folderColumns } from "./columns/FolderColumns.tsx";
 import { FolderDetails } from "@/types/file.ts";
 
 const FolderTable = () => {
-  const { data, isPending } = useResponse<FolderDetails[]>({
+  const { data, isPending, isFetching } = useResponse<FolderDetails[]>({
     queryKeys: ["getFolders"],
     queryProps: { uri: "/folder" },
   });
 
-  console.log(data)
+  if (isPending || isFetching) {
+    return (
+      <div className={"flex-center size-full flex-1"}>
+        <div>
+          <Loader2 className={"h-8 w-8 animate-spin"} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <React.Fragment>

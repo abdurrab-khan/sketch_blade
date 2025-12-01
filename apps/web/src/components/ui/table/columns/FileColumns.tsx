@@ -8,6 +8,7 @@ import ProfileImg from "@/components/ProfileImg.tsx";
 import ActiveCollaborators from "./rows/ActiveCollaborators.tsx";
 import HeaderLabel from "./rows/HeaderLabel.tsx";
 import { Badge } from "../../badge.tsx";
+import { CiLock } from "react-icons/ci";
 
 const fileColumns: ColumnDef<File>[] = [
   {
@@ -38,23 +39,23 @@ const fileColumns: ColumnDef<File>[] = [
     accessorKey: "name",
     header: HeaderLabel("Name"),
     cell: ({ row }) => (
-      <span className={"hover:text-tertiary transition-all"}>
-        <Link to={`/file/${row.original._id}`}>{row.original.name}</Link>
-      </span>
+      <div className="flex items-center justify-center gap-x-1.5">
+        <span className={"font-medium text-gray-900 transition-all hover:text-gray-900/80"}>
+          <Link to={`/file/${row.original._id}`}>{row.original.name}</Link>
+        </span>
+        {row.original?.isLocked && <CiLock className="text-lg" />}
+      </div>
     ),
   },
   {
-    accessorKey: "creator",
-    header: HeaderLabel("Creator"),
-    cell: ({ row }) =>
-      row.original.creator ? (
-        <ProfileImg
-          fullName={row.original.creator?.fullName}
-          profileUrl={row.original.creator?.profileUrl}
-        />
-      ) : (
-        <>-</>
-      ),
+    accessorKey: "owner",
+    header: HeaderLabel("Owner"),
+    cell: ({ row }) => (
+      <ProfileImg
+        fullName={row.original.owner?.fullName}
+        profileUrl={row.original.owner?.profileUrl}
+      />
+    ),
   },
   {
     accessorKey: "createdAt",
@@ -67,11 +68,11 @@ const fileColumns: ColumnDef<File>[] = [
     cell: ({ row }) => <ShowDate value={row.getValue("updatedAt")} />,
   },
   {
-    accessorKey: "activeCollaborator",
+    accessorKey: "collaborators",
     header: HeaderLabel("Collaborators"),
-    cell: ({ row }) => (
+    cell: () => (
       <div className="flex items-center justify-center rounded-lg">
-        <ActiveCollaborators collaborators={row.getValue("active_collaborators")} />
+        <ActiveCollaborators />
       </div>
     ),
   },
@@ -82,9 +83,7 @@ const fileColumns: ColumnDef<File>[] = [
       <div className="size-full empty:bg-yellow-500">
         {row.original.folder ? (
           <Badge className="bg-blue-500 text-white">{row.original.folder?.name}</Badge>
-        ) : (
-          "-"
-        )}
+        ) : null}
       </div>
     ),
   },

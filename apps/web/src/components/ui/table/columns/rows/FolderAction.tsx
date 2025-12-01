@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaEdit } from "react-icons/fa";
+import { useSelector } from "react-redux";
 import { Row } from "@tanstack/react-table";
 import FolderForm from "@/components/dialogs/FolderFormDialog";
 
@@ -16,6 +16,7 @@ import FolderDeleteDialog from "@/components/dialogs/FolderDeleteDialog";
 import { Button } from "@/components/ui/button";
 import { BsThreeDots } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
+import { FaEdit } from "react-icons/fa";
 
 interface FolderActionProps {
   row: Row<FolderDetails>;
@@ -26,6 +27,10 @@ const FolderAction = ({ row }: FolderActionProps) => {
 
   const [editDialog, setEditDialog] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
+  const { email } = useSelector((state: RootState) => state.auth);
+
+  // For enabling owner only features
+  const isOwner = row.original?.owner.email === email;
 
   return (
     <React.Fragment>
@@ -45,10 +50,12 @@ const FolderAction = ({ row }: FolderActionProps) => {
               <FaEdit className={"h-4 w-4"} />
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setDeleteDialog(true)}>
-              <MdDelete className="h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
+            {isOwner ? (
+              <DropdownMenuItem onSelect={() => setDeleteDialog(true)}>
+                <MdDelete className="h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            ) : null}
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>

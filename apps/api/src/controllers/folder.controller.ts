@@ -23,7 +23,7 @@ export const getFolders = AsyncHandler(async (req: Request, res: Response) => {
             from: "users",
             localField: "ownerId",
             foreignField: "clerkId",
-            as: "creator",
+            as: "owner",
             pipeline: [
                {
                   $project: {
@@ -43,8 +43,8 @@ export const getFolders = AsyncHandler(async (req: Request, res: Response) => {
             ownerId: 1,
             createdAt: 1,
             updatedAt: 1,
-            creator: {
-               $arrayElemAt: ["$creator", 0],
+            owner: {
+               $arrayElemAt: ["$owner", 0],
             },
          },
       },
@@ -102,116 +102,112 @@ export const getFolderFiles = AsyncHandler(
       }
 
       const folderFiles = await FolderModel.aggregate([
-  {
-    $match: {
-        _id: new Types.ObjectId(folderId),
-    },
-  },
-  {
-    $lookup: {
-      from: "files",
-      let: { folderId: "$_id" },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $eq: ["$folderId", "$$folderId"]
-            }
-          }
-        },
-        {
-          $lookup: {
-            from: "collaborators",
-            localField: "_id",
-            foreignField: "fileId",
-            as: "collaborators"
-          }
-        },
-        {
-          $lookup: {
-            from: "users",
-            localField: "ownerId",
-            foreignField: "clerkId",
-            as: "creator",
-            pipeline: [
-              {
-                $project: {
-                  _id: 0,
-                  fullName: {
-                    $concat: [
-                      "$firstName",
-                      " ",
-                      "$lastName"
-                    ]
-                  },
-                  profileUrl: 1
-                }
-              }
-            ]
-          }
-        },
-        {
-          $addFields: {
-            creator: {
-              $arrayElemAt: ["$creator", 0]
-            }
-          }
-        },
-        {
-          $match: {
-            $or: [
-                { ownerId: userId },
-                {
-                  collaborators: {
-                      $elemMatch: {
-                        userId: userId,
-                      },
-                  },
-                },
-            ],
-          }
-        },
-        {
-          $lookup: {
-            from: "folders",
-            localField: "folderId",
-            foreignField: "_id",
-            as: "folder",
-            pipeline: [
-              {
-                $project: {
-                  name: 1
-                }
-              }
-            ]
-          }
-        },
-        {
-          $project: {
-            name: 1,
-            ownerId: 1,
-            creator: 1,
-            isLocked: 1,
-            folder: {
-              $arrayElemAt: ["$folder", 0]
+         {
+            $match: {
+               _id: new Types.ObjectId(folderId),
             },
-            createdAt: 1,
-            updatedAt: 1
-          }
-        }
-      ],
-      as: "files"
-    }
-  },
-  {
-    $project: {
-      name: 1,
-      files: 1,
-      createdAt: 1,
-      updatedAt: 1
-    }
-  }
-]);
+         },
+         {
+            $lookup: {
+               from: "files",
+               let: { folderId: "$_id" },
+               pipeline: [
+                  {
+                     $match: {
+                        $expr: {
+                           $eq: ["$folderId", "$$folderId"],
+                        },
+                     },
+                  },
+                  {
+                     $lookup: {
+                        from: "collaborators",
+                        localField: "_id",
+                        foreignField: "fileId",
+                        as: "collaborators",
+                     },
+                  },
+                  {
+                     $lookup: {
+                        from: "users",
+                        localField: "ownerId",
+                        foreignField: "clerkId",
+                        as: "owner",
+                        pipeline: [
+                           {
+                              $project: {
+                                 _id: 0,
+                                 fullName: {
+                                    $concat: ["$firstName", " ", "$lastName"],
+                                 },
+                                 profileUrl: 1,
+                              },
+                           },
+                        ],
+                     },
+                  },
+                  {
+                     $addFields: {
+                        owner: {
+                           $arrayElemAt: ["$owner", 0],
+                        },
+                     },
+                  },
+                  {
+                     $match: {
+                        $or: [
+                           { ownerId: userId },
+                           {
+                              collaborators: {
+                                 $elemMatch: {
+                                    userId: userId,
+                                 },
+                              },
+                           },
+                        ],
+                     },
+                  },
+                  {
+                     $lookup: {
+                        from: "folders",
+                        localField: "folderId",
+                        foreignField: "_id",
+                        as: "folder",
+                        pipeline: [
+                           {
+                              $project: {
+                                 name: 1,
+                              },
+                           },
+                        ],
+                     },
+                  },
+                  {
+                     $project: {
+                        name: 1,
+                        ownerId: 1,
+                        owner: 1,
+                        isLocked: 1,
+                        folder: {
+                           $arrayElemAt: ["$folder", 0],
+                        },
+                        createdAt: 1,
+                        updatedAt: 1,
+                     },
+                  },
+               ],
+               as: "files",
+            },
+         },
+         {
+            $project: {
+               name: 1,
+               files: 1,
+               createdAt: 1,
+               updatedAt: 1,
+            },
+         },
+      ]);
 
       if (folderFiles.length === 0) {
          res.status(404).json(

@@ -1,22 +1,26 @@
-import ProfileImg from '@/components/ProfileImg';
-import type { ActiveCollaborators } from '@/types/collaborator'
+import ProfileImg from "@/components/ProfileImg";
+import type { ActiveCollaborators } from "@/types/collaborator";
 
-function ActiveCollaborators({ collaborators }: { collaborators: ActiveCollaborators[] }) {
-    if (!collaborators?.length) return null;
+function ActiveCollaborators() {
+  // TODO: Later add active collaborators feature
+  return null;
 
-    return (
-        <div className="flex space-x-4">
-            {collaborators.slice(0, 3).map((collaborator, index) => (
-                <div
-                    key={collaborator._id || index}
-                    className="relative overflow-hidden rounded-full"
-                    style={{ zIndex: 3 - index }}
-                >
-                    <ProfileImg profileUrl={collaborator.details.profileUrl} fullName={collaborator.details.fullName} />
-                </div>
-            ))}
+  return (
+    <div className="flex space-x-4">
+      {collaborators.slice(0, 3).map((collaborator, index) => (
+        <div
+          key={collaborator._id || index}
+          className="relative overflow-hidden rounded-full"
+          style={{ zIndex: 3 - index }}
+        >
+          <ProfileImg
+            profileUrl={collaborator.details.profileUrl}
+            fullName={collaborator.details.fullName}
+          />
         </div>
-    )
+      ))}
+    </div>
+  );
 }
 
-export default ActiveCollaborators
+export default ActiveCollaborators;

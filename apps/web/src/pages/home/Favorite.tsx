@@ -2,10 +2,10 @@ import { Loader2 } from "lucide-react";
 import useResponse from "@/hooks/useResponse.tsx";
 import FilesTable from "@/components/ui/table/FilesTable.tsx";
 
-const File = () => {
+function Favorite() {
   const { data, isPending } = useResponse<FileType[]>({
     queryKeys: ["getFiles"],
-    queryProps: { uri: "/file" },
+    queryProps: { uri: "/file/favorite" },
   });
 
   if (isPending) {
@@ -19,6 +19,6 @@ const File = () => {
   }
 
   return <FilesTable data={data?.data ?? []} />;
-};
+}
 
-export default File;
+export default Favorite;

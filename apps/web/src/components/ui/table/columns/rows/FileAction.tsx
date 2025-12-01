@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import type { File } from "@/types/file";
 import { Row } from "@tanstack/react-table";
 import { FolderOpen, Move } from "lucide-react";
@@ -8,9 +9,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import ToggleFavorite from "./ToggleFavorite.tsx";
 import { Button } from "@/components/ui/button";
 import { BsThreeDots } from "react-icons/bs";
-import React, { useState } from "react";
+import { FaLock, FaUnlock } from "react-icons/fa6";
+import { useSelector } from "react-redux";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import FileDeleteDialog from "@/components/dialogs/FileDeleteDialog";
@@ -27,6 +30,10 @@ function FileAction({ row }: FileActionProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editFileDialogOpen, setEditFileDialogOpen] = useState(false);
   const [moveFileDialogOpen, setMoveFileDialogOpen] = useState(false);
+  const { email } = useSelector((state: RootState) => state.auth);
+
+  // For enabling owner only features
+  const isOwner = row.original?.owner.email === email;
 
   return (
     <React.Fragment>
@@ -39,17 +46,35 @@ function FileAction({ row }: FileActionProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
             <DropdownMenuItem>
-              <FolderOpen />
+              <FolderOpen className="h-4 w-4" />
               Open
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => setEditFileDialogOpen(true)} className={"w-full"}>
               <FaEdit className="h-4 w-4" />
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setDeleteDialogOpen(true)}>
-              <MdDelete className="h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
+            <ToggleFavorite isFavorite={row.original?.isFavorite} />
+            {isOwner ? (
+              <>
+                <DropdownMenuItem>
+                  {row.original.isLocked ? (
+                    <>
+                      <FaUnlock className="h-4 w-4" />
+                      Unlock
+                    </>
+                  ) : (
+                    <>
+                      <FaLock className="h-4 w-4" />
+                      Lock
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setDeleteDialogOpen(true)}>
+                  <MdDelete className="h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </>
+            ) : null}
             <DropdownMenuItem onSelect={() => setMoveFileDialogOpen(true)} className={"w-full"}>
               <Move className="h-4 w-4" />
               Move File

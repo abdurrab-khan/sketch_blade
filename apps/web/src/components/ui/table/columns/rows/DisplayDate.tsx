@@ -1,9 +1,11 @@
-import { getFormattedTime } from "@/utils/AppUtils"
+import { getFormattedTime } from "@/utils/AppUtils";
 
 function DisplayDate({ value }: { value: string | null }) {
-    return (
-        <div className="capitalize">{value ? getFormattedTime(value) : "-"}</div>
-    )
+  return (
+    <div className="font-medium text-gray-900 capitalize">
+      {value ? getFormattedTime(value) : "-"}
+    </div>
+  );
 }
 
-export default DisplayDate
+export default DisplayDate;

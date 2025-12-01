@@ -1,8 +1,8 @@
 import { FolderDetails } from "@/types/file.ts";
 import HeaderLabel from "./rows/HeaderLabel";
 import { ColumnDef } from "@tanstack/react-table";
+import ShowDate from "./rows/DisplayDate.tsx";
 import ProfileImg from "@/components/ProfileImg.tsx";
-import { getFormattedTime } from "@/utils/AppUtils.ts";
 import { Checkbox } from "@/components/ui/checkbox.tsx";
 import FolderAction from "@/components/ui/table/columns/rows/FolderAction";
 import { Link } from "react-router";
@@ -34,30 +34,30 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
     accessorKey: "name",
     header: HeaderLabel("Name"),
     cell: ({ row }) => (
-      <span className={"hover:text-tertiary transition-all"}>
+      <span className={"font-medium text-gray-900 transition-all hover:text-gray-900/80"}>
         <Link to={`/folders/${row.original._id}`}>{row.original.name}</Link>
       </span>
     ),
   },
   {
-    accessorKey: "creator",
-    header: HeaderLabel("Creator"),
+    accessorKey: "owner",
+    header: HeaderLabel("Owner"),
     cell: ({ row }) => (
       <ProfileImg
-        profileUrl={row.original.creator.profileUrl}
-        fullName={row.original.creator.fullName}
+        profileUrl={row.original.owner?.profileUrl}
+        fullName={row.original.owner?.fullName}
       />
     ),
   },
   {
     accessorKey: "createdAt",
     header: HeaderLabel("Created"),
-    cell: ({ row }) => <div>{getFormattedTime(row.original.createdAt)}</div>,
+    cell: ({ row }) => <ShowDate value={row.getValue("createdAt")} />,
   },
   {
     accessorKey: "updatedAt",
     header: HeaderLabel("Updated"),
-    cell: ({ row }) => <div>{getFormattedTime(row.original.updatedAt)}</div>,
+    cell: ({ row }) => <ShowDate value={row.getValue("updatedAt")} />,
   },
   {
     accessorKey: "Actions",

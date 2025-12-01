@@ -2,9 +2,11 @@ import { Schema, model, Document } from "mongoose";
 
 export interface IFile extends Document {
    name: string;
-   folderId: Schema.Types.ObjectId;
    ownerId: string;
+   folderId: Schema.Types.ObjectId;
+   isFavorite: boolean;
    description: string;
+   state: "active" | "deleted";
    isLocked: boolean;
    createdAt: Date;
    updatedAt: Date;
@@ -25,6 +27,15 @@ const fileSchema = new Schema<IFile>(
          type: String,
          ref: "User",
          required: true,
+      },
+      isFavorite: {
+         type: Boolean,
+         default: false,
+      },
+      state: {
+         type: String,
+         enum: ["active", "deleted"],
+         default: "active",
       },
       description: {
          type: String,

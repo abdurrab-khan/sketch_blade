@@ -10,6 +10,8 @@ export interface File {
   activeCollaborator: ActiveCollaborators[];
   collaborators: CollaboratorData[];
   isLocked: boolean;
+  isFavorite: boolean;
+  state: "active" | "deleted";
   createdAt: string;
   updatedAt?: string;
 }
