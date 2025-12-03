@@ -10,9 +10,9 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import ToggleFavorite from "./ToggleFavorite.tsx";
+import ToggleLock from "./ToggleLock.tsx";
 import { Button } from "@/components/ui/button";
 import { BsThreeDots } from "react-icons/bs";
-import { FaLock, FaUnlock } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
@@ -27,6 +27,7 @@ interface FileActionProps {
 function FileAction({ row }: FileActionProps) {
   const { _id, name, description, collaborators } = row.original;
 
+  const [open, setOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editFileDialogOpen, setEditFileDialogOpen] = useState(false);
   const [moveFileDialogOpen, setMoveFileDialogOpen] = useState(false);
@@ -37,7 +38,7 @@ function FileAction({ row }: FileActionProps) {
 
   return (
     <React.Fragment>
-      <DropdownMenu modal={false}>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger title="Actions" asChild>
           <Button variant="none" className="text-zinc-700 hover:text-zinc-700/50">
             <BsThreeDots />
@@ -53,22 +54,18 @@ function FileAction({ row }: FileActionProps) {
               <FaEdit className="h-4 w-4" />
               Edit
             </DropdownMenuItem>
-            <ToggleFavorite isFavorite={row.original?.isFavorite} />
+            <ToggleFavorite
+              isFavorite={row.original?.isFavorite}
+              fileId={row.original._id}
+              setOpen={setOpen}
+            />
             {isOwner ? (
               <>
-                <DropdownMenuItem>
-                  {row.original.isLocked ? (
-                    <>
-                      <FaUnlock className="h-4 w-4" />
-                      Unlock
-                    </>
-                  ) : (
-                    <>
-                      <FaLock className="h-4 w-4" />
-                      Lock
-                    </>
-                  )}
-                </DropdownMenuItem>
+                <ToggleLock
+                  isLocked={row.original?.isLocked}
+                  fileId={row.original._id}
+                  setOpen={setOpen}
+                />
                 <DropdownMenuItem onSelect={() => setDeleteDialogOpen(true)}>
                   <MdDelete className="h-4 w-4" />
                   Delete

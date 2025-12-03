@@ -1,4 +1,11 @@
 import { Schema, model, Document } from "mongoose";
+import { CollaboratorAction } from "@/types";
+
+interface IStatus extends Document {
+   userId: string;
+   role: CollaboratorAction;
+   state: "deleted" | "active";
+}
 
 export interface IFile extends Document {
    name: string;
@@ -6,11 +13,24 @@ export interface IFile extends Document {
    folderId: Schema.Types.ObjectId;
    isFavorite: boolean;
    description: string;
-   state: "active" | "deleted";
+   status: IStatus[];
    isLocked: boolean;
    createdAt: Date;
    updatedAt: Date;
 }
+
+const fileStatusSchema = new Schema<IStatus>({
+   userId: String,
+   role: {
+      type: String,
+      enum: Object.values(CollaboratorAction),
+   },
+   state: {
+      type: String,
+      enum: ["active", "deleted"],
+      default: "active",
+   },
+});
 
 const fileSchema = new Schema<IFile>(
    {
@@ -32,10 +52,9 @@ const fileSchema = new Schema<IFile>(
          type: Boolean,
          default: false,
       },
-      state: {
-         type: String,
-         enum: ["active", "deleted"],
-         default: "active",
+      status: {
+         type: [fileStatusSchema],
+         default: [],
       },
       description: {
          type: String,

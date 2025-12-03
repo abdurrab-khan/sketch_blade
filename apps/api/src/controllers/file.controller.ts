@@ -105,6 +105,24 @@ export const getFiles = AsyncHandler(
 
       const files = await FileModel.aggregate([
          {
+            $match: {
+               status: {
+                  $not: {
+                     $elemMatch: {
+                        $or: [
+                           {
+                              userId: userId,
+                           },
+                           {
+                              role: "owner",
+                           },
+                        ],
+                     },
+                  },
+               },
+            },
+         },
+         {
             $lookup: {
                from: "collaborators",
                localField: "_id",
@@ -114,23 +132,16 @@ export const getFiles = AsyncHandler(
          },
          {
             $match: {
-               $and: [
+               $or: [
                   {
-                     $or: [
-                        {
-                           ownerId: userId,
-                        },
-                        {
-                           collaborator: {
-                              $elemMatch: {
-                                 userId: userId,
-                              },
-                           },
-                        },
-                     ],
+                     ownerId: userId,
                   },
                   {
-                     state: "active",
+                     collaborators: {
+                        $elemMatch: {
+                           userId: userId,
+                        },
+                     },
                   },
                ],
             },
@@ -200,6 +211,115 @@ export const getFiles = AsyncHandler(
                files?.length === 0
                   ? "No file found"
                   : "Files fetched successfully",
+         }),
+      );
+   },
+);
+
+export const getTrashFiles = AsyncHandler(
+   async (req: Request, res: Response) => {
+      const userId = req.userId;
+
+      const trashedFiles = await FileModel.aggregate([
+         {
+            $match: {
+               $or: [
+                  {
+                     status: {
+                        $elemMatch: {
+                           userId: userId,
+                           role: "owner",
+                        },
+                     },
+                  },
+                  {
+                     $and: [
+                        {
+                           status: {
+                              $elemMatch: {
+                                 userId: userId,
+                                 role: {
+                                    $ne: "owner",
+                                 },
+                              },
+                           },
+                        },
+                        {
+                           status: {
+                              $not: {
+                                 $elemMatch: {
+                                    role: "owner",
+                                 },
+                              },
+                           },
+                        },
+                     ],
+                  },
+               ],
+            },
+         },
+         {
+            $lookup: {
+               from: "users",
+               localField: "ownerId",
+               foreignField: "clerkId",
+               as: "owner",
+               pipeline: [
+                  {
+                     $project: {
+                        _id: 0,
+                        fullName: {
+                           $concat: ["$firstName", " ", "$lastName"],
+                        },
+                        profileUrl: 1,
+                        email: 1,
+                     },
+                  },
+               ],
+            },
+         },
+         {
+            $lookup: {
+               from: "folders",
+               localField: "folderId",
+               foreignField: "_id",
+               as: "folder",
+               pipeline: [
+                  {
+                     $project: {
+                        name: 1,
+                     },
+                  },
+               ],
+            },
+         },
+         {
+            $project: {
+               name: 1,
+               description: 1,
+               isLocked: 1,
+               isFavorite: 1,
+               state: 1,
+               updatedAt: 1,
+               createdAt: 1,
+               folder: {
+                  $arrayElemAt: ["$folder", 0],
+               },
+               owner: {
+                  $arrayElemAt: ["$owner", 0],
+               },
+            },
+         },
+         {
+            $sort: { createdAt: -1 },
+         },
+      ]);
+
+      res.status(200).json(
+         new ApiResponse({
+            statusCode: 200,
+            data: trashedFiles,
+            message: "Files found successfully",
          }),
       );
    },
@@ -359,7 +479,7 @@ export const deleteFiles = AsyncHandler(async (req: Request, res: Response) => {
    if (collaborators.length === 0) {
       throw new ErrorHandler({
          statusCode: 403,
-         message: "There are no files to delete",
+         message: "Your are not authorized to do this",
       });
    }
 
@@ -394,6 +514,114 @@ export const deleteFiles = AsyncHandler(async (req: Request, res: Response) => {
       new ApiResponse({
          statusCode: 200,
          message: `${fileIds.length} files deleted successfully${failedDeletions.length > 0 ? ` with ${failedDeletions.length} failures` : ""}`,
+      }),
+   );
+});
+
+export const trashFile = AsyncHandler(async (req: Request, res: Response) => {
+   const userId = req.userId;
+   const { fileId } = req.params;
+
+   if (!isValidObjectId(fileId)) {
+      throw new ErrorHandler({
+         statusCode: 400,
+         message: "Invalid file id",
+      });
+   }
+
+   const file = await FileModel.findById(fileId);
+
+   if (!file) {
+      res.status(400).json(
+         new ApiResponse({
+            statusCode: 400,
+            message: "Invalid file id",
+         }),
+      );
+   }
+
+   let role = "owner";
+
+   // Requested user is not owner
+   if (userId !== file?.ownerId) {
+      const collaborator = await Collaborator.findOne({
+         fileId: fileId,
+         userId: userId,
+      }).lean();
+
+      if (!collaborator) {
+         throw new ErrorHandler({
+            statusCode: 403,
+            message: "Your are not authorized to do this",
+         });
+      }
+
+      role = collaborator.role;
+   }
+
+   const updateFile = await FileModel.findByIdAndUpdate(fileId, {
+      $push: {
+         status: {
+            userId: userId,
+            role: role,
+            state: "deleted",
+         },
+      },
+   });
+
+   if (!updateFile) {
+      res.status(500).json(
+         new ApiResponse({
+            statusCode: 500,
+            message: "Failed to remove file",
+         }),
+      );
+   }
+
+   res.status(200).json(
+      new ApiResponse({
+         statusCode: 200,
+         message: "File successfully removed",
+      }),
+   );
+});
+
+export const recoverFile = AsyncHandler(async (req: Request, res: Response) => {
+   const userId = req.userId;
+   const { fileId } = req.params;
+
+   if (!isValidObjectId(fileId)) {
+      throw new ErrorHandler({
+         statusCode: 400,
+         message: "Invalid file id",
+      });
+   }
+
+   const updateFile = await FileModel.findByIdAndUpdate(
+      fileId,
+      {
+         $pull: {
+            status: {
+               userId: userId,
+            },
+         },
+      },
+      { new: true },
+   );
+
+   if (!updateFile) {
+      res.status(400).json(
+         new ApiResponse({
+            statusCode: 400,
+            message: "Failed to recover file",
+         }),
+      );
+   }
+
+   res.status(200).json(
+      new ApiResponse({
+         statusCode: 200,
+         message: "File recover successfully",
       }),
    );
 });

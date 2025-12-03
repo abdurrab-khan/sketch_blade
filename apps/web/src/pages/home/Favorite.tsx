@@ -4,7 +4,7 @@ import FilesTable from "@/components/ui/table/FilesTable.tsx";
 
 function Favorite() {
   const { data, isPending } = useResponse<FileType[]>({
-    queryKeys: ["getFiles"],
+    queryKeys: ["getFavoriteFiles"],
     queryProps: { uri: "/file/favorite" },
   });
 

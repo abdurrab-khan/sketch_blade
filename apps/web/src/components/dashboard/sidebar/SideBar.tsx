@@ -80,7 +80,6 @@ function SideBar() {
           ))}
         </div>
       </div>
-      <AuthBtn />
       <button className="cursor-pointer rounded-lg px-2.5 py-2.5">
         <div className="flex items-center gap-x-2">
           <div className="size-9 overflow-hidden rounded-lg bg-blue-500">
