@@ -32,6 +32,7 @@ export const getFolders = AsyncHandler(async (req: Request, res: Response) => {
                         $concat: ["$firstName", " ", "$lastName"],
                      },
                      profileUrl: 1,
+                     email: 1,
                   },
                },
             ],

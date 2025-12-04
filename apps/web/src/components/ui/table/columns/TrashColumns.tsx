@@ -1,16 +1,17 @@
-import { Link } from "react-router";
-import { File } from "@/types/file.ts";
-import ShowDate from "./rows/DisplayDate.tsx";
-import FileAction from "./rows/FileAction.tsx";
+import React from "react";
+import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/ui/checkbox.tsx";
-import ProfileImg from "@/components/ProfileImg.tsx";
-import ActiveCollaborators from "./rows/ActiveCollaborators.tsx";
+import type { File, Folder } from "@/types/file.ts";
+
+import TrashAction from "./rows/TrashAction.tsx";
+import { CiLock } from "react-icons/ci";
+import ShowDate from "./rows/DisplayDate.tsx";
 import HeaderLabel from "./rows/HeaderLabel.tsx";
 import { Badge } from "@/components/ui/badge.tsx";
-import { CiLock } from "react-icons/ci";
+import ProfileImg from "@/components/ProfileImg.tsx";
+import { Checkbox } from "@/components/ui/checkbox.tsx";
 
-const fileColumns: ColumnDef<File>[] = [
+const trashColumns: ColumnDef<File | Folder>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -41,7 +42,7 @@ const fileColumns: ColumnDef<File>[] = [
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-x-1.5">
         <span className={"font-medium text-gray-900 transition-all hover:text-gray-900/80"}>
-          <Link to={`/file/${row.original._id}`}>{row.original.name}</Link>
+          <span>{row.original.name}</span>
         </span>
         {row.original?.isLocked && <CiLock className="text-lg" />}
       </div>
@@ -53,27 +54,20 @@ const fileColumns: ColumnDef<File>[] = [
     cell: ({ row }) => <ShowDate value={row.getValue("createdAt")} />,
   },
   {
-    accessorKey: "updatedAt",
-    header: HeaderLabel("Updated"),
-    cell: ({ row }) => <ShowDate value={row.getValue("updatedAt")} />,
-  },
-  {
-    accessorKey: "collaborators",
-    header: HeaderLabel("Collaborators"),
-    cell: () => (
-      <div className="flex items-center justify-center rounded-lg">
-        <ActiveCollaborators />
-      </div>
-    ),
-  },
-  {
-    accessorKey: "folder",
-    header: HeaderLabel("Folder"),
+    accessorKey: "type",
+    header: HeaderLabel("Type"),
     cell: ({ row }) => (
       <div className="size-full empty:bg-yellow-500">
-        {row.original.folder ? (
-          <Badge className="bg-blue-500 text-white">{row.original.folder?.name}</Badge>
-        ) : null}
+        <Badge
+          className={cn(
+            row.original.type === "file"
+              ? "bg-linear-to-r from-blue-400 to-blue-500 text-white"
+              : "bg-linear-to-r from-yellow-400 to-yellow-500 text-white",
+            "capitalize",
+          )}
+        >
+          {row.original?.type}
+        </Badge>
       </div>
     ),
   },
@@ -89,9 +83,9 @@ const fileColumns: ColumnDef<File>[] = [
   },
   {
     accessorKey: "_id",
-    header: HeaderLabel("Actions"),
-    cell: ({ row }) => <FileAction row={row} />,
+    header: HeaderLabel("Action"),
+    cell: ({ row }) => <TrashAction row={row} />,
   },
 ];
 
-export default fileColumns;
+export default trashColumns;

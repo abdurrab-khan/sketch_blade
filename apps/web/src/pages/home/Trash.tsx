@@ -1,10 +1,11 @@
 import { Loader2 } from "lucide-react";
 import useResponse from "@/hooks/useResponse.tsx";
-import FilesTable from "@/components/ui/table/FilesTable.tsx";
+import DataTable from "@/components/ui/table/Data-table.tsx";
+import trashColumn from "@/components/ui/table/columns/TrashColumns.tsx";
 
 function Trash() {
   const { data, isPending } = useResponse<FileType[]>({
-    queryKeys: ["getFiles"],
+    queryKeys: ["getTrashData"],
     queryProps: { uri: "/file/trash" },
   });
 
@@ -18,7 +19,7 @@ function Trash() {
     );
   }
 
-  return <FilesTable data={data?.data ?? []} />;
+  return <DataTable data={data?.data ?? []} columns={trashColumn} />;
 }
 
 export default Trash;

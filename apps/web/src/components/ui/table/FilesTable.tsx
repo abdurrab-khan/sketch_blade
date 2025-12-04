@@ -1,5 +1,5 @@
 import React from "react";
-import { DataTable } from "./Data-table.tsx";
+import DataTable from "./Data-table.tsx";
 import type { File } from "@/types/file.ts";
 import fileColumns from "./columns/FileColumns.tsx";
 import { FaFilter } from "react-icons/fa6";

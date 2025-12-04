@@ -48,7 +48,7 @@ function FileForm({ children, isOpen, setIsOpen, _id, fileData }: FileFormProps)
   const { handleSubmit, reset, control, setValue, watch } = form;
 
   const mutation = useMutate({
-    options: { queryKey: ["getFiles"] },
+    options: { queryKeys: ["getFiles"] },
     finallyFn: () => {
       reset();
       setIsOpen(false);
@@ -57,10 +57,10 @@ function FileForm({ children, isOpen, setIsOpen, _id, fileData }: FileFormProps)
   const { isPending } = mutation;
 
   const handleFileSubmit = (data: z.infer<typeof fileSchema>) => {
-    if(isPending) return;
+    if (isPending) return;
 
     const method = _id ? "put" : "post";
-    const uri = `/file${_id ? "/" + _id : ""}`
+    const uri = `/file${_id ? "/" + _id : ""}`;
 
     mutation.mutate({ method, data, uri });
   };
@@ -102,7 +102,7 @@ function FileForm({ children, isOpen, setIsOpen, _id, fileData }: FileFormProps)
               )}
             />
             <DialogFooter>
-              <Button 
+              <Button
                 type="submit"
                 variant={"primary"}
                 disabled={isPending}

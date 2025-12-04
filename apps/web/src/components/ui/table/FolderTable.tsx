@@ -1,6 +1,6 @@
 import React from "react";
 import { Loader2 } from "lucide-react";
-import { DataTable } from "./Data-table.tsx";
+import DataTable from "./Data-table.tsx";
 import useResponse from "@/hooks/useResponse.tsx";
 import { folderColumns } from "./columns/FolderColumns.tsx";
 

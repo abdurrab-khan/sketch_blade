@@ -26,6 +26,8 @@ const buttonVariants = cva(
           "bg-red-500 text-zinc-50 hover:bg-red-500/90 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/90",
         primary:
           "transition-transform text-primary-text-light text-zinc-50 bg-linear-to-r from-blue-400 to-blue-600 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/90",
+        recover:
+          "bg-linear-to-r from-orange-400 to-orange-500 text-white/90 border border-slate-500/20 hover:opacity-85 active:opacity-100",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -33,6 +35,7 @@ const buttonVariants = cva(
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
         none: "p-0 w-full",
+        recover: "px-2.5 py-2 rounded-full",
       },
     },
     defaultVariants: {
@@ -43,8 +46,7 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-  VariantProps<typeof buttonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 

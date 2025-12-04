@@ -13,35 +13,33 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-interface FolderDeleteDialogProps {
+interface DeleteFileProps {
   id: string;
   isOpen: boolean;
   children?: React.ReactNode;
-  queryKey?: string[];
+  queryKeys?: string[];
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function FolderDeleteDialog({
+function FileDelete({
   id,
   isOpen,
-  setIsOpen,
   children,
-  queryKey = ["getFolders"],
-}: FolderDeleteDialogProps) {
+  setIsOpen,
+  queryKeys = ["getFiles", "getTrashData"],
+}: DeleteFileProps) {
   const mutate = useMutate({
     isShowToast: true,
-    options: { queryKey: queryKey },
+    options: { queryKeys },
     finallyFn: () => setIsOpen(false),
   });
-  const { isPending } = mutate;
 
   const handleDelete = () => {
-  console.log("handleDelete")
-    if (isPending) return;
+    if (mutate.isPending) return;
 
     mutate.mutate({
       method: "delete",
-      uri: `/folder/${id}`,
+      uri: `/file/${id}`,
     });
   };
 
@@ -51,11 +49,9 @@ function FolderDeleteDialog({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            <span className="text-red-500">Delete Folder</span>
+            <span className="text-red-500">Delete File</span>
           </DialogTitle>
-          <DialogDescription className={"text-quaternary"}>
-            Are you sure you want to delete this folder?
-          </DialogDescription>
+          <DialogDescription>Are you sure you want to delete this file?</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4"></div>
@@ -65,13 +61,8 @@ function FolderDeleteDialog({
             <DialogClose asChild>
               <Button type="button">Cancel</Button>
             </DialogClose>
-            <Button
-              type="button"
-              variant={"delete"}
-              onClick={handleDelete}
-              disabled={mutate.isPending}
-            >
-              {isPending ? (
+            <Button type="button" onClick={handleDelete} disabled={mutate.isPending}>
+              {mutate.isPending ? (
                 <>
                   Deleting...
                   <Loader2 className={"ml-1 h-6 w-6 animate-spin"} />
@@ -87,4 +78,4 @@ function FolderDeleteDialog({
   );
 }
 
-export default FolderDeleteDialog;
+export default FileDelete;

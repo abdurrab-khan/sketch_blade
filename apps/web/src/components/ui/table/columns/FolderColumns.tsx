@@ -40,16 +40,6 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
     ),
   },
   {
-    accessorKey: "owner",
-    header: HeaderLabel("Owner"),
-    cell: ({ row }) => (
-      <ProfileImg
-        profileUrl={row.original.owner?.profileUrl}
-        fullName={row.original.owner?.fullName}
-      />
-    ),
-  },
-  {
     accessorKey: "createdAt",
     header: HeaderLabel("Created"),
     cell: ({ row }) => <ShowDate value={row.getValue("createdAt")} />,
@@ -58,6 +48,16 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
     accessorKey: "updatedAt",
     header: HeaderLabel("Updated"),
     cell: ({ row }) => <ShowDate value={row.getValue("updatedAt")} />,
+  },
+  {
+    accessorKey: "owner",
+    header: HeaderLabel("Owner"),
+    cell: ({ row }) => (
+      <ProfileImg
+        profileUrl={row.original.owner?.profileUrl}
+        fullName={row.original.owner?.fullName}
+      />
+    ),
   },
   {
     accessorKey: "Actions",

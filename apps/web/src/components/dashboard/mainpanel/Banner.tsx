@@ -1,8 +1,8 @@
 import { PlusIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useLocation } from "react-router";
-import FileForm from "@/components/dialogs/FileFormDialog";
-import FolderForm from "@/components/dialogs/FolderFormDialog";
+import FileForm from "@/components/dialogs/FileForm.tsx";
+import FolderForm from "@/components/dialogs/FolderForm.tsx";
 
 const Button = ({ title }: { title: string }) => (
   <div className="overflow-hidden rounded-xl shadow-xl shadow-slate-400/10 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-slate-400">

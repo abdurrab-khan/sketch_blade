@@ -51,7 +51,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
   };
 
   const fileUpdateMutation = useMutate({
-    options: { queryKey: ["getFiles"] },
+    options: { queryKeys: ["getFiles"] },
     isShowToast: true,
     finallyFn: () => setIsOpen(false),
   });

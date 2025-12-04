@@ -2,7 +2,6 @@ import { FaPencilRuler } from "react-icons/fa";
 import { Link, NavLink } from "react-router";
 import { MdGroups, MdSpaceDashboard } from "react-icons/md";
 import { FaClockRotateLeft, FaFolder, FaStar, FaTrash } from "react-icons/fa6";
-import AuthBtn from "@/components/AuthBtn.tsx";
 import clsx from "clsx";
 import { useUser } from "@clerk/clerk-react";
 

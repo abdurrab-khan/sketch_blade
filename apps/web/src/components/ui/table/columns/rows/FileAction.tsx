@@ -16,9 +16,9 @@ import { BsThreeDots } from "react-icons/bs";
 import { useSelector } from "react-redux";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
-import FileDeleteDialog from "@/components/dialogs/FileDeleteDialog";
-import FileForm from "@/components/dialogs/FileFormDialog";
-import MoveFileDialog from "@/components/dialogs/MoveFileDialog";
+import DeleteFile from "@/components/dialogs/Trashfile.tsx";
+import FileForm from "@/components/dialogs/Fileform";
+import MoveFileDialog from "@/components/dialogs/Movefile";
 
 interface FileActionProps {
   row: Row<File>;
@@ -66,12 +66,12 @@ function FileAction({ row }: FileActionProps) {
                   fileId={row.original._id}
                   setOpen={setOpen}
                 />
-                <DropdownMenuItem onSelect={() => setDeleteDialogOpen(true)}>
-                  <MdDelete className="h-4 w-4" />
-                  Delete
-                </DropdownMenuItem>
               </>
             ) : null}
+            <DropdownMenuItem onSelect={() => setDeleteDialogOpen(true)}>
+              <MdDelete className="h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => setMoveFileDialogOpen(true)} className={"w-full"}>
               <Move className="h-4 w-4" />
               Move File
@@ -80,7 +80,7 @@ function FileAction({ row }: FileActionProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <FileDeleteDialog id={_id} isOpen={deleteDialogOpen} setIsOpen={setDeleteDialogOpen} />
+      <DeleteFile id={_id} isOpen={deleteDialogOpen} setIsOpen={setDeleteDialogOpen} />
       <FileForm
         _id={_id}
         isOpen={editFileDialogOpen}

@@ -294,6 +294,11 @@ export const getTrashFiles = AsyncHandler(
             },
          },
          {
+            $addFields: {
+               type: "file",
+            },
+         },
+         {
             $project: {
                name: 1,
                description: 1,
@@ -308,6 +313,7 @@ export const getTrashFiles = AsyncHandler(
                owner: {
                   $arrayElemAt: ["$owner", 0],
                },
+               type: 1,
             },
          },
          {

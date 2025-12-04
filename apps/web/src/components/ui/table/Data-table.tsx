@@ -20,7 +20,7 @@ interface DataTableProps<T> {
   data: T[];
 }
 
-export function DataTable<T extends File | Folder>({ columns, data }: DataTableProps<T>) {
+function DataTable<T extends File | Folder>({ columns, data }: DataTableProps<T>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -48,7 +48,7 @@ export function DataTable<T extends File | Folder>({ columns, data }: DataTableP
   });
 
   return (
-    <div className="flex size-full flex-col flex-1 gap-4">
+    <div className="flex size-full flex-1 flex-col gap-4">
       <div className="flex flex-1 flex-col justify-between">
         <div className="bg-primary-bg-light flex-1 rounded-xl shadow-2xl shadow-slate-500/50">
           <div className="flex flex-col gap-y-8">
@@ -127,3 +127,5 @@ export function DataTable<T extends File | Folder>({ columns, data }: DataTableP
     </div>
   );
 }
+
+export default DataTable;

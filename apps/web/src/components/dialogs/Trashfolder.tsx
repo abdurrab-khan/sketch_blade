@@ -13,24 +13,24 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-interface FileDeleteDialogProps {
+interface TrashfolderProps {
   id: string;
   isOpen: boolean;
   children?: React.ReactNode;
-  queryKey?: string[];
+  queryKeys?: string[];
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function FileDeleteDialog({
+function Trashfolder({
   id,
   isOpen,
   children,
   setIsOpen,
-  queryKey = ["getFiles"],
-}: FileDeleteDialogProps) {
+  queryKeys = ["getFolders", "getTrashData"],
+}: TrashfolderProps) {
   const mutate = useMutate({
     isShowToast: true,
-    options: { queryKey: queryKey },
+    options: { queryKeys },
     finallyFn: () => setIsOpen(false),
   });
 
@@ -39,7 +39,7 @@ function FileDeleteDialog({
 
     mutate.mutate({
       method: "delete",
-      uri: `/file/${id}`,
+      uri: `/folder/trash/${id}`,
     });
   };
 
@@ -78,4 +78,4 @@ function FileDeleteDialog({
   );
 }
 
-export default FileDeleteDialog;
+export default Trashfolder;
