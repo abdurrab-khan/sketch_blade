@@ -1,7 +1,7 @@
-import File from "../models/file.model";
 import { Request, Response } from "express";
-import FolderModel from "../models/folder.model";
 import { isValidObjectId, Types } from "mongoose";
+
+import { File, Folder } from "../models";
 import zodParserHelper from "../types/zod/zodParserHelper";
 import {
    createFolderSchema,
@@ -12,7 +12,7 @@ import { AsyncHandler, ApiResponse, ErrorHandler } from "../utils";
 export const getFolders = AsyncHandler(async (req: Request, res: Response) => {
    const userId = req.userId;
 
-   const folders = await FolderModel.aggregate([
+   const folders = await Folder.aggregate([
       {
          $match: {
             ownerId: userId,
@@ -63,6 +63,7 @@ export const getFolders = AsyncHandler(async (req: Request, res: Response) => {
    );
 });
 
+// TODO: Implement search folder query
 export const searchFolders = AsyncHandler(
    async (req: Request, res: Response) => {
       const query = req.query;
@@ -102,7 +103,7 @@ export const getFolderFiles = AsyncHandler(
          });
       }
 
-      const folderFiles = await FolderModel.aggregate([
+      const folderFiles = await Folder.aggregate([
          {
             $match: {
                _id: new Types.ObjectId(folderId),
@@ -238,7 +239,7 @@ export const createFolder = AsyncHandler(
       );
       const userId = req.userId;
 
-      const folder = await FolderModel.create({
+      const folder = await Folder.create({
          name: folderName,
          ownerId: userId,
       });
@@ -261,7 +262,7 @@ export const createFolder = AsyncHandler(
          );
 
          if (file.matchedCount === 0) {
-            await FolderModel.findByIdAndDelete(folder._id);
+            await Folder.findByIdAndDelete(folder._id);
 
             throw new ErrorHandler({
                statusCode: 500,
@@ -293,7 +294,7 @@ export const updateFolder = AsyncHandler(
          });
       }
 
-      const updatedFolder = await FolderModel.findOneAndUpdate(
+      const updatedFolder = await Folder.findOneAndUpdate(
          {
             _id: folderId,
             ownerId: userId,
@@ -333,7 +334,7 @@ export const deleteFolder = AsyncHandler(
          });
       }
 
-      const folder = await FolderModel.findOneAndDelete({
+      const folder = await Folder.findOneAndDelete({
          _id: folderId,
          ownerId: userId,
       });
@@ -365,43 +366,14 @@ export const deleteFolder = AsyncHandler(
    },
 );
 
-export const moveFileIntoFolder = AsyncHandler(
-   async (req: Request, res: Response): Promise<void> => {
-      const { fileId = null, folderId = null } = req.params;
-      const userId = req.userId;
-
-      if (!isValidObjectId(fileId) || !isValidObjectId(folderId)) {
-         throw new ErrorHandler({
-            statusCode: 400,
-            message: `Invalid ${!isValidObjectId(fileId) ? "file" : "folder"} id`,
-         });
-      }
-
-      const updatedFile = await File.findOneAndUpdate(
-         {
-            _id: fileId,
-            ownerId: userId,
-         },
-         {
-            $set: {
-               folderId: folderId,
-            },
-         },
-         { new: true },
-      );
-
-      if (updatedFile === null) {
-         throw new ErrorHandler({
-            statusCode: 403,
-            message: "You are not authorized to move this file.",
-         });
-      }
-
-      res.status(200).json(
-         new ApiResponse({
-            statusCode: 200,
-            message: "File moved successfully",
-         }),
-      );
-   },
+export const trashFolder = AsyncHandler(
+   async (req: Request, res: Response) => {},
 );
+
+export const recoverFolder = AsyncHandler(
+   async (req: Request, res: Response) => {},
+);
+
+// export const example = AsyncHandler(
+//    async (req: Request, res: Response) => {},
+// );

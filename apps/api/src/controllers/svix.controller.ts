@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { Webhook, WebhookRequiredHeaders } from "svix";
 import { WebhookEvent } from "@clerk/clerk-sdk-node";
-import { User } from "../models/user.model";
+
+import { User } from "../models";
 import { CreateUserRequest } from "../types/user";
 import { AsyncHandler, ErrorHandler } from "../utils";
 import { IErrorHandler } from "../utils/ErrorHandler";

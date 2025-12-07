@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { User } from "../models/user.model";
+import { User } from "../models";
 import { AsyncHandler, ApiResponse } from "../utils";
 
 const getUserAsCollaborator = AsyncHandler(

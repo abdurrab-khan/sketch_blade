@@ -6,7 +6,6 @@ export interface ApiResponse {
 }
 
 export enum CollaboratorAction {
-   Owner = "owner",
    Edit = "edit",
    View = "view",
    Comment = "comment",

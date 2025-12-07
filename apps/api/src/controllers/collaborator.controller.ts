@@ -1,16 +1,14 @@
 import { Request, Response } from "express";
 import { isValidObjectId, Types } from "mongoose";
 
-import Collaborator from "../models/collaborators.model";
-import { AsyncHandler, ApiResponse, ErrorHandler } from "../utils";
-
+import { Collaborator, User } from "../models";
 import zodParserHelper from "../types/zod/zodParserHelper";
+import { AsyncHandler, ApiResponse, ErrorHandler } from "../utils";
 import {
    addCollaboratorSchema,
    removeCollaboratorSchema,
    updateCollaboratorSchema,
 } from "../types/zod/collaborators.schema";
-import { User } from "../models/user.model";
 
 export const getCollaborators = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {

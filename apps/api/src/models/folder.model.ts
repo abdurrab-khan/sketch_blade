@@ -3,6 +3,7 @@ import { model, Schema, Document } from "mongoose";
 export interface IFolder extends Document {
    name: string;
    ownerId: Schema.Types.ObjectId;
+   state: "active" | "deleted";
 }
 
 const folderSchema = new Schema<IFolder>(
@@ -15,6 +16,12 @@ const folderSchema = new Schema<IFolder>(
          type: String,
          ref: "User",
          required: true,
+         index: 1,
+      },
+      state: {
+         type: String,
+         enum: ["active", "deleted"],
+         default: "active",
       },
    },
    { timestamps: true },

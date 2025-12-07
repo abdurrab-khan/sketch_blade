@@ -57,3 +57,16 @@ export const transferOwnershipSchema = zod.object({
          message: "Invalid user id: there is no user with this id",
       }),
 });
+
+export const moveFile = zod.object({
+   folderId: zod
+      .string("Folder ID must be a string")
+      .refine((id) => isValidObjectId(id), {
+         message: "Invalid folder id: there is no folder with this id",
+      }),
+   fileId: zod
+      .string("File ID must be a string")
+      .refine((id) => isValidObjectId(id), {
+         message: "Invalid file id: there is no file with this id",
+      }),
+});

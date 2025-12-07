@@ -1,8 +1,8 @@
 import { PlusIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useLocation } from "react-router";
-import FileForm from "@/components/dialogs/FileForm.tsx";
-import FolderForm from "@/components/dialogs/FolderForm.tsx";
+import Fileform from "@/components/dialogs/Fileform.tsx";
+import Folderform from "@/components/dialogs/Folderform.tsx";
 
 const Button = ({ title }: { title: string }) => (
   <div className="overflow-hidden rounded-xl shadow-xl shadow-slate-400/10 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-slate-400">
@@ -18,9 +18,9 @@ const Button = ({ title }: { title: string }) => (
 const FileDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <FileForm isOpen={isOpen} setIsOpen={setIsOpen}>
+    <Fileform isOpen={isOpen} setIsOpen={setIsOpen}>
       <Button title="New Diagram" />
-    </FileForm>
+    </Fileform>
   );
 };
 
@@ -28,9 +28,9 @@ const FolderDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <FolderForm isOpen={isOpen} setIsOpen={setIsOpen}>
+    <Folderform isOpen={isOpen} setIsOpen={setIsOpen}>
       <Button title="New Folder" />
-    </FolderForm>
+    </Folderform>
   );
 };
 
