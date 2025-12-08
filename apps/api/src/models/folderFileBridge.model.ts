@@ -12,11 +12,13 @@ const folderFileBridgeSchema = new Schema<IFolderFileBridge>(
          type: Schema.Types.ObjectId,
          ref: "Folder",
          required: true,
+         index: true,
       },
       fileId: {
          type: Schema.Types.ObjectId,
          ref: "File",
          required: true,
+         index: true,
       },
       userId: {
          type: String,

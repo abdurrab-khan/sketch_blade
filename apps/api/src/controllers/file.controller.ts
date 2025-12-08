@@ -124,10 +124,15 @@ const getFiles = AsyncHandler(
       const files = await File.aggregate([
          {
             $addFields: {
+               currentUser: userId,
+            },
+         },
+         {
+            $addFields: {
                isOwner: {
                   $cond: {
                      if: {
-                        $eq: ["$ownerId", userId],
+                        $eq: ["$ownerId", "$currentUser"],
                      },
                      then: true,
                      else: false,
@@ -141,6 +146,7 @@ const getFiles = AsyncHandler(
                let: {
                   fileId: "$_id",
                   isOwner: "$isOwner",
+                  currentUser: "$currentUser",
                },
                pipeline: [
                   {
@@ -154,7 +160,7 @@ const getFiles = AsyncHandler(
                                  $eq: ["$fileId", "$$fileId"],
                               },
                               {
-                                 $eq: ["$userId", userId],
+                                 $eq: ["$userId", "$$currentUser"],
                               },
                            ],
                         },
@@ -170,21 +176,14 @@ const getFiles = AsyncHandler(
          {
             $match: {
                $expr: {
-                  $or: [
+                  $and: [
                      {
-                        $and: [
-                           {
-                              $eq: ["$isOwner", true],
-                           },
-                           {
-                              $ne: ["$state", "deleted"],
-                           },
-                        ],
+                        $eq: ["$state", "active"],
                      },
                      {
-                        $and: [
+                        $or: [
                            {
-                              $ne: ["$state", "deleted"],
+                              $eq: ["$isOwner", true],
                            },
                            {
                               $gt: [{ $size: "$collaborators" }, 0],
@@ -199,8 +198,9 @@ const getFiles = AsyncHandler(
             $lookup: {
                from: "deletedfiles",
                let: {
-                  fileId: "$fileId",
+                  fileId: "$_id",
                   isOwner: "$isOwner",
+                  currentUser: "$currentUser",
                },
                pipeline: [
                   {
@@ -214,7 +214,7 @@ const getFiles = AsyncHandler(
                                  $eq: ["$fileId", "$$fileId"],
                               },
                               {
-                                 $eq: ["$userId", userId],
+                                 $eq: ["$userId", "$$currentUser"],
                               },
                            ],
                         },
@@ -229,10 +229,17 @@ const getFiles = AsyncHandler(
                $expr: {
                   $or: [
                      {
-                        $ne: ["$isOwner", true],
+                        $and: [
+                           {
+                              $eq: ["$isOwner", true],
+                           },
+                           {
+                              $eq: ["$state", "active"],
+                           },
+                        ],
                      },
                      {
-                        $lte: [{ $size: "$deleted" }, 0],
+                        $lt: [{ $size: "$deleted" }, 0],
                      },
                   ],
                },
@@ -243,6 +250,7 @@ const getFiles = AsyncHandler(
                from: "folderBridges",
                let: {
                   fileId: "$_id",
+                  currentUser: "$currentUser",
                },
                pipeline: [
                   {
@@ -253,7 +261,7 @@ const getFiles = AsyncHandler(
                                  $eq: ["$fileId", "$$fileId"],
                               },
                               {
-                                 $eq: ["$userId", userId],
+                                 $eq: ["$userId", "$$currentUser"],
                               },
                            ],
                         },
@@ -278,6 +286,7 @@ const getFiles = AsyncHandler(
                from: "folders",
                let: {
                   fileId: "$_id",
+                  currentUser: "$currentUser",
                },
                pipeline: [
                   {
@@ -291,7 +300,7 @@ const getFiles = AsyncHandler(
                                  $eq: ["$fileId", "$$fileId"],
                               },
                               {
-                                 $eq: ["$ownerId", userId],
+                                 $eq: ["$ownerId", "$$currentUser"],
                               },
                            ],
                         },
@@ -369,40 +378,72 @@ const getTrashFiles = AsyncHandler(async (req: Request, res: Response) => {
 
    const trashedFiles = await File.aggregate([
       {
-         $match: {
-            $or: [
+         $addFields: {
+            currentUser: userId,
+         },
+      },
+      {
+         $addFields: {
+            isOwner: {
+               $cond: {
+                  if: {
+                     $eq: ["$ownerId", "$currentUser"],
+                  },
+                  then: true,
+                  else: false,
+               },
+            },
+         },
+      },
+      {
+         $lookup: {
+            from: "deletedfiles",
+            let: {
+               fileId: "$_id",
+               isOwner: "$isOwner",
+               currentUser: "$currentUser",
+            },
+            pipeline: [
                {
-                  status: {
-                     $elemMatch: {
-                        userId: userId,
-                        role: "owner",
+                  $match: {
+                     $expr: {
+                        $and: [
+                           {
+                              $ne: ["$$isOwner", true],
+                           },
+                           {
+                              $eq: ["$fileId", "$$fileId"],
+                           },
+                           {
+                              $eq: ["$userId", "$$currentUser"],
+                           },
+                        ],
                      },
                   },
                },
-               {
-                  $and: [
-                     {
-                        status: {
-                           $elemMatch: {
-                              userId: userId,
-                              role: {
-                                 $ne: "owner",
-                              },
-                           },
-                        },
-                     },
-                     {
-                        status: {
-                           $not: {
-                              $elemMatch: {
-                                 role: "owner",
-                              },
-                           },
-                        },
-                     },
-                  ],
-               },
             ],
+            as: "deletedFiles",
+         },
+      },
+      {
+         $match: {
+            $expr: {
+               $or: [
+                  {
+                     $and: [
+                        {
+                           $eq: ["$isOwner", true],
+                        },
+                        {
+                           $eq: ["$state", "deleted"],
+                        },
+                     ],
+                  },
+                  {
+                     $gt: [{ $size: "$deletedFiles" }, 0],
+                  },
+               ],
+            },
          },
       },
       {
@@ -426,21 +467,6 @@ const getTrashFiles = AsyncHandler(async (req: Request, res: Response) => {
          },
       },
       {
-         $lookup: {
-            from: "folders",
-            localField: "folderId",
-            foreignField: "_id",
-            as: "folder",
-            pipeline: [
-               {
-                  $project: {
-                     name: 1,
-                  },
-               },
-            ],
-         },
-      },
-      {
          $addFields: {
             type: "file",
          },
@@ -448,13 +474,8 @@ const getTrashFiles = AsyncHandler(async (req: Request, res: Response) => {
       {
          $project: {
             name: 1,
-            description: 1,
             isLocked: 1,
-            updatedAt: 1,
             createdAt: 1,
-            folder: {
-               $arrayElemAt: ["$folder", 0],
-            },
             owner: {
                $arrayElemAt: ["$owner", 0],
             },
@@ -479,64 +500,220 @@ const getSharedFiles = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
       const userId = req.userId;
 
-      const collaborators = await Collaborator.find({
-         userId: {
-            $eq: userId,
+      const files = await File.aggregate([
+         {
+            $addFields: {
+               currentUser: userId,
+            },
          },
-         role: {
-            $ne: "owner",
-         },
-      });
-
-      let files = [];
-
-      if (collaborators && collaborators.length > 0) {
-         const fileIds = collaborators.map(
-            (c) => new Types.ObjectId(c.fileId.toString()),
-         );
-
-         files = await File.aggregate([
-            {
-               $match: {
-                  _id: {
-                     $in: fileIds,
+         {
+            $addFields: {
+               isOwner: {
+                  $cond: {
+                     if: {
+                        $eq: ["$ownerId", "$currentUser"],
+                     },
+                     then: true,
+                     else: false,
                   },
                },
             },
-            {
-               $lookup: {
-                  from: "users",
-                  localField: "ownerId",
-                  foreignField: "clerkId",
-                  as: "owner",
-                  pipeline: [
-                     {
-                        $project: {
-                           _id: 0,
-                           fullName: {
-                              $concat: ["$firstName", " ", "$lastName"],
-                           },
-                           profileUrl: 1,
-                           email: 1,
+         },
+         {
+            $lookup: {
+               from: "collaborators",
+               let: {
+                  fileId: "$_id",
+                  isOwner: "$isOwner",
+                  currentUser: "$currentUser",
+               },
+               pipeline: [
+                  {
+                     $match: {
+                        $expr: {
+                           $and: [
+                              {
+                                 $eq: ["$$isOwner", false],
+                              },
+                              {
+                                 $eq: ["$fileId", "$$fileId"],
+                              },
+                              {
+                                 $eq: ["$userId", "$$currentUser"],
+                              },
+                           ],
                         },
+                     },
+                  },
+                  {
+                     $project: { _id: 1 },
+                  },
+               ],
+               as: "collaborators",
+            },
+         },
+         {
+            $match: {
+               $expr: {
+                  $and: [
+                     {
+                        $eq: ["$state", "active"],
+                     },
+                     {
+                        $gt: [{ $size: "$collaborators" }, 0],
                      },
                   ],
                },
             },
-            {
-               $project: {
-                  name: 1,
-                  isLocked: 1,
-                  description: 1,
-                  updatedAt: 1,
-                  createdAt: 1,
-                  owner: {
-                     $arrayElemAt: ["$owner", 0],
+         },
+         {
+            $lookup: {
+               from: "deletedfiles",
+               let: {
+                  fileId: "$_id",
+                  isOwner: "$isOwner",
+                  currentUser: "$currentUser",
+               },
+               pipeline: [
+                  {
+                     $match: {
+                        $expr: {
+                           $and: [
+                              {
+                                 $eq: ["$fileId", "$$fileId"],
+                              },
+                              {
+                                 $eq: ["$userId", "$$currentUser"],
+                              },
+                           ],
+                        },
+                     },
                   },
+               ],
+               as: "deleted",
+            },
+         },
+         {
+            $match: {
+               $expr: {
+                  $lte: [{ $size: "$deleted" }, 0],
                },
             },
-         ]);
-      }
+         },
+         {
+            $lookup: {
+               from: "folderBridges",
+               let: {
+                  fileId: "$_id",
+                  currentUser: "$currentUser",
+               },
+               pipeline: [
+                  {
+                     $match: {
+                        $expr: {
+                           $and: [
+                              {
+                                 $eq: ["$fileId", "$$fileId"],
+                              },
+                              {
+                                 $eq: ["$userId", "$$currentUser"],
+                              },
+                           ],
+                        },
+                     },
+                  },
+                  {
+                     $project: {
+                        _id: 1,
+                     },
+                  },
+               ],
+               as: "folderId",
+            },
+         },
+         {
+            $addFields: {
+               folderId: { $arrayElemAt: ["$folderId", 0] },
+            },
+         },
+         {
+            $lookup: {
+               from: "folders",
+               let: {
+                  fileId: "$_id",
+                  currentUser: "$currentUser",
+               },
+               pipeline: [
+                  {
+                     $match: {
+                        $expr: {
+                           $and: [
+                              {
+                                 $ne: ["$folderId", null],
+                              },
+                              {
+                                 $eq: ["$fileId", "$$fileId"],
+                              },
+                              {
+                                 $eq: ["$ownerId", "$$currentUser"],
+                              },
+                           ],
+                        },
+                     },
+                  },
+               ],
+               as: "folder",
+            },
+         },
+         {
+            $match: {
+               $expr: {
+                  $or: [
+                     {
+                        $lte: [{ $size: "$folder" }, 0],
+                     },
+                     { $in: ["active", "$folder.state"] },
+                  ],
+               },
+            },
+         },
+         {
+            $lookup: {
+               from: "users",
+               localField: "ownerId",
+               foreignField: "clerkId",
+               as: "owner",
+               pipeline: [
+                  {
+                     $project: {
+                        _id: 0,
+                        fullName: {
+                           $concat: ["$firstName", " ", "$lastName"],
+                        },
+                        profileUrl: 1,
+                        email: 1,
+                     },
+                  },
+               ],
+            },
+         },
+         {
+            $project: {
+               name: 1,
+               description: 1,
+               isLocked: 1,
+               updatedAt: 1,
+               createdAt: 1,
+               folder: {
+                  $arrayElemAt: ["$folderData", 0],
+               },
+               owner: { $arrayElemAt: ["$owner", 0] },
+            },
+         },
+         {
+            $sort: { createdAt: -1 },
+         },
+      ]);
 
       res.status(200).json(
          new ApiResponse({
@@ -1098,20 +1275,79 @@ const moveFileIntoFolder = AsyncHandler(
             },
          },
          {
+            $match: {
+               $expr: {
+                  $eq: ["$state", "active"],
+               },
+            },
+         },
+         {
+            $addFields: {
+               currentUser: userId,
+            },
+         },
+         {
+            $addFields: {
+               isOwner: {
+                  $cond: {
+                     if: {
+                        $eq: ["$ownerId", "$currentUser"],
+                     },
+                     then: true,
+                     else: false,
+                  },
+               },
+            },
+         },
+         {
             $lookup: {
                from: "collaborators",
-               localField: "_id",
-               foreignField: "fileId",
-               as: "collaborators",
+               let: {
+                  fileId: "$_id",
+                  currentUser: "$currentUser",
+                  isOwner: "$isOwner",
+               },
+               pipeline: [
+                  {
+                     $match: {
+                        $expr: {
+                           $and: [
+                              {
+                                 $eq: ["$$isOwner", false],
+                              },
+                              {
+                                 $eq: ["$fileId", "$$fileId"],
+                              },
+                              {
+                                 $eq: ["$userId", "$$currentUser"],
+                              },
+                           ],
+                        },
+                     },
+                  },
+               ],
+               as: "collaborator",
             },
          },
          {
             $match: {
-               collaborators: {
-                  $elemMatch: {
-                     userId: userId,
-                  },
+               $expr: {
+                  $or: [
+                     {
+                        $eq: ["$isOwner", true],
+                     },
+                     {
+                        $gt: [{ $size: "$collaborator" }, 0],
+                     },
+                  ],
                },
+            },
+         },
+         {
+            $project: {
+               name: 1,
+               description: 1,
+               isLocked: 1,
             },
          },
       ]);
@@ -1139,7 +1375,7 @@ const moveFileIntoFolder = AsyncHandler(
       res.status(200).json(
          new ApiResponse({
             statusCode: 200,
-            message: "File moved successfully",
+            message: `File moved successfully into folder ${folder.name}`,
          }),
       );
    },
