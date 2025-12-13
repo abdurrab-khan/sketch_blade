@@ -17,7 +17,7 @@ interface DeleteFileProps {
   id: string;
   isOpen: boolean;
   children?: React.ReactNode;
-  queryKeys?: string[];
+  queryKey?: string[];
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -26,11 +26,11 @@ function FileDelete({
   isOpen,
   children,
   setIsOpen,
-  queryKeys = ["getFiles", "getTrashData"],
+  queryKey = ["getFiles", "getTrashData"],
 }: DeleteFileProps) {
   const mutate = useMutate({
     isShowToast: true,
-    options: { queryKeys },
+    options: { queryKey },
     finallyFn: () => setIsOpen(false),
   });
 

@@ -27,4 +27,9 @@ const folderSchema = new Schema<IFolder>(
    { timestamps: true },
 );
 
+// adding query helper by it's name
+// folderSchema.query.byName = function (name: string) {
+//    return this.where({ name: new RegExp(name, "i") });
+// };
+
 export default model<IFolder>("Folder", folderSchema);

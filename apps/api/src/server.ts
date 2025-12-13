@@ -42,7 +42,7 @@ import ErrorMiddleware from "./middlewares/error.middleware";
 import canvasRouter from "@/routes/canvas.router";
 import userRouter from "@/routes/user.route";
 
-const COMMON_ROUTE = "/api/v1/";
+const COMMON_ROUTE = "/v1/";
 
 app.use(COMMON_ROUTE, svixRouter);
 app.use(COMMON_ROUTE + "file", fileRouter);

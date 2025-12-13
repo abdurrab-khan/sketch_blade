@@ -1,12 +1,10 @@
-import { NextFunction, Response, Request } from "express";
-import AsyncHandler from "@/utils/AsyncHandler";
 import { isValidObjectId, Types } from "mongoose";
+
+import AsyncHandler from "@/utils/AsyncHandler";
 import ErrorHandler from "@/utils/ErrorHandler";
+
 import FileModel from "@/models/file.model";
-import { CollaboratorAction } from "@/types";
-import Collaborator from "@/models/collaborators.model";
-import { File } from "@/types/file/file";
-import { CollaboratorPayload } from "@/types/file/collaborator";
+import type { Request, Response, NextFunction } from "express";
 
 const validateFileOwnership = AsyncHandler(
    async (req: Request, _: Response, next: NextFunction) => {
@@ -20,32 +18,203 @@ const validateFileOwnership = AsyncHandler(
          });
       }
 
-      const file = (await FileModel.findById(fileId)) as unknown as File;
+      const file = await FileModel.aggregate([
+         {
+            $match: {
+               _id: new Types.ObjectId(fileId),
+            },
+         },
+         {
+            $addFields: {
+               currentUser: userId,
+            },
+         },
+         {
+            $addFields: {
+               isOwner: {
+                  $cond: {
+                     if: {
+                        $eq: ["$ownerId", "$currentUser"],
+                     },
+                     then: true,
+                     else: false,
+                  },
+               },
+            },
+         },
+         {
+            $lookup: {
+               from: "collaborators",
+               let: {
+                  isOwner: "$isOwner",
+                  fileId: "$_id",
+                  currentUser: "$currentUser",
+               },
+               pipeline: [
+                  {
+                     $match: {
+                        $expr: {
+                           $and: [
+                              {
+                                 $ne: ["$$isOwner", true],
+                              },
+                              {
+                                 $eq: ["$fileId", "$$fileId"],
+                              },
+                              {
+                                 $eq: ["$userId", "$$currentUser"],
+                              },
+                           ],
+                        },
+                     },
+                  },
+               ],
+               as: "colls",
+            },
+         },
+         {
+            $match: {
+               $expr: {
+                  $or: [
+                     {
+                        $eq: ["$isOwner", true],
+                     },
+                     {
+                        $gt: [{ $size: "$colls" }, 0],
+                     },
+                  ],
+               },
+            },
+         },
+         {
+            $lookup: {
+               from: "deletedfiles",
+               let: {
+                  fileId: "$_id",
+                  currentUser: "$currentUser",
+               },
+               pipeline: [
+                  {
+                     $match: {
+                        $expr: {
+                           $and: [
+                              {
+                                 $eq: ["$fileId", "$$fileId"],
+                              },
+                              {
+                                 $eq: ["$userId", "$$currentUser"],
+                              },
+                           ],
+                        },
+                     },
+                  },
+               ],
+               as: "deleted",
+            },
+         },
+         {
+            $match: {
+               $expr: {
+                  $lte: [{ $size: "$deleted" }, 0],
+               },
+            },
+         },
+         {
+            $lookup: {
+               from: "folderbridges",
+               let: {
+                  fileId: "$_id",
+                  currentUser: "$currentUser",
+               },
+               pipeline: [
+                  {
+                     $match: {
+                        $expr: {
+                           $and: [
+                              {
+                                 $eq: ["$fileId", "$$fileId"],
+                              },
+                              {
+                                 $eq: ["$userId", "$$currentUser"],
+                              },
+                           ],
+                        },
+                     },
+                  },
+                  {
+                     $project: {
+                        _id: 0,
+                        folderId: 1,
+                     },
+                  },
+               ],
+               as: "folderId",
+            },
+         },
+         {
+            $addFields: {
+               folderId: {
+                  $arrayElemAt: ["$folderId.folderId", 0],
+               },
+            },
+         },
+         {
+            $lookup: {
+               from: "folders",
+               localField: "folderId",
+               foreignField: "_id",
+               pipeline: [
+                  {
+                     $project: {
+                        _id: 0,
+                        name: 1,
+                        state: 1,
+                        createdAt: 1,
+                     },
+                  },
+               ],
+               as: "folder",
+            },
+         },
+         {
+            $match: {
+               $expr: {
+                  $or: [
+                     {
+                        $lte: [{ $size: "$folder" }, 0],
+                     },
+                     {
+                        $eq: [
+                           {
+                              $arrayElemAt: ["$folder.state", 0],
+                           },
+                           "active",
+                        ],
+                     },
+                  ],
+               },
+            },
+         },
+         {
+            $project: {
+               name: 1,
+               isOwner: 1,
+               collaborator: {
+                  $arrayElemAt: ["$colls", 0],
+               },
+               isLocked: 1,
+            },
+         },
+      ]);
 
-      if (!file) {
+      if (file.length === 0) {
          throw new ErrorHandler({
             statusCode: 404,
-            message: "File is not found",
+            message: "Invalid file id, there is not file with this id",
          });
-      } else {
-         if (file.ownerId.toString() !== userId) {
-            const collaborator = await Collaborator.findOne({
-               fileId: new Types.ObjectId(fileId),
-               userId: userId,
-               role: CollaboratorAction.Edit,
-            });
-
-            if (!collaborator) {
-               req.file = null;
-               return next();
-            }
-
-            file["collaborators"] =
-               collaborator as unknown as CollaboratorPayload;
-         }
       }
 
-      req.file = file;
+      req.file = file[0];
       next();
    },
 );

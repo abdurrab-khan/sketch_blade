@@ -26,6 +26,11 @@ import useMutate from "@/hooks/useMutate.ts";
 import { fileSchema } from "@/lib/zod/schemas.ts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddCollaboratorInput from "../AddCollaboratorInput.tsx";
+import { useEffect } from "react";
+import useApiClient from "@/hooks/useApiClient.ts";
+import { ApiResponse, AxiosMutateProps } from "@/types/index.ts";
+import { Collaborator } from "@/types/collaborator.ts";
+import { useToast } from "@/hooks/use-toast.ts";
 
 // Zod Validation Schema: for creation of file
 interface FileFormProps {
@@ -37,33 +42,83 @@ interface FileFormProps {
 }
 
 function FileForm({ children, isOpen, setIsOpen, _id, fileData }: FileFormProps) {
+  const apiClient = useApiClient();
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof fileSchema>>({
     resolver: zodResolver(fileSchema),
     defaultValues: {
       fileName: fileData?.name ?? "",
-      collaborators: fileData?.collaborators ?? [],
+      collaborators: [],
       description: fileData?.description ?? "",
     },
   });
   const { handleSubmit, reset, control, setValue, watch } = form;
 
-  const mutation = useMutate({
-    options: { queryKeys: ["getFiles"] },
-    finallyFn: () => {
+  const addCollaborator = async (collaborators: Collaborator[], fileId?: string) => {
+    if (!fileId) return;
+
+    try {
+      await apiClient.post(`/collaborator/${fileId}`, collaborators);
+    } catch (err) {
+      setTimeout(() => {
+        toast({
+          title: "Error",
+          description: (err as Error)?.message || "An error occurred during add collaborators",
+          variant: "destructive",
+        });
+      }, 500);
+    }
+  };
+
+  const createNewFile = async ({ uri, data }: AxiosMutateProps) => {
+    const { collaborators = [], ...fileData } = data as z.infer<typeof fileSchema>;
+
+    try {
+      const fileRes = await apiClient.post<ApiResponse<File>>(uri, fileData);
+
+      // if true -- it's time to add collaborators
+      if (fileRes.data?.success && collaborators?.length > 0) {
+        await addCollaborator(collaborators, fileRes.data?.data?._id);
+      }
+
+      return fileRes.data ?? null;
+    } catch (error) {
+      throw new Error((error as Error)?.message ?? "An error occured during file creation");
+    } finally {
       reset();
       setIsOpen(false);
-    },
+    }
+  };
+
+  const { mutate, isPending } = useMutate({
+    isShowToast: true,
+    customMutationFn: createNewFile,
+    options: { queryKey: ["getFiles"] },
   });
-  const { isPending } = mutation;
 
   const handleFileSubmit = (data: z.infer<typeof fileSchema>) => {
     if (isPending) return;
 
-    const method = _id ? "put" : "post";
-    const uri = `/file${_id ? "/" + _id : ""}`;
-
-    mutation.mutate({ method, data, uri });
+    // submitting the file
+    mutate({
+      uri: `/file`,
+      data: data,
+      method: "post",
+    });
   };
+
+  useEffect(() => {
+    // no need to fetch collaborators -- creating new file
+    if (!_id) return;
+
+    apiClient.get<ApiResponse<Collaborator[]>>(`/collaborator/${_id}`).then((d) => {
+      const res = d.data;
+
+      if (res?.success && res?.data) {
+        setValue("collaborators", res.data);
+      }
+    });
+  }, [_id, apiClient, setValue]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -108,7 +163,7 @@ function FileForm({ children, isOpen, setIsOpen, _id, fileData }: FileFormProps)
                 disabled={isPending}
                 className={"w-full cursor-pointer"}
               >
-                {mutation.isPending ? (
+                {isPending ? (
                   <>
                     {fileData ? "Updating..." : "Creating..."}
                     <Loader2 className="mr-3 h-8 w-8 animate-spin" />

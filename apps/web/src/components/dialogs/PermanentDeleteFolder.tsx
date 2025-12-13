@@ -17,7 +17,7 @@ interface DeleteFolderProps {
   id: string;
   isOpen: boolean;
   children?: React.ReactNode;
-  queryKeys?: string[];
+  queryKey?: string[];
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -26,11 +26,11 @@ function DeleteFolder({
   isOpen,
   setIsOpen,
   children,
-  queryKeys = ["getFolders", "getTrashData"],
+  queryKey = ["getFolders", "getTrashData"],
 }: DeleteFolderProps) {
   const mutate = useMutate({
     isShowToast: true,
-    options: { queryKeys },
+    options: { queryKey },
     finallyFn: () => setIsOpen(false),
   });
   const { isPending } = mutate;

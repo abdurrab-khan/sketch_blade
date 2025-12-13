@@ -12,7 +12,7 @@ import { ApiResponse, AxiosQueryProps } from "../types/index.ts";
 import useApiClient from "./useApiClient.ts";
 
 interface UseResponseParams<T> {
-  queryKeys: QueryKey;
+  queryKey: QueryKey;
   queryProps: AxiosQueryProps;
   queryOptions?: Partial<
     UndefinedInitialDataOptions<ApiResponse<T>, Error, ApiResponse<T>, QueryKey>
@@ -20,7 +20,7 @@ interface UseResponseParams<T> {
 }
 
 const useResponse = <T,>({
-  queryKeys,
+  queryKey,
   queryProps,
   queryOptions,
 }: UseResponseParams<T>): UseQueryResult<ApiResponse<T>, Error> => {
@@ -28,7 +28,7 @@ const useResponse = <T,>({
   const { toast } = useToast();
   const apiClient = useApiClient();
 
-  const memoizedQueryKey = useMemo<QueryKey>(() => [...queryKeys], [queryKeys]); // Memoize query keys.
+  const memoizedQueryKey = useMemo<QueryKey>(() => [...queryKey], [queryKey]); // Memoize query keys.
 
   const queryFn = useCallback(async (): Promise<ApiResponse<T>> => {
     const response = await apiClient.get<ApiResponse<T>>(queryProps.uri);

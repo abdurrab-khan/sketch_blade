@@ -7,7 +7,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 interface ToggleLockProps {
   fileId: string;
   isLocked: boolean;
-  setOpen: React.Dispatch<React.SetState<boolean>>;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function ToggleLock({ fileId, isLocked, setOpen }: ToggleLockProps) {
@@ -15,7 +15,7 @@ function ToggleLock({ fileId, isLocked, setOpen }: ToggleLockProps) {
 
   const mutation = useMutate({
     finallyFn: () => setOpen(false),
-    options: { queryKeys: ["getFiles"] },
+    options: { queryKey: ["getFiles"] },
   });
 
   const toggleLock = useMemo(

@@ -38,13 +38,13 @@ function FolderForm({ _id, children, isOpen, setIsOpen, folderData }: FolderForm
   const form = useForm<z.infer<typeof folderSchema>>({
     resolver: zodResolver(folderSchema),
     defaultValues: {
-      folderName: folderData?.name ?? null,
+      folderName: folderData?.name ?? "",
     },
   });
   const { control, handleSubmit } = form;
 
   const mutation = useMutate({
-    options: { queryKeys: ["getFolders"] },
+    options: { queryKey: ["getFolders"] },
     isShowToast: true,
     finallyFn: () => setIsOpen(false),
   });

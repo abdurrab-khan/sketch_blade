@@ -21,7 +21,7 @@ import { ApiResponse } from "@/types/index.ts";
 import { fileSchema } from "@/lib/zod/schemas.ts";
 import { UseFormSetValue, UseFormWatch } from "react-hook-form";
 import useApiClient from "@/hooks/useApiClient.ts";
-import { CollaboratorActions, CollaboratorData, ListCollaborator } from "../types/collaborator.ts";
+import { CollaboratorActions, Collaborator, ListCollaborator } from "../types/collaborator.ts";
 import { useToast } from "@/hooks/use-toast.ts";
 
 interface AddCollaboratorInputProps {
@@ -34,7 +34,7 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({ setValue, w
   const [isPending, setIsPending] = useState(false);
   const [listColl, setListColl] = useState<ListCollaborator[]>([]);
   const [role, setRole] = useState<CollaboratorActions>("view" as CollaboratorActions);
-  const [selectedCollaborator, setSelectedCollaborator] = useState<CollaboratorData | null>(null);
+  const [selectedCollaborator, setSelectedCollaborator] = useState<Collaborator | null>(null);
 
   const collaborators = watch("collaborators") || [];
 
@@ -97,7 +97,7 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({ setValue, w
     [debouncedSearch, listColl.length],
   );
 
-  const handleAddCollaborators = (collaboratorData: CollaboratorData) => {
+  const handleAddCollaborators = (collaboratorData: Collaborator) => {
     const isAlreadySelected = collaborators.some((coll) => coll._id === collaboratorData._id);
 
     if (isAlreadySelected) return;
@@ -119,7 +119,7 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({ setValue, w
     if (selectedCollaborator) {
       const updatedCollaborators = collaborators?.map((coll) =>
         coll._id === selectedCollaborator._id
-          ? { ...coll, actions: value as CollaboratorActions }
+          ? { ...coll, role: value as CollaboratorActions }
           : coll,
       );
       setValue("collaborators", updatedCollaborators);
@@ -188,7 +188,7 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({ setValue, w
                       )}
                       onClick={() => {
                         setSelectedCollaborator(collaborator);
-                        setRole(collaborator.actions);
+                        setRole(collaborator.role);
                       }}
                     >
                       <img
@@ -275,7 +275,7 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({ setValue, w
                               e.preventDefault();
                               handleAddCollaborators({
                                 ...collaborator,
-                                actions: role,
+                                role: role,
                               });
                             }}
                           >

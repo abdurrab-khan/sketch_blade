@@ -43,22 +43,34 @@ export const getCollaborators = AsyncHandler(
                   },
                   {
                      $unset: [
-                        "_id",
                         "clerkId",
                         "firstName",
                         "lastName",
                         "updatedAt",
+                        "createdAt",
                      ],
                   },
                ],
             },
          },
          {
-            $project: {
-               user: {
-                  $arrayElemAt: ["$user", 0],
+            $replaceRoot: {
+               newRoot: {
+                  $mergeObjects: [
+                     "$$ROOT",
+                     {
+                        $arrayElemAt: ["$user", 0],
+                     },
+                  ],
                },
+            },
+         },
+         {
+            $project: {
                role: 1,
+               fullName: 1,
+               profileUrl: 1,
+               email: 1,
             },
          },
       ]);
@@ -84,7 +96,7 @@ export const addCollaborator = AsyncHandler(
          req.body ?? {},
       );
 
-      if (!file) {
+      if (!file || !file.isOwner) {
          throw new ErrorHandler({
             statusCode: 400,
             message: "You are not authorized to add collaborators",
@@ -96,9 +108,6 @@ export const addCollaborator = AsyncHandler(
             const { email, role } = collaborator;
 
             const user = await User.findOne({ email }).lean();
-
-            console.log("User is: ", user);
-            console.log("Email ID is: ", email);
 
             if (!user) {
                throw new ErrorHandler({
@@ -148,17 +157,14 @@ export const removeCollaborator = AsyncHandler(
       );
       const file = req.file;
 
-      if (!file) {
+      if (!file || !file.isOwner) {
          throw new ErrorHandler({
             statusCode: 400,
             message: "User is not authorized to remove collaborators",
          });
       }
 
-      const updatedFile = await Collaborator.findOneAndDelete({
-         fileId: file._id,
-         _id: new Types.ObjectId(collaboratorId),
-      });
+      const updatedFile = await Collaborator.findByIdAndDelete(collaboratorId);
 
       if (!updatedFile) {
          throw new ErrorHandler({
@@ -184,18 +190,15 @@ export const changeCollaboratorPermission = AsyncHandler(
       );
       const file = req.file;
 
-      if (!file) {
+      if (!file || !file.isOwner) {
          throw new ErrorHandler({
             statusCode: 400,
             message: "You are not authorized to change collaborator permission",
          });
       }
 
-      const updatedCollaborator = await Collaborator.findOneAndUpdate(
-         {
-            fileId: file._id,
-            _id: new Types.ObjectId(collaboratorId),
-         },
+      const updatedCollaborator = await Collaborator.findByIdAndUpdate(
+         collaboratorId,
          {
             $set: {
                role,

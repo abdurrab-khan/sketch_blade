@@ -19,13 +19,14 @@ import { MdDelete } from "react-icons/md";
 import DeleteFile from "@/components/dialogs/Trashfile.tsx";
 import FileForm from "@/components/dialogs/Fileform";
 import MoveFileDialog from "@/components/dialogs/Movefile";
+import { RootState } from "@/redux/store.ts";
 
 interface FileActionProps {
   row: Row<File>;
 }
 
 function FileAction({ row }: FileActionProps) {
-  const { _id, name, description, collaborators } = row.original;
+  const { _id, name, description, owner } = row.original;
 
   const [open, setOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -34,12 +35,12 @@ function FileAction({ row }: FileActionProps) {
   const { email } = useSelector((state: RootState) => state.auth);
 
   // For enabling owner only features
-  const isOwner = row.original?.owner.email === email;
+  const isOwner = owner.email === email;
 
   return (
     <React.Fragment>
       <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger title="Actions" asChild>
+        <DropdownMenuTrigger title="Role" asChild>
           <Button variant="none" className="text-zinc-700 hover:text-zinc-700/50">
             <BsThreeDots />
           </Button>
@@ -85,7 +86,7 @@ function FileAction({ row }: FileActionProps) {
         _id={_id}
         isOpen={editFileDialogOpen}
         setIsOpen={setEditFileDialogOpen}
-        fileData={{ name, description, collaborators }}
+        fileData={{ name, description }}
       />
       <MoveFileDialog
         _id={_id}

@@ -19,7 +19,7 @@ interface RecoverDialogProps {
   type: "file" | "folder";
   isOpen: boolean;
   children?: React.ReactNode;
-  queryKeys?: string[];
+  queryKey?: string[];
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -29,11 +29,11 @@ function RecoverDialog({
   isOpen,
   children,
   setIsOpen,
-  queryKeys = ["getTrashData"],
+  queryKey = ["getTrashData"],
 }: RecoverDialogProps) {
   const mutation = useMutate({
     isShowToast: true,
-    options: { queryKeys: [...queryKeys, type === "file" ? "getFiles" : "getFolders"] },
+    options: { queryKey: [...queryKey, type === "file" ? "getFiles" : "getFolders"] },
     finallyFn: () => setIsOpen(false),
   });
   const { isPending } = mutation;

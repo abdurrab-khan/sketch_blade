@@ -18,6 +18,9 @@ export default defineConfig({
         target: "http://api:8080",
         changeOrigin: true,
         secure: false,
+        rewrite(path) {
+          return path.replace("/api", "");
+        },
       },
       // "/socket.io": {
       //   target: "http://localhost:8080",

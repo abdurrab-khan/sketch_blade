@@ -5,7 +5,13 @@ declare global {
    namespace Express {
       interface Request {
          userId?: string;
-         file?: File | null;
+         file?: {
+            _id: string;
+            name: string;
+            isOwner: boolean;
+            isLocked: boolean;
+            collaborator?: CollaboratorPayload;
+         } | null;
       }
    }
 }

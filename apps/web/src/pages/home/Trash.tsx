@@ -5,7 +5,7 @@ import trashColumn from "@/components/ui/table/columns/TrashColumns.tsx";
 
 function Trash() {
   const { data, isPending } = useResponse<FileType[]>({
-    queryKeys: ["getTrashData"],
+    queryKey: ["getTrashData"],
     queryProps: { uri: "/file/trash" },
   });
 

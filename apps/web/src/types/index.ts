@@ -1,9 +1,9 @@
 import { ArrowProps, SelectionPurpose } from "./shapes";
 
-export interface AxiosMutateProps {
+export interface AxiosMutateProps<T = unknown> {
   method: "post" | "put" | "delete";
   uri: string;
-  data?: any;
+  data?: T;
 }
 
 export interface AxiosQueryProps {

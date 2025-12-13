@@ -1,17 +1,14 @@
-import { ActiveCollaborators, CollaboratorData } from "./collaborator.ts";
-import { CreatorDetails } from "./user.ts";
+import { Collaborator } from "./collaborator.ts";
+import { Owner } from "./user.ts";
 
 export interface File {
   _id: string;
   name: string;
   folder?: FolderDetails;
   description: string;
-  creator: CreatorDetails;
-  activeCollaborator: ActiveCollaborators[];
-  collaborators: CollaboratorData[];
+  owner: Owner;
   isLocked: boolean;
   isFavorite: boolean;
-  state: "active" | "deleted";
   createdAt: string;
   updatedAt?: string;
 }
@@ -26,13 +23,13 @@ export interface Folder {
 export interface FolderDetails {
   _id: string;
   name: string;
-  creator: CreatorDetails;
+  owner: Owner;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateFile {
   name: string;
-  collaborators: CollaboratorData[];
+  collaborators: Collaborator[];
   description: string;
 }

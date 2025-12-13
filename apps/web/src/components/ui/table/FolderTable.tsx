@@ -8,7 +8,7 @@ import { FolderDetails } from "@/types/file.ts";
 
 const FolderTable = () => {
   const { data, isPending, isFetching } = useResponse<FolderDetails[]>({
-    queryKeys: ["getFolders"],
+    queryKey: ["getFolders"],
     queryProps: { uri: "/folder" },
   });
 

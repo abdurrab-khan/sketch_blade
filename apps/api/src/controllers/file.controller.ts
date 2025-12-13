@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { Error, isValidObjectId, Types } from "mongoose";
-import { CollaboratorAction } from "../types";
+import { isValidObjectId, Types } from "mongoose";
 import zodParserHelper from "../types/zod/zodParserHelper";
 import { AsyncHandler, ApiResponse, ErrorHandler } from "../utils";
 import {
@@ -14,9 +13,7 @@ import {
 } from "../models";
 import {
    createFileSchema,
-   deleteFilesSchema,
    updateFileSchema,
-   moveFile,
    transferOwnershipSchema,
 } from "../types/zod/file.schema";
 
@@ -101,18 +98,12 @@ const getFile = AsyncHandler(async (req: Request, res: Response) => {
       },
    ]);
 
-   if (file.length === 0) {
-      throw new ErrorHandler({
-         statusCode: 404,
-         message: "File not found",
-      });
-   }
-
    res.status(200).json(
       new ApiResponse({
          statusCode: 200,
          data: file[0],
-         message: "File found successfully",
+         message:
+            file?.length === 0 ? "No file found" : "Files found successfully",
       }),
    );
 });
@@ -239,7 +230,7 @@ const getFiles = AsyncHandler(
                         ],
                      },
                      {
-                        $lt: [{ $size: "$deleted" }, 0],
+                        $lte: [{ $size: "$deleted" }, 0],
                      },
                   ],
                },
@@ -247,7 +238,7 @@ const getFiles = AsyncHandler(
          },
          {
             $lookup: {
-               from: "folderBridges",
+               from: "folderbridges",
                let: {
                   fileId: "$_id",
                   currentUser: "$currentUser",
@@ -269,7 +260,7 @@ const getFiles = AsyncHandler(
                   },
                   {
                      $project: {
-                        _id: 1,
+                        folderId: 1,
                      },
                   },
                ],
@@ -278,32 +269,23 @@ const getFiles = AsyncHandler(
          },
          {
             $addFields: {
-               folderId: { $arrayElemAt: ["$folderId", 0] },
+               folderId: {
+                  $arrayElemAt: ["$folderId.folderId", 0],
+               },
             },
          },
          {
             $lookup: {
                from: "folders",
-               let: {
-                  fileId: "$_id",
-                  currentUser: "$currentUser",
-               },
+               localField: "folderId",
+               foreignField: "_id",
                pipeline: [
                   {
-                     $match: {
-                        $expr: {
-                           $and: [
-                              {
-                                 $ne: ["$folderId", null],
-                              },
-                              {
-                                 $eq: ["$fileId", "$$fileId"],
-                              },
-                              {
-                                 $eq: ["$ownerId", "$$currentUser"],
-                              },
-                           ],
-                        },
+                     $project: {
+                        _id: 0,
+                        name: 1,
+                        state: 1,
+                        createdAt: 1,
                      },
                   },
                ],
@@ -343,16 +325,49 @@ const getFiles = AsyncHandler(
             },
          },
          {
+            $lookup: {
+               from: "favoritefiles",
+               let: {
+                  fileId: "$_id",
+                  currentUser: "$currentUser",
+               },
+               pipeline: [
+                  {
+                     $match: {
+                        $expr: {
+                           $and: [
+                              {
+                                 $eq: ["$fileId", "$$fileId"],
+                              },
+                              {
+                                 $eq: ["$userId", "$$currentUser"],
+                              },
+                           ],
+                        },
+                     },
+                  },
+               ],
+               as: "favoritefiles",
+            },
+         },
+         {
             $project: {
                name: 1,
-               description: 1,
                isLocked: 1,
+               description: 1,
                updatedAt: 1,
                createdAt: 1,
                folder: {
-                  $arrayElemAt: ["$folderData", 0],
+                  $arrayElemAt: ["$folder", 0],
                },
                owner: { $arrayElemAt: ["$owner", 0] },
+               isFavorite: {
+                  $cond: {
+                     if: { $gt: [{ $size: "$favoritefiles" }, 0] },
+                     then: true,
+                     else: false,
+                  },
+               },
             },
          },
          {
@@ -367,7 +382,7 @@ const getFiles = AsyncHandler(
             message:
                files?.length === 0
                   ? "No file found"
-                  : "Files fetched successfully",
+                  : "Files found successfully",
          }),
       );
    },
@@ -376,31 +391,94 @@ const getFiles = AsyncHandler(
 const getTrashFiles = AsyncHandler(async (req: Request, res: Response) => {
    const userId = req.userId;
 
-   const trashedFiles = await File.aggregate([
+   const trashedFiles = await DeletedFile.aggregate([
       {
          $addFields: {
             currentUser: userId,
          },
       },
       {
-         $addFields: {
-            isOwner: {
-               $cond: {
-                  if: {
-                     $eq: ["$ownerId", "$currentUser"],
+         $match: {
+            $expr: { $eq: ["$userId", "$currentUser"] },
+         },
+      },
+      {
+         $lookup: {
+            from: "files",
+            localField: "fileId",
+            foreignField: "_id",
+            as: "file",
+            pipeline: [
+               {
+                  $lookup: {
+                     from: "users",
+                     localField: "ownerId",
+                     foreignField: "clerkId",
+                     as: "owner",
+                     pipeline: [
+                        {
+                           $project: {
+                              _id: 0,
+                              fullName: {
+                                 $concat: ["$firstName", " ", "$lastName"],
+                              },
+                              profileUrl: 1,
+                              email: 1,
+                           },
+                        },
+                     ],
                   },
-                  then: true,
-                  else: false,
                },
+               {
+                  $project: {
+                     name: 1,
+                     isLocked: 1,
+                     isFavorite: 1,
+                     description: 1,
+                     ownerId: 1,
+                     state: 1,
+                     updatedAt: 1,
+                     createdAt: 1,
+                     folder: {
+                        $arrayElemAt: ["$folder", 0],
+                     },
+                     owner: { $arrayElemAt: ["$owner", 0] },
+                  },
+               },
+            ],
+         },
+      },
+      {
+         $addFields: {
+            file: { $arrayElemAt: ["$file", 0] },
+         },
+      },
+      {
+         $match: {
+            $expr: {
+               $and: [
+                  {
+                     $or: [
+                        {
+                           $eq: ["$file.ownerId", "$currentUser"],
+                        },
+                        {
+                           $eq: ["$file.state", "active"],
+                        },
+                     ],
+                  },
+                  {
+                     $ne: ["$file", null],
+                  },
+               ],
             },
          },
       },
       {
          $lookup: {
-            from: "deletedfiles",
+            from: "folderbridges",
             let: {
                fileId: "$_id",
-               isOwner: "$isOwner",
                currentUser: "$currentUser",
             },
             pipeline: [
@@ -408,9 +486,6 @@ const getTrashFiles = AsyncHandler(async (req: Request, res: Response) => {
                   $match: {
                      $expr: {
                         $and: [
-                           {
-                              $ne: ["$$isOwner", true],
-                           },
                            {
                               $eq: ["$fileId", "$$fileId"],
                            },
@@ -421,8 +496,57 @@ const getTrashFiles = AsyncHandler(async (req: Request, res: Response) => {
                      },
                   },
                },
+               {
+                  $project: {
+                     folderId: 1,
+                  },
+               },
             ],
-            as: "deletedFiles",
+            as: "folderId",
+         },
+      },
+      {
+         $addFields: {
+            folderId: {
+               $arrayElemAt: ["$folderId.folderId", 0],
+            },
+         },
+      },
+      {
+         $lookup: {
+            from: "folders",
+            let: {
+               folderId: "$folderId",
+               currentUser: "$currentUser",
+            },
+            pipeline: [
+               {
+                  $match: {
+                     $expr: {
+                        $and: [
+                           {
+                              $ne: ["$$folderId", null],
+                           },
+                           {
+                              $eq: ["$_id", "$$folderId"],
+                           },
+                           {
+                              $eq: ["$ownerId", "$$currentUser"],
+                           },
+                        ],
+                     },
+                  },
+               },
+               {
+                  $project: {
+                     _id: 0,
+                     name: 1,
+                     state: 1,
+                     createdAt: 1,
+                  },
+               },
+            ],
+            as: "folder",
          },
       },
       {
@@ -430,60 +554,29 @@ const getTrashFiles = AsyncHandler(async (req: Request, res: Response) => {
             $expr: {
                $or: [
                   {
-                     $and: [
-                        {
-                           $eq: ["$isOwner", true],
-                        },
-                        {
-                           $eq: ["$state", "deleted"],
-                        },
-                     ],
+                     $lte: [{ $size: "$folder" }, 0],
                   },
-                  {
-                     $gt: [{ $size: "$deletedFiles" }, 0],
-                  },
+                  { $in: ["active", "$folder.state"] },
                ],
             },
          },
       },
       {
-         $lookup: {
-            from: "users",
-            localField: "ownerId",
-            foreignField: "clerkId",
-            as: "owner",
-            pipeline: [
-               {
-                  $project: {
-                     _id: 0,
-                     fullName: {
-                        $concat: ["$firstName", " ", "$lastName"],
-                     },
-                     profileUrl: 1,
-                     email: 1,
+         $replaceRoot: {
+            newRoot: {
+               $mergeObjects: [
+                  "$file",
+                  {
+                     type: "file",
                   },
-               },
-            ],
-         },
-      },
-      {
-         $addFields: {
-            type: "file",
-         },
-      },
-      {
-         $project: {
-            name: 1,
-            isLocked: 1,
-            createdAt: 1,
-            owner: {
-               $arrayElemAt: ["$owner", 0],
+                  {
+                     folder: {
+                        $arrayElemAt: ["$folder", 0],
+                     },
+                  },
+               ],
             },
-            type: 1,
          },
-      },
-      {
-         $sort: { createdAt: -1 },
       },
    ]);
 
@@ -491,7 +584,10 @@ const getTrashFiles = AsyncHandler(async (req: Request, res: Response) => {
       new ApiResponse({
          statusCode: 200,
          data: trashedFiles,
-         message: "Files found successfully",
+         message:
+            trashedFiles?.length === 0
+               ? "No file found"
+               : "Trashed Files found successfully",
       }),
    );
 });
@@ -500,78 +596,22 @@ const getSharedFiles = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
       const userId = req.userId;
 
-      const files = await File.aggregate([
+      const files = await Collaborator.aggregate([
          {
             $addFields: {
                currentUser: userId,
             },
          },
          {
-            $addFields: {
-               isOwner: {
-                  $cond: {
-                     if: {
-                        $eq: ["$ownerId", "$currentUser"],
-                     },
-                     then: true,
-                     else: false,
-                  },
-               },
-            },
-         },
-         {
-            $lookup: {
-               from: "collaborators",
-               let: {
-                  fileId: "$_id",
-                  isOwner: "$isOwner",
-                  currentUser: "$currentUser",
-               },
-               pipeline: [
-                  {
-                     $match: {
-                        $expr: {
-                           $and: [
-                              {
-                                 $eq: ["$$isOwner", false],
-                              },
-                              {
-                                 $eq: ["$fileId", "$$fileId"],
-                              },
-                              {
-                                 $eq: ["$userId", "$$currentUser"],
-                              },
-                           ],
-                        },
-                     },
-                  },
-                  {
-                     $project: { _id: 1 },
-                  },
-               ],
-               as: "collaborators",
-            },
-         },
-         {
             $match: {
-               $expr: {
-                  $and: [
-                     {
-                        $eq: ["$state", "active"],
-                     },
-                     {
-                        $gt: [{ $size: "$collaborators" }, 0],
-                     },
-                  ],
-               },
+               $expr: { $eq: ["$userId", "$currentUser"] },
             },
          },
          {
             $lookup: {
                from: "deletedfiles",
                let: {
-                  fileId: "$_id",
-                  isOwner: "$isOwner",
+                  fileId: "$fileId",
                   currentUser: "$currentUser",
                },
                pipeline: [
@@ -602,7 +642,64 @@ const getSharedFiles = AsyncHandler(
          },
          {
             $lookup: {
-               from: "folderBridges",
+               from: "files",
+               localField: "fileId",
+               foreignField: "_id",
+               as: "file",
+               pipeline: [
+                  {
+                     $lookup: {
+                        from: "users",
+                        localField: "ownerId",
+                        foreignField: "clerkId",
+                        as: "owner",
+                        pipeline: [
+                           {
+                              $project: {
+                                 _id: 0,
+                                 fullName: {
+                                    $concat: ["$firstName", " ", "$lastName"],
+                                 },
+                                 profileUrl: 1,
+                                 email: 1,
+                              },
+                           },
+                        ],
+                     },
+                  },
+                  {
+                     $project: {
+                        name: 1,
+                        isLocked: 1,
+                        state: 1,
+                        isFavorite: 1,
+                        description: 1,
+                        updatedAt: 1,
+                        createdAt: 1,
+                        folder: {
+                           $arrayElemAt: ["$folder", 0],
+                        },
+                        owner: { $arrayElemAt: ["$owner", 0] },
+                     },
+                  },
+               ],
+            },
+         },
+         {
+            $match: {
+               $expr: {
+                  $and: [
+                     { $in: ["active", "$file.state"] },
+                     {
+                        $gt: [{ $size: "$file" }, 0],
+                     },
+                  ],
+               },
+            },
+         },
+         {
+            $lookup: {
+               from: "folderbridges",
                let: {
                   fileId: "$_id",
                   currentUser: "$currentUser",
@@ -624,7 +721,7 @@ const getSharedFiles = AsyncHandler(
                   },
                   {
                      $project: {
-                        _id: 1,
+                        folderId: 1,
                      },
                   },
                ],
@@ -633,12 +730,180 @@ const getSharedFiles = AsyncHandler(
          },
          {
             $addFields: {
-               folderId: { $arrayElemAt: ["$folderId", 0] },
+               folderId: {
+                  $arrayElemAt: ["$folderId.folderId", 0],
+               },
             },
          },
          {
             $lookup: {
                from: "folders",
+               let: {
+                  folderId: "$folderId",
+                  currentUser: "$currentUser",
+               },
+               pipeline: [
+                  {
+                     $match: {
+                        $expr: {
+                           $and: [
+                              {
+                                 $ne: ["$$folderId", null],
+                              },
+                              {
+                                 $eq: ["$_id", "$$folderId"],
+                              },
+                              {
+                                 $eq: ["$ownerId", "$$currentUser"],
+                              },
+                           ],
+                        },
+                     },
+                  },
+                  {
+                     $project: {
+                        _id: 0,
+                        name: 1,
+                        state: 1,
+                        createdAt: 1,
+                     },
+                  },
+               ],
+               as: "folder",
+            },
+         },
+         {
+            $match: {
+               $expr: {
+                  $or: [
+                     {
+                        $lte: [{ $size: "$folder" }, 0],
+                     },
+                     { $in: ["active", "$folder.state"] },
+                  ],
+               },
+            },
+         },
+         {
+            $replaceRoot: {
+               newRoot: {
+                  $mergeObjects: [
+                     {
+                        collaboratorId: "$_id",
+                     },
+                     { $arrayElemAt: ["$file", 0] },
+                     {
+                        folder: {
+                           $arrayElemAt: ["$folder", 0],
+                        },
+                     },
+                  ],
+               },
+            },
+         },
+      ]);
+
+      res.status(200).json(
+         new ApiResponse({
+            statusCode: 200,
+            data: files,
+            message:
+               files.length > 0
+                  ? "Shared File found successfully."
+                  : "No shared file found",
+         }),
+      );
+   },
+);
+
+const getFavoriteFiles = AsyncHandler(
+   async (req: Request, res: Response): Promise<void> => {
+      const userId = req.userId;
+
+      const files = await FavoriteFile.aggregate([
+         {
+            $addFields: {
+               currentUser: userId,
+            },
+         },
+         {
+            $match: {
+               $expr: { $eq: ["$userId", "$currentUser"] },
+            },
+         },
+         {
+            $lookup: {
+               from: "deletedfiles",
+               let: {
+                  fileId: "$fileId",
+                  currentUser: "$currentUser",
+               },
+               pipeline: [
+                  {
+                     $match: {
+                        $expr: {
+                           $and: [
+                              {
+                                 $eq: ["$fileId", "$$fileId"],
+                              },
+                              {
+                                 $eq: ["$userId", "$$currentUser"],
+                              },
+                           ],
+                        },
+                     },
+                  },
+               ],
+               as: "deleted",
+            },
+         },
+         {
+            $match: {
+               $expr: {
+                  $lte: [{ $size: "$deleted" }, 0],
+               },
+            },
+         },
+         {
+            $lookup: {
+               from: "files",
+               localField: "fileId",
+               foreignField: "_id",
+               as: "file",
+               pipeline: [
+                  {
+                     $project: {
+                        name: 1,
+                        isLocked: 1,
+                        isFavorite: 1,
+                        description: 1,
+                        updatedAt: 1,
+                        createdAt: 1,
+                        state: 1,
+                        folder: {
+                           $arrayElemAt: ["$folder", 0],
+                        },
+                        owner: { $arrayElemAt: ["$owner", 0] },
+                     },
+                  },
+               ],
+            },
+         },
+         {
+            $match: {
+               $expr: {
+                  $and: [
+                     { $in: ["active", "$file.state"] },
+                     {
+                        $gt: [{ $size: "$file" }, 0],
+                     },
+                  ],
+               },
+            },
+         },
+         {
+            $lookup: {
+               from: "folderbridges",
                let: {
                   fileId: "$_id",
                   currentUser: "$currentUser",
@@ -649,16 +914,62 @@ const getSharedFiles = AsyncHandler(
                         $expr: {
                            $and: [
                               {
-                                 $ne: ["$folderId", null],
+                                 $eq: ["$fileId", "$$fileId"],
                               },
                               {
-                                 $eq: ["$fileId", "$$fileId"],
+                                 $eq: ["$userId", "$$currentUser"],
+                              },
+                           ],
+                        },
+                     },
+                  },
+                  {
+                     $project: {
+                        folderId: 1,
+                     },
+                  },
+               ],
+               as: "folderId",
+            },
+         },
+         {
+            $addFields: {
+               folderId: {
+                  $arrayElemAt: ["$folderId.folderId", 0],
+               },
+            },
+         },
+         {
+            $lookup: {
+               from: "folders",
+               let: {
+                  folderId: "$folderId",
+                  currentUser: "$currentUser",
+               },
+               pipeline: [
+                  {
+                     $match: {
+                        $expr: {
+                           $and: [
+                              {
+                                 $ne: ["$$folderId", null],
+                              },
+                              {
+                                 $eq: ["$_id", "$$folderId"],
                               },
                               {
                                  $eq: ["$ownerId", "$$currentUser"],
                               },
                            ],
                         },
+                     },
+                  },
+                  {
+                     $project: {
+                        _id: 0,
+                        name: 1,
+                        state: 1,
+                        createdAt: 1,
                      },
                   },
                ],
@@ -680,7 +991,7 @@ const getSharedFiles = AsyncHandler(
          {
             $lookup: {
                from: "users",
-               localField: "ownerId",
+               localField: "userId",
                foreignField: "clerkId",
                as: "owner",
                pipeline: [
@@ -698,20 +1009,27 @@ const getSharedFiles = AsyncHandler(
             },
          },
          {
-            $project: {
-               name: 1,
-               description: 1,
-               isLocked: 1,
-               updatedAt: 1,
-               createdAt: 1,
-               folder: {
-                  $arrayElemAt: ["$folderData", 0],
+            $replaceRoot: {
+               newRoot: {
+                  $mergeObjects: [
+                     {
+                        collaboratorId: "$_id",
+                     },
+                     { $arrayElemAt: ["$file", 0] },
+                     {
+                        folder: {
+                           $arrayElemAt: ["$folder", 0],
+                        },
+                     },
+                     {
+                        owner: { $arrayElemAt: ["$owner", 0] },
+                     },
+                     {
+                        isFavorite: true,
+                     },
+                  ],
                },
-               owner: { $arrayElemAt: ["$owner", 0] },
             },
-         },
-         {
-            $sort: { createdAt: -1 },
          },
       ]);
 
@@ -720,110 +1038,9 @@ const getSharedFiles = AsyncHandler(
             statusCode: 200,
             data: files,
             message:
-               files.length > 0
-                  ? "Shared File found successfully."
-                  : "No shared file found",
-         }),
-      );
-   },
-);
-
-const getFavoriteFiles = AsyncHandler(
-   async (req: Request, res: Response): Promise<void> => {
-      const userId = req.userId;
-
-      const files = await File.aggregate([
-         {
-            $lookup: {
-               from: "collaborators",
-               localField: "_id",
-               foreignField: "fileId",
-               as: "collaborators",
-            },
-         },
-         {
-            $match: {
-               $and: [
-                  {
-                     $or: [
-                        {
-                           ownerId: userId,
-                        },
-                        {
-                           collaborators: {
-                              $elemMatch: {
-                                 userId: userId,
-                              },
-                           },
-                        },
-                     ],
-                  },
-                  {
-                     isFavorite: true,
-                  },
-               ],
-            },
-         },
-         {
-            $lookup: {
-               from: "users",
-               localField: "ownerId",
-               foreignField: "clerkId",
-               as: "owner",
-               pipeline: [
-                  {
-                     $project: {
-                        _id: 0,
-                        fullName: {
-                           $concat: ["$firstName", " ", "$lastName"],
-                        },
-                        profileUrl: 1,
-                        email: 1,
-                     },
-                  },
-               ],
-            },
-         },
-         {
-            $lookup: {
-               from: "folders",
-               localField: "folderId",
-               foreignField: "_id",
-               as: "folder",
-               pipeline: [
-                  {
-                     $project: {
-                        name: 1,
-                     },
-                  },
-               ],
-            },
-         },
-         {
-            $project: {
-               name: 1,
-               description: 1,
-               isLocked: 1,
-               updatedAt: 1,
-               createdAt: 1,
-               folder: {
-                  $arrayElemAt: ["$folder", 0],
-               },
-               owner: {
-                  $arrayElemAt: ["$owner", 0],
-               },
-            },
-         },
-         {
-            $sort: { createdAt: -1 },
-         },
-      ]);
-
-      res.status(200).json(
-         new ApiResponse({
-            statusCode: 200,
-            data: files,
-            message: "File found successfully",
+               files?.length === 0
+                  ? "There is no shared file"
+                  : "Favorite Files found successfully",
          }),
       );
    },
@@ -851,9 +1068,17 @@ const createFile = AsyncHandler(
          });
       }
 
+      const fileData = {
+         _id: file._id,
+         name: file.name,
+         description: file.description,
+         isLocked: file.isLocked,
+      };
+
       res.status(201).json(
          new ApiResponse({
             statusCode: 201,
+            data: fileData,
             message: "File created successfully",
          }),
       );
@@ -862,7 +1087,7 @@ const createFile = AsyncHandler(
 
 const updateFile = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
-      const file = req.file;
+      const file = req?.file;
 
       if (!file) {
          throw new ErrorHandler({
@@ -910,35 +1135,42 @@ const deleteFile = AsyncHandler(
       const { fileId } = req.params;
       const userId = req.userId;
 
-      if (!isValidObjectId(fileId)) {
-         throw new ErrorHandler({
-            statusCode: 403,
-            message: "Invalid file id provided",
-         });
-      }
-
       const file = await File.findById(fileId).lean();
 
       if (!file) {
          throw new ErrorHandler({
             statusCode: 400,
-            message: "Invalid file id, there is not file with this id.",
+            message: "Invalid file id, there is not file with this id",
          });
       }
 
-      // User is not owner
-      if (file.ownerId !== userId) {
-         await Collaborator.deleteOne({ fileId, userId });
-         await FolderFileBridge.deleteOne({ fileId, userId });
-         await FavoriteFile.deleteOne({ fileId, userId });
-         await DeletedFile.deleteOne({ fileId, userId });
-      } else {
+      const isOwner = file.ownerId === userId;
+
+      if (isOwner) {
          // User is owner
          await FolderFileBridge.deleteMany({ fileId });
          await Collaborator.deleteMany({ fileId });
          await FavoriteFile.deleteMany({ fileId });
          await DeletedFile.deleteMany({ fileId });
          await File.findByIdAndDelete(fileId);
+      } else {
+         // User is not owner
+         const collaborator = await Collaborator.findOne({
+            fileId,
+            userId,
+         });
+
+         if (!collaborator) {
+            throw new ErrorHandler({
+               statusCode: 403,
+               message: "You are not authorized to do this.",
+            });
+         }
+
+         await Collaborator.deleteOne({ fileId, userId });
+         await FolderFileBridge.deleteOne({ fileId, userId });
+         await FavoriteFile.deleteOne({ fileId, userId });
+         await DeletedFile.deleteOne({ fileId, userId });
       }
 
       res.status(200).json(
@@ -952,68 +1184,58 @@ const deleteFile = AsyncHandler(
 
 const trashFile = AsyncHandler(async (req: Request, res: Response) => {
    const userId = req.userId;
-   const { fileId } = req.params;
-
-   if (!isValidObjectId(fileId)) {
-      throw new ErrorHandler({
-         statusCode: 400,
-         message: "Invalid file id",
-      });
-   }
-
-   const file = await File.findById(fileId).lean();
+   const file = req?.file;
 
    if (!file) {
       throw new ErrorHandler({
-         statusCode: 400,
-         message: "Invalid file id, there is not file with this id",
+         statusCode: 403,
+         message: "You are not authorized to delete this file",
       });
    }
 
-   // User is not owner
-   if (file.ownerId !== userId) {
-      const collaborator = await Collaborator.findOne({
-         fileId: fileId,
-         userId: userId,
-      }).lean();
+   const fileId = file?._id;
 
-      if (!collaborator) {
-         throw new ErrorHandler({
-            statusCode: 403,
-            message: "Invalid request",
-         });
-      }
+   // Check already trash file exists;
+   const existingTrashFile = await DeletedFile.findOne({
+      fileId,
+      userId,
+   }).lean();
 
-      const trashRes = DeletedFile.create({ fileId, userId });
+   if (existingTrashFile) {
+      throw new ErrorHandler({
+         statusCode: 400,
+         message: "File has been already deleted",
+      });
+   }
 
-      if (!trashRes) {
+   let role = file.isOwner ? "owner" : file.collaborator?.role;
+
+   // adding entry in deleteFile
+   const delEntry = await DeletedFile.create({ fileId, userId, role });
+
+   if (!delEntry) {
+      throw new ErrorHandler({
+         statusCode: 500,
+         message: "Failed to remove this file",
+      });
+   }
+
+   // changing the file state from active to deleted
+   if (file.isOwner) {
+      const updatedFileRes = await File.findByIdAndUpdate(fileId, {
+         $set: {
+            state: "deleted",
+         },
+      });
+
+      if (!updatedFileRes) {
+         await DeletedFile.findByIdAndDelete(delEntry._id);
+
          throw new ErrorHandler({
             statusCode: 500,
             message: "Failed to remove this file",
          });
       }
-
-      res.status(200).json(
-         new ApiResponse({
-            statusCode: 200,
-            message: "File removed successfully",
-         }),
-      );
-      return;
-   }
-
-   // User is owner
-   const updateFile = await File.findByIdAndUpdate(fileId, {
-      $set: {
-         state: "deleted",
-      },
-   });
-
-   if (!updateFile) {
-      throw new ErrorHandler({
-         statusCode: 500,
-         message: "Failed to remove this file",
-      });
    }
 
    res.status(200).json(
@@ -1044,18 +1266,8 @@ const recoverFile = AsyncHandler(async (req: Request, res: Response) => {
       });
    }
 
-   // User is not owner
-   if (file.ownerId !== userId) {
-      const removeDelete = await DeletedFile.deleteOne({ fileId });
-
-      if (removeDelete.deletedCount === 0) {
-         throw new ErrorHandler({
-            statusCode: 500,
-            message: "Failed to recover the file",
-         });
-      }
-   } else {
-      // User is owner
+   // User is owner
+   if (file.ownerId === userId) {
       const updateFile = await File.findByIdAndUpdate(fileId, {
          $set: {
             state: "active",
@@ -1070,6 +1282,16 @@ const recoverFile = AsyncHandler(async (req: Request, res: Response) => {
       }
    }
 
+   // Delete entry from DeletedFile collection
+   const removeDelete = await DeletedFile.deleteOne({ fileId, userId });
+
+   if (removeDelete.deletedCount === 0) {
+      throw new ErrorHandler({
+         statusCode: 500,
+         message: "Failed to recover the file",
+      });
+   }
+
    res.status(200).json(
       new ApiResponse({
          statusCode: 200,
@@ -1081,7 +1303,7 @@ const recoverFile = AsyncHandler(async (req: Request, res: Response) => {
 const toggleLock = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
       const { fileId } = req.params;
-      const file = req.file;
+      const file = req?.file;
 
       if (!file) {
          throw new ErrorHandler({
@@ -1171,24 +1393,18 @@ const transferFileOwnership = AsyncHandler(
 const toggleFavoriteFile = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
       const userId = req.userId;
-      const { fileId } = req.params;
-
-      if (!isValidObjectId(fileId)) {
-         throw new ErrorHandler({
-            statusCode: 400,
-            message: "Invalid file id",
-         });
-      }
-
-      const file = await File.findById(fileId).lean();
+      const file = req?.file;
 
       if (!file) {
          throw new ErrorHandler({
-            statusCode: 400,
-            message: "Invalid Request file not found",
+            statusCode: 403,
+            message: "You are not authorized to toggle favorite",
          });
       }
 
+      const fileId = file._id;
+
+      // checking out file already exist??
       const favorite = await FavoriteFile.findOne({
          fileId,
          userId,
@@ -1211,6 +1427,8 @@ const toggleFavoriteFile = AsyncHandler(
                message: "File successfully removed as favorite",
             }),
          );
+
+         // return after successfully deleting
          return;
       }
 
@@ -1239,12 +1457,32 @@ const toggleFavoriteFile = AsyncHandler(
 const moveFileIntoFolder = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
       const userId = req.userId;
-      const { fileId, folderId } = zodParserHelper(moveFile, req.params ?? {});
+      const file = req?.file;
+
+      // check getting file from middleware
+      if (!file) {
+         throw new ErrorHandler({
+            statusCode: 403,
+            message: "You are not authorized to move this file",
+         });
+      }
+
+      const fileId = file._id;
+      const { folderId } = req.params;
+
+      // checking folderId is valid or not
+      if (!isValidObjectId(folderId)) {
+         throw new ErrorHandler({
+            statusCode: 403,
+            message: "Invalid folder id",
+         });
+      }
 
       const folderBridge = await FolderFileBridge.findOne({
          folderId,
          fileId,
-      });
+         userId,
+      }).lean();
 
       if (folderBridge) {
          throw new ErrorHandler({
@@ -1259,103 +1497,12 @@ const moveFileIntoFolder = AsyncHandler(
          state: {
             $eq: "active",
          },
-      });
+      }).lean();
 
       if (!folder) {
          throw new ErrorHandler({
             statusCode: 404,
             message: "Invalid folder id, there is not folder with this id",
-         });
-      }
-
-      const file = await File.aggregate([
-         {
-            $match: {
-               _id: new Types.ObjectId(fileId),
-            },
-         },
-         {
-            $match: {
-               $expr: {
-                  $eq: ["$state", "active"],
-               },
-            },
-         },
-         {
-            $addFields: {
-               currentUser: userId,
-            },
-         },
-         {
-            $addFields: {
-               isOwner: {
-                  $cond: {
-                     if: {
-                        $eq: ["$ownerId", "$currentUser"],
-                     },
-                     then: true,
-                     else: false,
-                  },
-               },
-            },
-         },
-         {
-            $lookup: {
-               from: "collaborators",
-               let: {
-                  fileId: "$_id",
-                  currentUser: "$currentUser",
-                  isOwner: "$isOwner",
-               },
-               pipeline: [
-                  {
-                     $match: {
-                        $expr: {
-                           $and: [
-                              {
-                                 $eq: ["$$isOwner", false],
-                              },
-                              {
-                                 $eq: ["$fileId", "$$fileId"],
-                              },
-                              {
-                                 $eq: ["$userId", "$$currentUser"],
-                              },
-                           ],
-                        },
-                     },
-                  },
-               ],
-               as: "collaborator",
-            },
-         },
-         {
-            $match: {
-               $expr: {
-                  $or: [
-                     {
-                        $eq: ["$isOwner", true],
-                     },
-                     {
-                        $gt: [{ $size: "$collaborator" }, 0],
-                     },
-                  ],
-               },
-            },
-         },
-         {
-            $project: {
-               name: 1,
-               description: 1,
-               isLocked: 1,
-            },
-         },
-      ]);
-
-      if (file.length === 0) {
-         throw new ErrorHandler({
-            statusCode: 404,
-            message: "Invalid file id",
          });
       }
 

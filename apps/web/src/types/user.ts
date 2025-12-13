@@ -5,8 +5,9 @@ export interface User {
   clerkId: string;
 }
 
-export interface CreatorDetails {
+export interface Owner {
   _id?: string;
   fullName: string;
   profileUrl: string;
+  email: string;
 }

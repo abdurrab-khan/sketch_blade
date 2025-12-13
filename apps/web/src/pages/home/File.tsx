@@ -1,10 +1,11 @@
 import { Loader2 } from "lucide-react";
 import useResponse from "@/hooks/useResponse.tsx";
 import FilesTable from "@/components/ui/table/FilesTable.tsx";
+import type { File } from "@/types/file";
 
 const File = () => {
-  const { data, isPending } = useResponse<FileType[]>({
-    queryKeys: ["getFiles"],
+  const { data, isPending } = useResponse<File[]>({
+    queryKey: ["getFiles"],
     queryProps: { uri: "/file" },
   });
 

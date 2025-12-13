@@ -8,7 +8,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 interface ToggleFavoriteProps {
   fileId: string;
   isFavorite: boolean;
-  setOpen: React.Dispatch<React.SetState<boolean>>;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function ToggleFavorite({ fileId, isFavorite, setOpen }: ToggleFavoriteProps) {
@@ -16,7 +16,7 @@ function ToggleFavorite({ fileId, isFavorite, setOpen }: ToggleFavoriteProps) {
 
   const mutation = useMutate({
     finallyFn: () => setOpen(false),
-    options: { queryKeys: ["getFavoriteFiles"] },
+    options: { queryKey: ["getFiles", "getFavoriteFiles"] },
   });
 
   const toggleFavorite = useMemo(

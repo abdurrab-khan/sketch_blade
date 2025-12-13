@@ -7,35 +7,38 @@ interface ICollaborator extends Document {
    role: CollaboratorAction;
 }
 
-const collaboratorSchema = new Schema<ICollaborator>({
-   fileId: {
-      type: Schema.Types.ObjectId,
-      ref: "File",
-      required: true,
-   },
-   userId: {
-      type: String,
-      ref: "User",
-      required: true,
-      validate: {
-         validator: async function (v: string) {
-            const existingCollaborator = await this.model(
-               "Collaborator",
-            ).findOne({
-               fileId: this.fileId,
-               userId: v,
-            });
-            return existingCollaborator === null;
+const collaboratorSchema = new Schema<ICollaborator>(
+   {
+      fileId: {
+         type: Schema.Types.ObjectId,
+         ref: "File",
+         required: true,
+      },
+      userId: {
+         type: String,
+         ref: "User",
+         required: true,
+         validate: {
+            validator: async function (v: string) {
+               const existingCollaborator = await this.model(
+                  "Collaborator",
+               ).findOne({
+                  fileId: this.fileId,
+                  userId: v,
+               });
+               return existingCollaborator === null;
+            },
+            message: () => "User is already a collaborator for this file",
          },
-         message: () => "User is already a collaborator for this file",
+      },
+      role: {
+         type: String,
+         enum: Object.values(CollaboratorAction),
+         required: true,
       },
    },
-   role: {
-      type: String,
-      enum: Object.values(CollaboratorAction),
-      required: true,
-   },
-});
+   { timestamps: true },
+);
 
 const Collaborator = model<ICollaborator>("Collaborator", collaboratorSchema);
 

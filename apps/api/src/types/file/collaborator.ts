@@ -3,5 +3,5 @@ import { CollaboratorUser } from "../user";
 
 export interface CollaboratorPayload {
    userId: CollaboratorUser;
-   actions: CollaboratorAction[];
+   role: CollaboratorAction[];
 }

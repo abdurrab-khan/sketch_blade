@@ -6,7 +6,7 @@ import {
    removeCollaborator,
 } from "@/controllers/collaborator.controller";
 import userMiddleware from "@/middlewares/auth.middleware";
-import validateFileOwnership from "@/middlewares/file.middleware";
+import fileAuth from "@/middlewares/file.middleware";
 
 const router = Router();
 
@@ -15,11 +15,11 @@ router.use(userMiddleware);
 router
    .route("/:fileId")
    .get(getCollaborators)
-   .post(validateFileOwnership, addCollaborator)
-   .delete(validateFileOwnership, removeCollaborator);
+   .post(fileAuth, addCollaborator)
+   .delete(fileAuth, removeCollaborator);
 
 router
    .route("/change-role/:fileId")
-   .put(validateFileOwnership, changeCollaboratorPermission);
+   .put(fileAuth, changeCollaboratorPermission);
 
 export default router;

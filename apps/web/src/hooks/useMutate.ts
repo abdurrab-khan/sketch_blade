@@ -1,30 +1,29 @@
-import { QueryFilters, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "./use-toast.ts";
 import useApiClient from "./useApiClient.ts";
 import { ApiResponse, AxiosMutateProps } from "@/types/index.ts";
+import { QueryFilters, useMutation, useQueryClient } from "@tanstack/react-query";
 
-interface useMutateProps {
-  finallyFn: () => void;
+interface UseMutateProps {
   isShowToast?: boolean;
   options?: QueryFilters;
+  customMutationFn?: (data: AxiosMutateProps) => Promise<ApiResponse>;
+  finallyFn?: () => void;
 }
 
-const useMutate = ({ finallyFn, options, isShowToast }: useMutateProps) => {
+const useMutate = <T>({ options, isShowToast, finallyFn, customMutationFn }: UseMutateProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const apiClient = useApiClient();
 
-  const mutationFn = async (mutateProps: AxiosMutateProps) => {
+  const mutationFn = async ({ method, uri, data }: AxiosMutateProps) => {
     try {
-      const res = await apiClient[mutateProps.method](mutateProps.uri, mutateProps.data);
-
-      return res?.data || null;
+      const res = await apiClient[method]<ApiResponse<T>>(uri, data);
+      return res.data ?? null;
     } catch (err) {
       const error = err as ApiResponse;
-
       throw new Error(error.message);
     } finally {
-      if (finallyFn) {
+      if (typeof finallyFn === "function") {
         finallyFn();
       }
     }
@@ -32,11 +31,19 @@ const useMutate = ({ finallyFn, options, isShowToast }: useMutateProps) => {
 
   const { mutate, isPending, isError, data } = useMutation({
     mutationKey: ["deleteFile"],
-    mutationFn,
-    onSuccess: (res) => {
-      if (options) {
-        queryClient.invalidateQueries(options);
+    mutationFn: customMutationFn ?? mutationFn,
+    onSuccess: async (res) => {
+      const queryKeys = options?.queryKey;
+
+      // TODO: Implement Updates from mutation response ---> https://tanstack.com/query/latest/docs/framework/react/guides/updates-from-mutation-responses
+
+      // invalidate queries
+      if (queryKeys) {
+        await Promise.all(
+          queryKeys.map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
+        );
       }
+
       if (isShowToast) {
         toast({
           title: "Success",

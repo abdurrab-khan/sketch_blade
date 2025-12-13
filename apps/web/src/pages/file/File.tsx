@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { ApiResponse } from "@/types/index.ts";
 import { useToast } from "@/hooks/use-toast.ts";
-import useResponse  from "@/hooks/useResponse.tsx";
+import useResponse from "@/hooks/useResponse.tsx";
 
 const File = () => {
   const fileId = useParams().id;
@@ -21,7 +21,7 @@ const File = () => {
   }
 
   const { data, isPending, isError, error } = useResponse({
-    queryKeys: [fileId as string],
+    queryKey: [fileId as string],
     queryProps: { uri: `/file/${fileId}` },
   });
 
@@ -37,12 +37,12 @@ const File = () => {
   if (isPending)
     return (
       <div className={"size-screen flex-center bg-primary"}>
-        <Loader2 size={64} className={"animate-spin text-quaternary"} />
+        <Loader2 size={64} className={"text-quaternary animate-spin"} />
       </div>
     );
 
   return (
-    <main className={"size-screen relative bg-primary text-quaternary"}>
+    <main className={"size-screen bg-primary text-quaternary relative"}>
       {/* <div className="flex size-full flex-col justify-between">
         <Nav fileId={fileId as string} />
         <ToolActions />
@@ -56,4 +56,3 @@ const File = () => {
   );
 };
 export default File;
-

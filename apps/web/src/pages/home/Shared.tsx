@@ -5,7 +5,7 @@ import FileTable from "@/components/ui/table/FilesTable.tsx";
 
 function SharedFiles() {
   const { data, isPending } = useResponse<File[]>({
-    queryKeys: ["getFiles"],
+    queryKey: ["getFiles"],
     queryProps: { uri: "/file/shared" },
   });
 

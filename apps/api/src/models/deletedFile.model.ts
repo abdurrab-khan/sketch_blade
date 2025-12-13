@@ -1,7 +1,15 @@
 import { model, Schema, Document } from "mongoose";
 
+enum Role {
+   Edit = "edit",
+   View = "view",
+   Comment = "comment",
+   Owner = "owner",
+}
+
 interface IDeletedFile extends Document {
    fileId: Schema.Types.ObjectId;
+   role: Role;
    userId: string;
 }
 
@@ -18,6 +26,11 @@ const deletedFileSchema = new Schema<IDeletedFile>(
          ref: "User",
          required: true,
          index: 1,
+      },
+      role: {
+         type: String,
+         enum: Object.values(Role),
+         required: true,
       },
    },
    { timestamps: true },

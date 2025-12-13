@@ -19,7 +19,7 @@ function FolderFiles() {
 
   const { data, isPending, isFetching } = useResponse<FolderDetails[]>({
     queryProps: { uri: `/folder/file/${folderId}` },
-    queryKeys: ["getFiles"],
+    queryKey: ["getFiles"],
   });
 
   if (isPending || isFetching) {

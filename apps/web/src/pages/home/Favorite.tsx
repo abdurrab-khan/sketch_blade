@@ -1,10 +1,11 @@
 import { Loader2 } from "lucide-react";
 import useResponse from "@/hooks/useResponse.tsx";
 import FilesTable from "@/components/ui/table/FilesTable.tsx";
+import type { File } from "@/types/file";
 
 function Favorite() {
-  const { data, isPending } = useResponse<FileType[]>({
-    queryKeys: ["getFavoriteFiles"],
+  const { data, isPending } = useResponse<File[]>({
+    queryKey: ["getFavoriteFiles"],
     queryProps: { uri: "/file/favorite" },
   });
 

@@ -18,7 +18,7 @@ const fileSchema = z.object({
         fullName: z.string("Full name is required"),
         profileUrl: z.url("Profile URL must be a valid URL"),
         email: z.email("Valid email is required"),
-        actions: z.literal(["edit", "view", "owner"]),
+        role: z.literal(["edit", "view"]),
       }),
     )
     .optional(),
