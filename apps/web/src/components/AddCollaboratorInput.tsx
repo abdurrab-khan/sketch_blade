@@ -25,11 +25,22 @@ import { CollaboratorActions, Collaborator, ListCollaborator } from "../types/co
 import { useToast } from "@/hooks/use-toast.ts";
 
 interface AddCollaboratorInputProps {
-  setValue: UseFormSetValue<z.infer<typeof fileSchema>>;
   watch: UseFormWatch<z.infer<typeof fileSchema>>;
+  removedColl?: string[];
+  newlyAddedColl?: string[];
+  setValue: UseFormSetValue<z.infer<typeof fileSchema>>;
+  setRemoveColl?: React.Dispatch<React.SetStateAction<string[]>>;
+  setNewlyAddedColl?: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({ setValue, watch }) => {
+const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
+  watch,
+  removedColl,
+  newlyAddedColl,
+  setValue,
+  setRemoveColl,
+  setNewlyAddedColl,
+}) => {
   const [email, setEmail] = useState("");
   const [isPending, setIsPending] = useState(false);
   const [listColl, setListColl] = useState<ListCollaborator[]>([]);
@@ -97,22 +108,6 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({ setValue, w
     [debouncedSearch, listColl.length],
   );
 
-  const handleAddCollaborators = (collaboratorData: Collaborator) => {
-    const isAlreadySelected = collaborators.some((coll) => coll._id === collaboratorData._id);
-
-    if (isAlreadySelected) return;
-
-    setValue("collaborators", [
-      {
-        ...collaboratorData,
-      },
-    ]);
-
-    // RESET INPUT AND LIST
-    setEmail("");
-    setListColl([]);
-  };
-
   const handleChangeRole = (value: string) => {
     setRole(value as CollaboratorActions);
 
@@ -126,6 +121,30 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({ setValue, w
     }
   };
 
+  const handleAddCollaborators = (collaboratorData: Collaborator) => {
+    if (collaborators.some((coll) => coll._id === collaboratorData._id)) return;
+
+    setValue("collaborators", [
+      {
+        ...collaboratorData,
+      },
+    ]);
+
+    // add new collaborators
+    if (typeof setNewlyAddedColl === "function" && typeof setRemoveColl === "function") {
+      // only add if coll is not in removed coll -- if there means they already there in db
+      if (!removedColl?.some((id) => id === collaboratorData._id)) {
+        setNewlyAddedColl((prev) => [...prev, collaboratorData._id]);
+      } else {
+        setRemoveColl((ids) => ids.filter((id) => id !== collaboratorData._id));
+      }
+    }
+
+    // RESET INPUT AND LIST
+    setEmail("");
+    setListColl([]);
+  };
+
   const handleRemoveCollaborators = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
 
@@ -133,6 +152,16 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({ setValue, w
     if (!collaboratorId) return;
 
     const updatedCollaborators = collaborators?.filter((coll) => coll._id !== collaboratorId);
+
+    // adding and removing collaborators
+    if (typeof setRemoveColl === "function" && typeof setNewlyAddedColl === "function") {
+      // only add if coll is not in newlyAddedColl -- if there mean they are not in db
+      if (!newlyAddedColl?.some((id) => id === collaboratorId)) {
+        setRemoveColl((prev) => [...prev, collaboratorId]);
+      } else {
+        setNewlyAddedColl((prev) => prev.filter((id) => id !== collaboratorId));
+      }
+    }
 
     setValue("collaborators", updatedCollaborators);
   };
@@ -181,10 +210,10 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({ setValue, w
                         duration: 0.15,
                       }}
                       className={cn(
-                        "flex items-center justify-center gap-x-2.5 rounded-full border border-zinc-200 bg-zinc-400 px-2 py-1 text-white focus:border-2",
+                        "flex cursor-pointer items-center justify-center gap-x-2.5 rounded-full border border-zinc-200 bg-zinc-400 px-2 py-1 text-white select-none focus:border-2",
                         selectedCollaborator?._id === collaborator._id &&
                           selectedCollaborator?._id === collaborator._id &&
-                          "ring-1 ring-offset-1",
+                          "ring-2 ring-slate-800 ring-offset-2",
                       )}
                       onClick={() => {
                         setSelectedCollaborator(collaborator);

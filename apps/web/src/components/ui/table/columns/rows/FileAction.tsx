@@ -17,7 +17,7 @@ import { useSelector } from "react-redux";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import DeleteFile from "@/components/dialogs/Trashfile.tsx";
-import FileForm from "@/components/dialogs/Fileform";
+import UpdateFile from "@/components/dialogs/Updatefile.tsx";
 import MoveFileDialog from "@/components/dialogs/Movefile";
 import { RootState } from "@/redux/store.ts";
 
@@ -82,11 +82,10 @@ function FileAction({ row }: FileActionProps) {
       </DropdownMenu>
 
       <DeleteFile id={_id} isOpen={deleteDialogOpen} setIsOpen={setDeleteDialogOpen} />
-      <FileForm
-        _id={_id}
+      <UpdateFile
         isOpen={editFileDialogOpen}
         setIsOpen={setEditFileDialogOpen}
-        fileData={{ name, description }}
+        fileData={{ _id, name, description }}
       />
       <MoveFileDialog
         _id={_id}

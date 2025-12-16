@@ -1,7 +1,7 @@
 import { PlusIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useLocation } from "react-router";
-import Fileform from "@/components/dialogs/Fileform.tsx";
+import CreateFile from "@/components/dialogs/Createfile";
 import Folderform from "@/components/dialogs/Folderform.tsx";
 
 const Button = ({ title }: { title: string }) => (
@@ -18,9 +18,9 @@ const Button = ({ title }: { title: string }) => (
 const FileDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <Fileform isOpen={isOpen} setIsOpen={setIsOpen}>
+    <CreateFile isOpen={isOpen} setIsOpen={setIsOpen}>
       <Button title="New Diagram" />
-    </Fileform>
+    </CreateFile>
   );
 };
 

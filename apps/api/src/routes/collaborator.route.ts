@@ -16,7 +16,7 @@ router
    .route("/:fileId")
    .get(getCollaborators)
    .post(fileAuth, addCollaborator)
-   .delete(fileAuth, removeCollaborator);
+   .put(fileAuth, removeCollaborator);
 
 router
    .route("/change-role/:fileId")

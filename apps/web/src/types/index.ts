@@ -39,3 +39,10 @@ export interface SelectedShapesId {
   _id: string[] | string;
   purpose?: SelectionPurpose;
 }
+
+export interface Stat {
+  totalDiagrams: number;
+  totalFolders: number;
+  totalSharedDiagrams: number;
+  totalCollaborators: number;
+}

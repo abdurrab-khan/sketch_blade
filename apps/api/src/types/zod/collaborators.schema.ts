@@ -11,11 +11,14 @@ const addCollaboratorSchema = zod
    .min(1, "At least one collaborator must be added");
 
 const removeCollaboratorSchema = zod.object({
-   collaboratorId: zod
-      .string("Collaborator ID must be a string")
-      .refine((id) => isValidObjectId(id), {
-         message: "Invalid collaborator id",
-      }),
+   collaboratorIds: zod.array(
+      zod
+         .string("Collaborator ID must be a string")
+         .refine((id) => isValidObjectId(id), {
+            message: "Invalid collaborator id",
+         })
+         .transform((id) => new Types.ObjectId(id)),
+   ),
 });
 
 const updateCollaboratorSchema = zod.object({

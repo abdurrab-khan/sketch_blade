@@ -34,6 +34,7 @@ app.use(
 );
 
 // Routes
+import stat from "@/routes/stat.route";
 import svixRouter from "@/routes/svix.route";
 import fileRouter from "@/routes/file.route";
 import collaboratorRouter from "@/routes/collaborator.route";
@@ -44,6 +45,7 @@ import userRouter from "@/routes/user.route";
 
 const COMMON_ROUTE = "/v1/";
 
+app.use(COMMON_ROUTE, stat);
 app.use(COMMON_ROUTE, svixRouter);
 app.use(COMMON_ROUTE + "file", fileRouter);
 app.use(COMMON_ROUTE + "collaborator", collaboratorRouter);
