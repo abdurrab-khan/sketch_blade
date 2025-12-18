@@ -42,6 +42,8 @@ import folderRouter from "@/routes/folder.route";
 import ErrorMiddleware from "./middlewares/error.middleware";
 import canvasRouter from "@/routes/canvas.router";
 import userRouter from "@/routes/user.route";
+import getTrashedData from "./controllers/trash.controller";
+import userMiddleware from "./middlewares/auth.middleware";
 
 const COMMON_ROUTE = "/v1/";
 
@@ -52,6 +54,7 @@ app.use(COMMON_ROUTE + "collaborator", collaboratorRouter);
 app.use(COMMON_ROUTE + "folder", folderRouter);
 app.use(COMMON_ROUTE + "canvas", canvasRouter);
 app.use(COMMON_ROUTE + "users", userRouter);
+app.get(COMMON_ROUTE + "trash", userMiddleware, getTrashedData);
 
 // Error Middleware
 app.use(ErrorMiddleware);

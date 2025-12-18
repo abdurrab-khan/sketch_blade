@@ -3,21 +3,26 @@ import useApiClient from "./useApiClient.ts";
 import { ApiResponse, AxiosMutateProps } from "@/types/index.ts";
 import { QueryFilters, useMutation, useQueryClient } from "@tanstack/react-query";
 
-interface UseMutateProps {
+interface UseMutateProps<D> {
   isShowToast?: boolean;
   options?: QueryFilters;
-  customMutationFn?: (data: AxiosMutateProps) => Promise<ApiResponse>;
+  customMutationFn?: (data: AxiosMutateProps<D>) => Promise<ApiResponse>;
   finallyFn?: () => void;
 }
 
-const useMutate = <T>({ options, isShowToast, finallyFn, customMutationFn }: UseMutateProps) => {
+const useMutate = <G, R>({
+  options,
+  isShowToast,
+  finallyFn,
+  customMutationFn,
+}: UseMutateProps<G>) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const apiClient = useApiClient();
 
   const mutationFn = async ({ method, uri, data }: AxiosMutateProps) => {
     try {
-      const res = await apiClient[method]<ApiResponse<T>>(uri, data);
+      const res = await apiClient[method]<ApiResponse<R>>(uri, data);
       return res.data ?? null;
     } catch (err) {
       const error = err as ApiResponse;

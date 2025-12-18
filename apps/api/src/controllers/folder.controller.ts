@@ -16,6 +16,7 @@ const getFolders = AsyncHandler(async (req: Request, res: Response) => {
       {
          $match: {
             ownerId: userId,
+            state: "active",
          },
       },
       {
@@ -227,68 +228,6 @@ const getFolderFiles = AsyncHandler(async (req: Request, res: Response) => {
          statusCode: 200,
          data: folderFiles[0],
          message: "Files found successfully",
-      }),
-   );
-});
-
-const getTrashFolders = AsyncHandler(async (req: Request, res: Response) => {
-   const userId = req.userId;
-
-   const folders = await Folder.aggregate([
-      {
-         $addFields: {
-            currentUser: userId,
-         },
-      },
-      {
-         $match: {
-            ownerId: userId,
-            state: "deleted",
-         },
-      },
-      {
-         $lookup: {
-            from: "users",
-            localField: "ownerId",
-            foreignField: "clerkId",
-            as: "owner",
-            pipeline: [
-               {
-                  $project: {
-                     _id: 0,
-                     fullName: {
-                        $concat: ["$firstName", " ", "$lastName"],
-                     },
-                     profileUrl: 1,
-                     email: 1,
-                  },
-               },
-            ],
-         },
-      },
-      {
-         $addFields: {
-            owner: {
-               $arrayElemAt: ["$owner", 0],
-            },
-         },
-      },
-      {
-         $project: {
-            name: 1,
-            ownerId: 1,
-            createdAt: 1,
-            updatedAt: 1,
-            owner: 1,
-         },
-      },
-   ]);
-
-   res.status(200).json(
-      new ApiResponse({
-         statusCode: 200,
-         data: folders,
-         message: "Folders found successfully",
       }),
    );
 });
@@ -543,7 +482,6 @@ const recoverFolder = AsyncHandler(async (req: Request, res: Response) => {
 export {
    getFolders,
    getFolderFiles,
-   getTrashFolders,
    searchFolders,
    createFolder,
    updateFolder,

@@ -1,12 +1,21 @@
 import { Loader2 } from "lucide-react";
+import { File, FolderDetails } from "@/types/file";
 import useResponse from "@/hooks/useResponse.tsx";
 import DataTable from "@/components/ui/table/Data-table.tsx";
 import trashColumn from "@/components/ui/table/columns/TrashColumns.tsx";
 
+interface IExtendedFile extends File {
+  type: "file" | "folder";
+}
+
+interface IExtendedFolder extends FolderDetails {
+  type: "file" | "folder";
+}
+
 function Trash() {
-  const { data, isPending } = useResponse<FileType[]>({
+  const { data, isPending } = useResponse<Array<IExtendedFile | IExtendedFolder>>({
     queryKey: ["getTrashData"],
-    queryProps: { uri: "/file/trash" },
+    queryProps: { uri: "/trash" },
   });
 
   if (isPending) {

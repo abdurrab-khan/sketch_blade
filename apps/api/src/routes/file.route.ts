@@ -3,7 +3,6 @@ import {
    createFile,
    getFile,
    getFiles,
-   getTrashFiles,
    getFavoriteFiles,
    getSharedFiles,
    updateFile,
@@ -11,7 +10,6 @@ import {
    trashFile,
    recoverFile,
    toggleFavoriteFile,
-   transferFileOwnership,
    moveFileIntoFolder,
    toggleLock,
 } from "@/controllers/file.controller";
@@ -27,7 +25,6 @@ router.route("/shared").get(getSharedFiles);
 router.route("/favorite").get(getFavoriteFiles);
 router.route("/toggle-favorite/:fileId").post(fileAuth, toggleFavoriteFile);
 
-router.route("/trash").get(getTrashFiles);
 router.route("/trash/:fileId").delete(fileAuth, trashFile);
 router.route("/recover/:fileId").post(recoverFile);
 

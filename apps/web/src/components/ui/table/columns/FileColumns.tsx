@@ -39,11 +39,13 @@ const fileColumns: ColumnDef<File>[] = [
     accessorKey: "name",
     header: HeaderLabel("Name"),
     cell: ({ row }) => (
-      <div className="flex items-center justify-center gap-x-1.5">
-        <span className={"font-medium text-gray-900 transition-all hover:text-gray-900/80"}>
-          <Link to={`/file/${row.original._id}`}>{row.original.name}</Link>
-        </span>
-        {row.original?.isLocked && <CiLock className="text-lg" />}
+      <div className="text-gray-900 transition-all hover:text-gray-900/80">
+        <div className="flex items-center justify-center gap-x-1.5">
+          <span className={"font-medium"}>
+            <Link to={`/file/${row.original._id}`}>{row.original.name}</Link>
+          </span>
+          {row.original?.isLocked && <CiLock className="text-lg" />}
+        </div>
       </div>
     ),
   },

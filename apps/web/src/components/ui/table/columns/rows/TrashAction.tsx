@@ -1,8 +1,15 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
+
+import { Row } from "@tanstack/react-table";
+import { RootState } from "@/redux/store";
+
+import { File, FolderDetails } from "@/types/file";
+
 import { MdDelete } from "react-icons/md";
 import { BsThreeDots } from "react-icons/bs";
 import { GrPowerReset } from "react-icons/gr";
+
 import { Button } from "@/components/ui/button.tsx";
 import Recover from "@/components/dialogs/Recover.tsx";
 import DeleteFile from "@/components/dialogs/PermanentDeleteFile.tsx";
@@ -17,8 +24,16 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
+interface IExtendedFile extends File {
+  type: "file" | "folder";
+}
+
+interface IExtendedFolder extends FolderDetails {
+  type: "file" | "folder";
+}
+
 interface TrashActionProps {
-  row: Row<File>;
+  row: Row<IExtendedFile | IExtendedFolder>;
 }
 
 function TrashAction({ row }: TrashActionProps) {

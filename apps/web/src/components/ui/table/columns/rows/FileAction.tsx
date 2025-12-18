@@ -1,32 +1,38 @@
 import React, { useState } from "react";
-import type { File } from "@/types/file";
-import { Row } from "@tanstack/react-table";
-import { FolderOpen, Move } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import ToggleFavorite from "./ToggleFavorite.tsx";
-import ToggleLock from "./ToggleLock.tsx";
-import { Button } from "@/components/ui/button";
-import { BsThreeDots } from "react-icons/bs";
 import { useSelector } from "react-redux";
+import { Row } from "@tanstack/react-table";
+import { RootState } from "@/redux/store.ts";
+
+import type { File } from "@/types/file";
+
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+import { BsThreeDots } from "react-icons/bs";
+import { FolderOpen, Move } from "lucide-react";
+
+import ToggleLock from "./ToggleLock.tsx";
+import ToggleFavorite from "./ToggleFavorite.tsx";
+
+import { Button } from "@/components/ui/button";
+import MoveFileDialog from "@/components/dialogs/Movefile";
 import DeleteFile from "@/components/dialogs/Trashfile.tsx";
 import UpdateFile from "@/components/dialogs/Updatefile.tsx";
-import MoveFileDialog from "@/components/dialogs/Movefile";
-import { RootState } from "@/redux/store.ts";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuGroup,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface FileActionProps {
   row: Row<File>;
 }
 
 function FileAction({ row }: FileActionProps) {
-  const { _id, name, description, owner } = row.original;
+  const { _id, name, description, owner, folder } = row.original;
 
   const [open, setOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -40,12 +46,14 @@ function FileAction({ row }: FileActionProps) {
   return (
     <React.Fragment>
       <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger title="Role" asChild>
+        <DropdownMenuTrigger title="Actions" asChild>
           <Button variant="none" className="text-zinc-700 hover:text-zinc-700/50">
             <BsThreeDots />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuLabel>File Actions</DropdownMenuLabel>
+          <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem>
               <FolderOpen className="h-4 w-4" />
@@ -73,10 +81,12 @@ function FileAction({ row }: FileActionProps) {
               <MdDelete className="h-4 w-4" />
               Delete
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setMoveFileDialogOpen(true)} className={"w-full"}>
-              <Move className="h-4 w-4" />
-              Move File
-            </DropdownMenuItem>
+            {!folder && (
+              <DropdownMenuItem onSelect={() => setMoveFileDialogOpen(true)} className={"w-full"}>
+                <Move className="h-4 w-4" />
+                Move File
+              </DropdownMenuItem>
+            )}
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -87,12 +97,14 @@ function FileAction({ row }: FileActionProps) {
         setIsOpen={setEditFileDialogOpen}
         fileData={{ _id, name, description }}
       />
-      <MoveFileDialog
-        _id={_id}
-        existingFolderId={row.original?.folder?._id}
-        isOpen={moveFileDialogOpen}
-        setIsOpen={setMoveFileDialogOpen}
-      />
+      {!folder && (
+        <MoveFileDialog
+          _id={_id}
+          existingFolderId={row.original?.folder?._id}
+          isOpen={moveFileDialogOpen}
+          setIsOpen={setMoveFileDialogOpen}
+        />
+      )}
     </React.Fragment>
   );
 }

@@ -23,15 +23,14 @@ import useApiClient from "@/hooks/useApiClient.ts";
 import { useEffect } from "react";
 import { ApiResponse } from "@/types/index.ts";
 import { Collaborator } from "@/types/collaborator.ts";
+import { ICollaboratorState } from "../dialogs/Updatefile.tsx";
 
 interface FileformProps {
   isPending: boolean;
   type: "create" | "update";
   fileData?: Partial<File>;
-  removedColl?: string[];
-  newlyAddedColl?: string[];
-  setRemovedColl?: React.Dispatch<React.SetStateAction<string[]>>;
-  setNewlyAddedColl?: React.Dispatch<React.SetStateAction<string[]>>;
+  collaboratorState?: ICollaboratorState;
+  setCollaboratorState?: React.Dispatch<React.SetStateAction<ICollaboratorState>>;
   handleFormSubmit: (data: z.infer<typeof fileSchema>) => void;
 }
 
@@ -39,10 +38,8 @@ function Fileform({
   isPending,
   type,
   fileData,
-  removedColl,
-  newlyAddedColl,
-  setRemovedColl,
-  setNewlyAddedColl,
+  collaboratorState,
+  setCollaboratorState,
   handleFormSubmit,
 }: FileformProps) {
   const apiClient = useApiClient();
@@ -57,19 +54,8 @@ function Fileform({
   });
   const { handleSubmit, reset, control, setValue, watch } = form;
 
-  const handleFileFormSubmit = (data: z.infer<typeof fileSchema>) => {
+  const handleFileFormSubmit = async (data: z.infer<typeof fileSchema>) => {
     handleFormSubmit(data); // calling submit form
-
-    // clean up --> removedColl
-    if (setRemovedColl && removedColl && removedColl.length > 0) {
-      setRemovedColl([]);
-    }
-
-    // clean up --> newlyAddedColl
-    if (setNewlyAddedColl && newlyAddedColl && newlyAddedColl.length > 0) {
-      setNewlyAddedColl([]);
-    }
-
     reset(); // reseting form
   };
 
@@ -103,12 +89,10 @@ function Fileform({
           )}
         />
         <AddCollaboratorInput
-          removedColl={removedColl}
-          newlyAddedColl={newlyAddedColl}
           watch={watch}
           setValue={setValue}
-          setRemoveColl={setRemovedColl}
-          setNewlyAddedColl={setNewlyAddedColl}
+          collaboratorState={collaboratorState}
+          setCollaboratorState={setCollaboratorState}
         />
         <FormField
           control={form.control}

@@ -1,4 +1,22 @@
+import * as z from "zod";
 import React, { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { UseFormSetValue, UseFormWatch } from "react-hook-form";
+
+import { debounce } from "lodash";
+import { AnimatePresence, motion } from "motion/react";
+
+import { ApiResponse } from "@/types/index.ts";
+import { CollaboratorActions, Collaborator, ListCollaborator } from "@/types/collaborator.ts";
+
+import { fileSchema } from "@/lib/zod/schemas.ts";
+import { cn } from "@/lib/utils.ts";
+import { useToast } from "@/hooks/use-toast.ts";
+import useApiClient from "@/hooks/useApiClient.ts";
+
+import { Input } from "@/components/ui/input.tsx";
+import { Label } from "@/components/ui/label.tsx";
+import { LucideLoaderCircle, SearchIcon, XIcon } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -7,39 +25,21 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
-import { Input } from "./ui/input.tsx";
-import { Label } from "./ui/label.tsx";
-import { LucideLoaderCircle, SearchIcon, XIcon } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-
-import * as z from "zod";
-import { debounce } from "lodash";
-import { cn } from "../lib/utils.ts";
-import { ApiResponse } from "@/types/index.ts";
-import { fileSchema } from "@/lib/zod/schemas.ts";
-import { UseFormSetValue, UseFormWatch } from "react-hook-form";
-import useApiClient from "@/hooks/useApiClient.ts";
-import { CollaboratorActions, Collaborator, ListCollaborator } from "../types/collaborator.ts";
-import { useToast } from "@/hooks/use-toast.ts";
+} from "@/components/ui/select.tsx";
+import { ICollaboratorState } from "./dialogs/Updatefile";
 
 interface AddCollaboratorInputProps {
   watch: UseFormWatch<z.infer<typeof fileSchema>>;
-  removedColl?: string[];
-  newlyAddedColl?: string[];
   setValue: UseFormSetValue<z.infer<typeof fileSchema>>;
-  setRemoveColl?: React.Dispatch<React.SetStateAction<string[]>>;
-  setNewlyAddedColl?: React.Dispatch<React.SetStateAction<string[]>>;
+  collaboratorState?: ICollaboratorState;
+  setCollaboratorState?: React.Dispatch<React.SetStateAction<ICollaboratorState>>;
 }
 
 const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
   watch,
-  removedColl,
-  newlyAddedColl,
   setValue,
-  setRemoveColl,
-  setNewlyAddedColl,
+  collaboratorState,
+  setCollaboratorState,
 }) => {
   const [email, setEmail] = useState("");
   const [isPending, setIsPending] = useState(false);
@@ -51,8 +51,8 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const apiClient = useApiClient();
   const { toast } = useToast();
+  const apiClient = useApiClient();
 
   const debouncedSearch = useMemo(
     () =>
@@ -117,53 +117,86 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
           ? { ...coll, role: value as CollaboratorActions }
           : coll,
       );
+
       setValue("collaborators", updatedCollaborators);
     }
   };
 
-  const handleAddCollaborators = (collaboratorData: Collaborator) => {
-    if (collaborators.some((coll) => coll._id === collaboratorData._id)) return;
+  const handleAddCollaborators = (collaborator: Collaborator) => {
+    const isAlreadyAdded = collaborators.some((coll) => coll._id === collaborator._id);
+
+    if (isAlreadyAdded) return;
+
+    const { email } = collaborator;
+
+    // changing collaborator state if there
+    if (collaboratorState && setCollaboratorState) {
+      const { removedCollaborators } = collaboratorState;
+
+      const alreadyInRemove = removedCollaborators.find((c) => c.email === email);
+
+      // Already in remove --> already collaborator exists
+      if (alreadyInRemove) {
+        setCollaboratorState((prev) => ({
+          ...prev,
+          removedCollaborators: prev.removedCollaborators.filter((c) => c.email !== email),
+        }));
+
+        // Add from removed state instead of collaborators
+        setValue("collaborators", [
+          {
+            ...alreadyInRemove,
+          },
+        ]);
+
+        setEmail("");
+        setListColl([]);
+        return;
+      } else {
+        // Not in removed --> have to add it.
+        setCollaboratorState((prev) => ({
+          ...prev,
+          newCollaborators: [...prev.newCollaborators, collaborator],
+        }));
+      }
+    }
 
     setValue("collaborators", [
       {
-        ...collaboratorData,
+        ...collaborator,
       },
     ]);
-
-    // add new collaborators
-    if (typeof setNewlyAddedColl === "function" && typeof setRemoveColl === "function") {
-      // only add if coll is not in removed coll -- if there means they already there in db
-      if (!removedColl?.some((id) => id === collaboratorData._id)) {
-        setNewlyAddedColl((prev) => [...prev, collaboratorData._id]);
-      } else {
-        setRemoveColl((ids) => ids.filter((id) => id !== collaboratorData._id));
-      }
-    }
 
     // RESET INPUT AND LIST
     setEmail("");
     setListColl([]);
   };
 
-  const handleRemoveCollaborators = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
+  const handleRemoveCollaborators = (collaborator: Collaborator) => {
+    const { email } = collaborator;
 
-    const collaboratorId = e.currentTarget.dataset.id;
-    if (!collaboratorId) return;
+    if (collaboratorState && setCollaboratorState) {
+      const { newCollaborators } = collaboratorState;
 
-    const updatedCollaborators = collaborators?.filter((coll) => coll._id !== collaboratorId);
+      const isAlreadyInAddList = newCollaborators.find((c) => c.email === email);
 
-    // adding and removing collaborators
-    if (typeof setRemoveColl === "function" && typeof setNewlyAddedColl === "function") {
-      // only add if coll is not in newlyAddedColl -- if there mean they are not in db
-      if (!newlyAddedColl?.some((id) => id === collaboratorId)) {
-        setRemoveColl((prev) => [...prev, collaboratorId]);
+      // If in add list no need to add for remove
+      if (isAlreadyInAddList) {
+        setCollaboratorState((prev) => ({
+          ...prev,
+          newCollaborators: prev.newCollaborators.filter((c) => c.email !== email),
+        }));
       } else {
-        setNewlyAddedColl((prev) => prev.filter((id) => id !== collaboratorId));
+        setCollaboratorState((prev) => ({
+          ...prev,
+          removedCollaborators: [...prev.removedCollaborators, collaborator],
+        }));
       }
     }
 
-    setValue("collaborators", updatedCollaborators);
+    const filteredCollaborators = collaborators?.filter((coll) => coll.email !== email);
+
+    setValue("collaborators", filteredCollaborators);
   };
 
   useEffect(() => {
@@ -228,8 +261,11 @@ const AddCollaboratorInput: React.FC<AddCollaboratorInputProps> = ({
                       <p>{collaborator.fullName}</p>
                       <button
                         type="button"
-                        data-id={collaborator._id}
-                        onClick={handleRemoveCollaborators}
+                        data-email={collaborator.email}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveCollaborators(collaborator);
+                        }}
                         className="cursor-pointer"
                       >
                         <XIcon className="h-5 w-4" />

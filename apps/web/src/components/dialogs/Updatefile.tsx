@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import z from "zod";
 import Fileform from "../form/File.tsx";
 import useMutate from "@/hooks/useMutate.ts";
-import { useToast } from "@/hooks/use-toast.ts";
 import useApiClient from "@/hooks/useApiClient.ts";
 
 import { fileSchema } from "@/lib/zod/schemas.ts";
@@ -14,6 +13,11 @@ import { ApiResponse, AxiosMutateProps } from "@/types/index.ts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog.tsx";
 import { Collaborator } from "@/types/collaborator.ts";
 
+export interface ICollaboratorState {
+  newCollaborators: Collaborator[];
+  removedCollaborators: Collaborator[];
+}
+
 interface FileEditDialogProps {
   isOpen: boolean;
   fileData: Partial<File>;
@@ -22,55 +26,46 @@ interface FileEditDialogProps {
 }
 
 function UpdateFile({ isOpen, fileData, children, setIsOpen }: FileEditDialogProps) {
-  const [removedColl, setRemovedColl] = useState<string[]>([]);
-  const [newlyAddedColl, setNewlyAddedColl] = useState<string[]>([]);
+  const [collaboratorState, setCollaboratorState] = useState<ICollaboratorState>({
+    newCollaborators: [],
+    removedCollaborators: [],
+  });
 
-  const { toast } = useToast();
   const apiClient = useApiClient();
 
-  console.log("Removed collaborators are: ", removedColl);
-  console.log("Added collaborators are: ", newlyAddedColl);
-
-  // remove collaborators
+  // Removing existing collaborators
   const removeCollaborator = async (fileId: string) => {
-    // if no file or no collaborators removed -- return
-    if (!fileId || removedColl.length === 0) return;
+    const { removedCollaborators } = collaboratorState;
+
+    // return -- if no fileId or no collaborators to remove
+    if (!fileId || removedCollaborators.length <= 0) return;
 
     const removedIds = {
-      collaboratorIds: removedColl,
+      collaboratorIds: removedCollaborators.map((rc) => rc._id),
     };
 
     try {
       await apiClient.put(`/collaborator/${fileId}`, removedIds);
     } catch (err) {
-      setTimeout(() => {
-        toast({
-          title: "Error",
-          description: (err as Error)?.message || "An error occurred during removing collaborators",
-          variant: "destructive",
-        });
-      }, 500);
+      throw new Error(
+        (err as ApiResponse)?.message || "An error occurred during removing collaborators",
+      );
     }
   };
 
-  // insert new collaborators
-  const addCollaborator = async (collaborators: Collaborator[], fileId: string) => {
-    const collaboratorsToAdd = collaborators.filter((c) => newlyAddedColl.includes(c.email));
+  // Adding new collaborators
+  const addCollaborator = async (fileId: string) => {
+    const { newCollaborators } = collaboratorState;
 
-    console.log("Collaborator to add: ", collaboratorsToAdd);
-
-    if (!fileId || collaboratorsToAdd.length === 0) return;
+    // return -- if no fileId or no new collaborators to add
+    if (!fileId || newCollaborators.length <= 0) return;
 
     try {
-      await apiClient.post(`/collaborator/${fileId}`, collaboratorsToAdd);
+      await apiClient.post(`/collaborator/${fileId}`, newCollaborators);
     } catch (err) {
-      setTimeout(() => {
-        toast({
-          title: "Error",
-          description: (err as Error)?.message || "An error occurred during add collaborators",
-          variant: "destructive",
-        });
-      }, 500);
+      throw new Error(
+        (err as ApiResponse)?.message || "An error occurred during adding collaborators",
+      );
     }
   };
 
@@ -78,23 +73,38 @@ function UpdateFile({ isOpen, fileData, children, setIsOpen }: FileEditDialogPro
     uri,
     data,
     method,
-  }: AxiosMutateProps): Promise<ApiResponse<File>> => {
-    const { collaborators = [], ...fileFormData } = data as z.infer<typeof fileSchema>;
+  }: AxiosMutateProps<z.infer<typeof fileSchema>>): Promise<ApiResponse<File>> => {
+    const fileId = fileData?._id;
+    const fileFormData = {
+      fileName: data?.fileName,
+      description: data?.description,
+    };
 
     try {
-      const fileRes = await apiClient[method]<ApiResponse<File>>(uri, fileFormData);
-      const fileId = fileData?._id;
+      const haveToUpdateFile =
+        fileData?.description !== fileFormData?.description ||
+        fileData.name !== fileFormData?.fileName;
 
-      if (fileId) {
-        await removeCollaborator(fileId);
-        await addCollaborator(collaborators, fileId);
+      // Only update if need's to
+      if (haveToUpdateFile) {
+        await apiClient[method]<ApiResponse<File>>(uri, fileFormData);
       }
 
-      return fileRes.data ?? null;
+      if (fileId) {
+        await addCollaborator(fileId);
+        await removeCollaborator(fileId);
+      }
+
+      return {
+        statusCode: 200,
+        success: true,
+        message: "File updated successfully",
+      };
     } catch (error) {
       throw new Error((error as Error)?.message ?? "An error occurred during file updation");
     } finally {
       setIsOpen(false);
+      cleaningState();
     }
   };
 
@@ -116,20 +126,19 @@ function UpdateFile({ isOpen, fileData, children, setIsOpen }: FileEditDialogPro
     });
   };
 
+  // clean up --> collaborators state
+  const cleaningState = () => {
+    setCollaboratorState({
+      newCollaborators: [],
+      removedCollaborators: [],
+    });
+  };
+
+  // clean up --> if dialog is close
   const handleOpenChange = (state: boolean) => {
-    // clean up --> if dialog is close
     if (!state) {
-      // clean up --> removedColl
-      if (removedColl && removedColl.length > 0) {
-        setRemovedColl([]);
-      }
-
-      // clean up --> newlyAddedColl
-      if (newlyAddedColl && newlyAddedColl.length > 0) {
-        setNewlyAddedColl([]);
-      }
+      cleaningState();
     }
-
     setIsOpen(state);
   };
 
@@ -144,11 +153,9 @@ function UpdateFile({ isOpen, fileData, children, setIsOpen }: FileEditDialogPro
           type="update"
           fileData={fileData}
           isPending={isPending}
-          removedColl={removedColl}
-          newlyAddedColl={newlyAddedColl}
+          collaboratorState={collaboratorState}
+          setCollaboratorState={setCollaboratorState}
           handleFormSubmit={handleSubmit}
-          setRemovedColl={setRemovedColl}
-          setNewlyAddedColl={setNewlyAddedColl}
         />
       </DialogContent>
     </Dialog>

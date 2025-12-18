@@ -388,210 +388,6 @@ const getFiles = AsyncHandler(
    },
 );
 
-const getTrashFiles = AsyncHandler(async (req: Request, res: Response) => {
-   const userId = req.userId;
-
-   const trashedFiles = await DeletedFile.aggregate([
-      {
-         $addFields: {
-            currentUser: userId,
-         },
-      },
-      {
-         $match: {
-            $expr: { $eq: ["$userId", "$currentUser"] },
-         },
-      },
-      {
-         $lookup: {
-            from: "files",
-            localField: "fileId",
-            foreignField: "_id",
-            as: "file",
-            pipeline: [
-               {
-                  $lookup: {
-                     from: "users",
-                     localField: "ownerId",
-                     foreignField: "clerkId",
-                     as: "owner",
-                     pipeline: [
-                        {
-                           $project: {
-                              _id: 0,
-                              fullName: {
-                                 $concat: ["$firstName", " ", "$lastName"],
-                              },
-                              profileUrl: 1,
-                              email: 1,
-                           },
-                        },
-                     ],
-                  },
-               },
-               {
-                  $project: {
-                     name: 1,
-                     isLocked: 1,
-                     isFavorite: 1,
-                     description: 1,
-                     ownerId: 1,
-                     state: 1,
-                     updatedAt: 1,
-                     createdAt: 1,
-                     folder: {
-                        $arrayElemAt: ["$folder", 0],
-                     },
-                     owner: { $arrayElemAt: ["$owner", 0] },
-                  },
-               },
-            ],
-         },
-      },
-      {
-         $addFields: {
-            file: { $arrayElemAt: ["$file", 0] },
-         },
-      },
-      {
-         $match: {
-            $expr: {
-               $and: [
-                  {
-                     $or: [
-                        {
-                           $eq: ["$file.ownerId", "$currentUser"],
-                        },
-                        {
-                           $eq: ["$file.state", "active"],
-                        },
-                     ],
-                  },
-                  {
-                     $ne: ["$file", null],
-                  },
-               ],
-            },
-         },
-      },
-      {
-         $lookup: {
-            from: "folderbridges",
-            let: {
-               fileId: "$_id",
-               currentUser: "$currentUser",
-            },
-            pipeline: [
-               {
-                  $match: {
-                     $expr: {
-                        $and: [
-                           {
-                              $eq: ["$fileId", "$$fileId"],
-                           },
-                           {
-                              $eq: ["$userId", "$$currentUser"],
-                           },
-                        ],
-                     },
-                  },
-               },
-               {
-                  $project: {
-                     folderId: 1,
-                  },
-               },
-            ],
-            as: "folderId",
-         },
-      },
-      {
-         $addFields: {
-            folderId: {
-               $arrayElemAt: ["$folderId.folderId", 0],
-            },
-         },
-      },
-      {
-         $lookup: {
-            from: "folders",
-            let: {
-               folderId: "$folderId",
-               currentUser: "$currentUser",
-            },
-            pipeline: [
-               {
-                  $match: {
-                     $expr: {
-                        $and: [
-                           {
-                              $ne: ["$$folderId", null],
-                           },
-                           {
-                              $eq: ["$_id", "$$folderId"],
-                           },
-                           {
-                              $eq: ["$ownerId", "$$currentUser"],
-                           },
-                        ],
-                     },
-                  },
-               },
-               {
-                  $project: {
-                     _id: 0,
-                     name: 1,
-                     state: 1,
-                     createdAt: 1,
-                  },
-               },
-            ],
-            as: "folder",
-         },
-      },
-      {
-         $match: {
-            $expr: {
-               $or: [
-                  {
-                     $lte: [{ $size: "$folder" }, 0],
-                  },
-                  { $in: ["active", "$folder.state"] },
-               ],
-            },
-         },
-      },
-      {
-         $replaceRoot: {
-            newRoot: {
-               $mergeObjects: [
-                  "$file",
-                  {
-                     type: "file",
-                  },
-                  {
-                     folder: {
-                        $arrayElemAt: ["$folder", 0],
-                     },
-                  },
-               ],
-            },
-         },
-      },
-   ]);
-
-   res.status(200).json(
-      new ApiResponse({
-         statusCode: 200,
-         data: trashedFiles,
-         message:
-            trashedFiles?.length === 0
-               ? "No file found"
-               : "Trashed Files found successfully",
-      }),
-   );
-});
-
 const getSharedFiles = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
       const userId = req.userId;
@@ -1479,7 +1275,6 @@ const moveFileIntoFolder = AsyncHandler(
       }
 
       const folderBridge = await FolderFileBridge.findOne({
-         folderId,
          fileId,
          userId,
       }).lean();
@@ -1494,9 +1289,6 @@ const moveFileIntoFolder = AsyncHandler(
       const folder = await Folder.findOne({
          _id: folderId,
          ownerId: userId,
-         state: {
-            $eq: "active",
-         },
       }).lean();
 
       if (!folder) {
@@ -1531,7 +1323,6 @@ const moveFileIntoFolder = AsyncHandler(
 export {
    getFile,
    getFiles,
-   getTrashFiles,
    getSharedFiles,
    getFavoriteFiles,
    createFile,

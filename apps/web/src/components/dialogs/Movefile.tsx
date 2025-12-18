@@ -1,4 +1,15 @@
 import React, { useMemo, useState, useTransition } from "react";
+import { debounce } from "lodash";
+import { Loader2 } from "lucide-react";
+
+import { cn } from "@/lib/utils.ts";
+import { getFormattedTime } from "@/utils/AppUtils.ts";
+
+import useMutate from "@/hooks/useMutate.ts";
+import useApiClient from "@/hooks/useApiClient.ts";
+
+import { ApiResponse } from "@/types/index.ts";
+import { FolderDetails } from "@/types/file.ts";
 
 import { Label } from "@/components/ui/label.tsx";
 import { Input } from "@/components/ui/input.tsx";
@@ -13,16 +24,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog.tsx";
+import { FaFolderOpen } from "react-icons/fa6";
+import useResponse from "@/hooks/useResponse";
 
-import { ApiResponse } from "@/types/index.ts";
-
-import { debounce } from "lodash";
-import { cn } from "@/lib/utils.ts";
-import { Loader2 } from "lucide-react";
-import useMutate from "@/hooks/useMutate.ts";
-import { FolderDetails } from "@/types/file.ts";
-import useApiClient from "@/hooks/useApiClient.ts";
-import { getFormattedTime } from "@/utils/AppUtils.ts";
+interface FolderCardProps {
+  id: string;
+  name: string;
+  setSelectFolderId: React.Dispatch<React.SetStateAction<string>>;
+}
 
 interface MoveFileDialogProps {
   _id: string;
@@ -31,6 +40,28 @@ interface MoveFileDialogProps {
   existingFolderId?: string;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
+const FolderCard: React.FC<FolderCardProps> = ({ id, name, setSelectFolderId }) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const folderId = e.target.id;
+    setSelectFolderId(folderId);
+  };
+
+  return (
+    <Label
+      htmlFor={id}
+      className="mx-1 cursor-pointer rounded-md bg-[#7886C7] px-4 py-3.5 text-white/95 outline-[#FF714B] first:mt-4 last:mb-2 has-checked:bg-[#1A3D64] has-checked:outline-2 has-checked:outline-offset-2"
+    >
+      <div className="flex justify-between">
+        <span className="flex items-center gap-x-3">
+          <FaFolderOpen />
+          <p>{name}</p>
+        </span>
+        <input id={id} type="radio" name="folder" className="opacity-0" onChange={handleChange} />
+      </div>
+    </Label>
+  );
+};
 
 const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
   _id,
@@ -44,11 +75,14 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
   const [listFolders, setListFolders] = useState<FolderDetails[]>([]);
 
   const apiClient = useApiClient();
-  const [isPending, startTransition] = useTransition();
+  const [isSearchPending, startTransition] = useTransition();
 
-  const handleClickToFolder = (folderId: string) => {
-    setSelectedFolder((prev) => (prev === folderId ? "" : folderId));
-  };
+  const { data, isPending, isFetching } = useResponse<FolderDetails[]>({
+    queryKey: ["getFolder"],
+    queryProps: {
+      uri: "/folder",
+    },
+  });
 
   const fileUpdateMutation = useMutate({
     options: { queryKey: ["getFiles"] },
@@ -66,8 +100,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
 
     fileUpdateMutation.mutate({
       method: "post",
-      uri: `/folder/file/${_id}`,
-      data: { folderId: selectedFolder },
+      uri: `/file/move/${_id}/${selectedFolder}`,
     });
   };
 
@@ -87,6 +120,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
               }
             });
           } catch (err) {
+            setListFolders([]);
             console.error("Error occurred during finding folders: ", err);
           }
         });
@@ -98,6 +132,9 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
     setInputSearch(e.target.value);
     searchFolders(e.target.value);
   };
+
+  const folderData =
+    listFolders.length > 0 && inputSearch.length > 0 ? listFolders : (data?.data ?? []);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -121,45 +158,31 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
             />
           </div>
 
-          <div className={"mt-5"}>
-            <div className={"max-h-40 min-h-10 overflow-y-auto"}>
-              <div className={"flex h-full flex-col flex-wrap gap-4"}>
-                {isPending ? (
-                  <div className={"flex-center size-full"}>
-                    <Loader2 className={"h-8 w-8 animate-spin"} />
-                  </div>
-                ) : listFolders.length <= 0 ? (
-                  <div className={"flex h-10 items-center justify-center"}>
-                    <p className={"text-xs text-gray-500"}>No folder found</p>
-                  </div>
-                ) : (
-                  <>
-                    {listFolders.map(({ _id, createdAt, name }) => (
-                      <div
-                        key={_id}
-                        id={_id}
-                        className={cn(
-                          "rounded-md bg-blue-500/30 p-2.5 dark:bg-blue-500/10",
-                          selectedFolder && _id === selectedFolder && "bg-blue-500/60",
-                        )}
-                        onClick={() => handleClickToFolder(_id)}
-                      >
-                        <div className={"flex items-center justify-between"}>
-                          <div className={"flex items-center gap-x-2"}>
-                            <p className={"text-sm"}>{name}</p>
-                          </div>
-                          <span>
-                            <p className={"text-xs text-gray-400"}>{getFormattedTime(createdAt)}</p>
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </>
-                )}
-              </div>
+          <div className={"max-h-56 min-h-10 overflow-y-auto"}>
+            <div className={"flex h-full flex-col flex-wrap gap-4"}>
+              {isFetching || isSearchPending ? (
+                <div className={"flex-center size-full"}>
+                  <Loader2 className={"h-8 w-8 animate-spin"} />
+                </div>
+              ) : folderData.length <= 0 ? (
+                <div className={"flex h-10 items-center justify-center"}>
+                  <p className={"text-xs text-gray-500"}>No folder found</p>
+                </div>
+              ) : (
+                <>
+                  {folderData.map(({ _id, name }) => (
+                    <FolderCard
+                      key={_id}
+                      id={_id}
+                      name={name}
+                      setSelectFolderId={setSelectedFolder}
+                    />
+                  ))}
+                </>
+              )}
             </div>
-            <Separator className={"mt-5"} />
           </div>
+          <Separator />
         </div>
         <DialogFooter>
           <Button className={"w-full"} disabled={!selectedFolder} onClick={handleMoveIntoFolder}>

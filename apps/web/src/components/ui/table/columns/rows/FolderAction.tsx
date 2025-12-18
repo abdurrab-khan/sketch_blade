@@ -1,22 +1,27 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import { Row } from "@tanstack/react-table";
 
-import type { FolderDetails } from "@/types/file";
-import { AiFillFolderOpen } from "react-icons/ai";
-import { Button } from "@/components/ui/button";
-import { BsThreeDots } from "react-icons/bs";
-import { MdDelete } from "react-icons/md";
 import { FaEdit } from "react-icons/fa";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { MdDelete } from "react-icons/md";
+import { BsThreeDots } from "react-icons/bs";
+import { AiFillFolderOpen } from "react-icons/ai";
+
+import type { FolderDetails } from "@/types/file";
+
+import { Button } from "@/components/ui/button";
 import Folderform from "@/components/dialogs/Folderform";
 import Deletefolder from "@/components/dialogs/Trashfolder";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface FolderActionProps {
   row: Row<FolderDetails>;
@@ -41,6 +46,8 @@ const FolderAction = ({ row }: FolderActionProps) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Folder Actions</DropdownMenuLabel>
+          <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem>
               <AiFillFolderOpen className="inline h-4 w-4" />

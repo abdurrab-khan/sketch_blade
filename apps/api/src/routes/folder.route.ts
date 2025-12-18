@@ -2,7 +2,6 @@ import { Router } from "express";
 import {
    createFolder,
    getFolders,
-   getTrashFolders,
    updateFolder,
    searchFolders,
    trashFolder,
@@ -16,7 +15,7 @@ const router = Router();
 
 router.use(userMiddleware);
 
-router.route("/trash").get(getTrashFolders).delete(trashFolder);
+router.route("/trash/:folderId").delete(trashFolder);
 router.route("/recover/:folderId").post(recoverFolder);
 
 router.route("/search").get(searchFolders);
