@@ -1,0 +1,466 @@
+import Konva from "konva";
+import { Coordinates, Proximity } from "../types";
+import {
+  Arrow,
+  ArrowDirection,
+  ArrowPosition,
+  ArrowProps,
+  ArrowSupportedShapes,
+  AttachedShape,
+  RectangleStyle,
+  Shapes,
+} from "../types/shapes";
+import { DeletedShapeProps } from "./ShapeUtils";
+import { Node, NodeConfig } from "konva/lib/Node";
+import { UpdatingShapePayLoad } from "@/types/redux";
+
+/**
+ * Utility function to check if the mouse is near the edge of a shape.
+ * @param mouseX {number}
+ * @param mouseY {number}
+ * @param shape {Shape}
+ * @param threshold {number}
+ * @returns {boolean}
+ */
+function isMouseNearShapeEdge(
+  mouseX: number,
+  mouseY: number,
+  shape: ArrowSupportedShapes,
+  threshold = 5,
+) {
+  const {
+    styleProperties: { x, y, height, width },
+  } = shape;
+
+  if (shape.type === "ellipse") {
+    const centerX = x;
+    const centerY = y;
+    const radius = width / 2;
+
+    const deltaX = mouseX - centerX;
+    const deltaY = mouseY - centerY;
+    const distanceFromCenter = Math.sqrt(deltaX ** 2 + deltaY ** 2);
+
+    return Math.abs(distanceFromCenter - radius) <= threshold;
+  } else {
+    const distToTop = Math.abs(mouseY - y);
+    const distToBottom = Math.abs(mouseY - (y + height));
+    const distToLeft = Math.abs(mouseX - x);
+    const distToRight = Math.abs(mouseX - (x + width));
+
+    const isWithinExtendedX = mouseX >= x - threshold && mouseX <= x + width + threshold;
+    const isWithinExtendedY = mouseY >= y - threshold && mouseY <= y + height + threshold;
+
+    if (isWithinExtendedX && isWithinExtendedY) {
+      // Near top edge
+      if (distToTop <= threshold && mouseX >= x && mouseX <= x + width) {
+        return true;
+      }
+      // Near bottom edge
+      if (distToBottom <= threshold && mouseX >= x && mouseX <= x + width) {
+        return true;
+      }
+      // Near left edge
+      if (distToLeft <= threshold && mouseY >= y && mouseY <= y + height) {
+        return true;
+      }
+      // Near right edge
+      if (distToRight <= threshold && mouseY >= y && mouseY <= y + height) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+}
+
+/**
+ * Utility function to get the anchor point of a shape based on its type and the specified anchor position.
+ * @param shape {ArrowSupportedShapes}
+ * @param anchorPosition {ArrowDirection}
+ * @returns
+ */
+function getAnchorPoint(shape: ArrowSupportedShapes, anchorPosition: ArrowDirection): Coordinates {
+  if (shape.type === "rectangle") {
+    const {
+      styleProperties: { x, y, width, height },
+    } = shape;
+    switch (anchorPosition) {
+      case "TOP":
+        return { x: x + width / 2, y };
+      case "RIGHT":
+        return { x: x + width, y: y + height / 2 };
+      case "BOTTOM":
+        return { x: x + width / 2, y: y + height };
+      case "LEFT":
+        return { x, y: y + height / 2 };
+      default:
+        return { x: x + width / 2, y: y + height / 2 };
+    }
+  } else if (shape.type === "ellipse") {
+    const {
+      styleProperties: { x, y, width, height },
+    } = shape;
+    const radiusX = width / 2;
+    const radiusY = height / 2;
+
+    switch (anchorPosition) {
+      case "TOP":
+        return { x, y: y - radiusY };
+      case "RIGHT":
+        return { x: x + radiusX, y };
+      case "BOTTOM":
+        return { x, y: y + radiusY };
+      case "LEFT":
+        return { x: x - radiusX, y };
+      default:
+        return { x, y };
+    }
+  }
+  return { x: 0, y: 0 };
+}
+
+/**
+ * Utility function to find the best connection points between two shapes.
+ * It calculates the shortest distance between the edges of the two shapes and returns the best anchor points.
+ * @param sourceShape {ArrowSupportedShapes}
+ * @param targetShape {ArrowSupportedShapes}
+ * @returns
+ */
+export const findBestConnectionPoints = (
+  sourceShape: ArrowSupportedShapes | undefined,
+  targetShape: ArrowSupportedShapes | undefined,
+  arrowPoints: number[],
+): {
+  from?: Coordinates;
+  to?: Coordinates;
+} | null => {
+  if (!sourceShape && !targetShape) return null;
+
+  const positions: ArrowDirection[] = ["TOP", "RIGHT", "BOTTOM", "LEFT"];
+
+  let bestSourceAnchor: ArrowDirection = "CENTER";
+  let bestTargetAnchor: ArrowDirection = "CENTER";
+
+  if (sourceShape && !targetShape) {
+    const targetPoint = {
+      x: arrowPoints[arrowPoints.length - 2],
+      y: arrowPoints[arrowPoints.length - 1],
+    };
+    let shortestDistance = Infinity;
+
+    positions.forEach((sourcePos) => {
+      const sourcePoint = getAnchorPoint(sourceShape, sourcePos);
+      const distance = Math.hypot(targetPoint.x - sourcePoint.x, targetPoint.y - sourcePoint.y);
+
+      if (distance < shortestDistance) {
+        shortestDistance = distance;
+        bestSourceAnchor = sourcePos;
+      }
+    });
+
+    return { from: getAnchorPoint(sourceShape, bestSourceAnchor) };
+  }
+
+  if (!sourceShape && targetShape) {
+    const sourcePoint = { x: arrowPoints[0], y: arrowPoints[1] };
+    let shortestDistance = Infinity;
+
+    positions.forEach((targetPos) => {
+      const targetPoint = getAnchorPoint(targetShape, targetPos);
+      const distance = Math.hypot(targetPoint.x - sourcePoint.x, targetPoint.y - sourcePoint.y);
+
+      if (distance < shortestDistance) {
+        shortestDistance = distance;
+        bestTargetAnchor = targetPos;
+      }
+    });
+
+    return { to: getAnchorPoint(targetShape, bestTargetAnchor) };
+  }
+
+  if (sourceShape && targetShape) {
+    let shortestDistance = Infinity;
+
+    positions.forEach((sourcePos) => {
+      const sourcePoint = getAnchorPoint(sourceShape, sourcePos);
+
+      positions.forEach((targetPos) => {
+        const targetPoint = getAnchorPoint(targetShape, targetPos);
+
+        // Calculate distance
+        const dx = targetPoint.x - sourcePoint.x;
+        const dy = targetPoint.y - sourcePoint.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < shortestDistance) {
+          shortestDistance = distance;
+          bestSourceAnchor = sourcePos;
+          bestTargetAnchor = targetPos;
+        }
+      });
+    });
+
+    return {
+      from: getAnchorPoint(sourceShape, bestSourceAnchor),
+      to: getAnchorPoint(targetShape, bestTargetAnchor),
+    };
+  }
+
+  return null;
+};
+
+// <-------------------------------> SHAPE TRANSFORMATION VALUE <------------------------->
+export const getRectangleResizeValue = (n: Node<NodeConfig>): Partial<RectangleStyle> => {
+  const newWidth = Math.max(5, n.width() * n.scaleX());
+  const newHeight = Math.max(5, n.height() * n.scaleY());
+
+  const updatedValue: Partial<RectangleStyle> = {
+    width: Math.round(newWidth),
+    height: Math.round(newHeight),
+    x: Math.round(n.x()),
+    y: Math.round(n.y()),
+    rotation: Math.round(n.rotation()),
+  };
+
+  n.width(newWidth);
+  n.height(newHeight);
+  n.scaleX(1);
+  n.scaleY(1);
+
+  return updatedValue;
+};
+
+export const getEllipseResizeValue = (node: Node<NodeConfig>) => {
+  // TODO: Implement ellipse resize logic
+  node.scaleX(1);
+};
+
+export const getFreeHandResizeValue = (node: Node<NodeConfig>) => {
+  // TODO: Implement free hand resize logic
+  node.scaleX(1);
+};
+
+// <-------------------------------> HELPER FUNCTIONS <--------------------------------->
+/**
+ * Utility function to detect if the mouse is near the edge of a shape.
+ * @param mouseX {number}
+ * @param mouseY {number}
+ * @param shapes {Shape[]}
+ * @param threshold {number}
+ * @param activeTool {ToolType}
+ * @param currentShape {Shape}
+ * @returns {Proximity}
+ */
+export function detectShapeEdgeProximity(
+  mouseX: number,
+  mouseY: number,
+  shapes: Shapes[],
+  threshold = 5,
+  currentShape: Shapes,
+): Proximity {
+  const proximityProperties: Proximity = {
+    shapeId: null,
+    arrowProps: null,
+    isNear: false,
+  };
+
+  for (let i = shapes.length - 1; i >= 0; i--) {
+    const shape = shapes[i];
+    if (!(shape.type === "rectangle" || shape.type === "ellipse" || shape.type === "text"))
+      continue;
+
+    if (isMouseNearShapeEdge(mouseX, mouseY, shape, threshold)) {
+      proximityProperties.shapeId = shape._id;
+      proximityProperties.isNear = true;
+
+      if (currentShape && currentShape.type === "arrow") {
+        const position: ArrowPosition =
+          !currentShape.styleProperties?.points || currentShape.styleProperties?.points?.length <= 2
+            ? "START"
+            : "END";
+
+        proximityProperties.arrowProps = {
+          x: mouseX,
+          y: mouseY,
+          arrowPosition: position,
+        };
+      }
+    }
+  }
+
+  return proximityProperties;
+}
+
+/**
+ * Utility function to calculate the distance between two points.
+ * @param startingPointIndex {number}
+ * @param points {number[]}
+ * @returns {number}
+ */
+export function calculatePointDistance(startingPointIndex: number, points: number[]): number {
+  const firstX = points[startingPointIndex];
+  const firstY = points[startingPointIndex + 1];
+  const lastX = points[startingPointIndex + 2];
+  const lastY = points[startingPointIndex + 3];
+
+  const distance = Math.sqrt((lastX - firstX) ** 2 + (lastY - firstY) ** 2);
+
+  return distance ? Number(distance) : 0;
+}
+
+/**
+ * Utility function to get the transformed position of a pointer in a Konva stage.
+ * @param stage {Konva.Stage}
+ * @returns {Coordinates | null}
+ */
+export function getTransformedPos(stage: Konva.Stage): Coordinates | null {
+  const pos = stage.getPointerPosition();
+  const transform = stage.getAbsoluteTransform().copy();
+  const invertedTransform = transform.invert();
+  const transformedPos = pos ? invertedTransform.point(pos) : null;
+
+  return transformedPos;
+}
+
+/**
+ * Utility function to update the points of the arrow after transformation.
+ * @param oldPoints {number[]}
+ * @param groupRef {Konva.Group}
+ * @returns {number[]}
+ */
+export function updatePointsAfterTransformation(
+  oldPoints: number[],
+  groupRef: Konva.Group | Konva.Transformer,
+) {
+  const newPoints = [];
+
+  for (let i = 0; i < oldPoints.length; i += 2) {
+    const x = oldPoints[i];
+    const y = oldPoints[i + 1];
+    const absPoints = groupRef.getAbsoluteTransform().point({ x, y });
+
+    newPoints.push(absPoints.x, absPoints.y);
+  }
+
+  return newPoints;
+}
+
+/**
+ * Utility function to filter the arrow properties based on the updated shape properties.
+ * @param arrowId {string}
+ * @param prevUpdatedProps {DeletedShapeProps}
+ * @param attachedArrowIds {[ArrowPosition, string][]}
+ * @param shapes {Shapes[]}
+ * @returns {[key : string] : ArrowProps[]}
+ */
+export function filterArrowProps(
+  arrowId: string,
+  prevUpdatedProps: DeletedShapeProps,
+  attachedArrowIds: [ArrowPosition, string][],
+  shapes: Shapes[],
+): { [key: string]: ArrowProps[] | null } {
+  const updatedValue: { [key: string]: ArrowProps[] | null } = {};
+
+  attachedArrowIds.forEach(([, shapeId]) => {
+    let attachedShapes: ArrowProps[];
+
+    if (prevUpdatedProps.updatedShapes[shapeId]) {
+      attachedShapes = prevUpdatedProps.updatedShapes[shapeId] as ArrowProps[];
+    } else {
+      const shape = shapes.find((s) => s._id === shapeId) as ArrowSupportedShapes;
+      attachedShapes = shape?.arrowProps ?? [];
+    }
+
+    attachedShapes.filter((s) => s._id !== arrowId);
+    updatedValue[shapeId] = attachedShapes.length === 0 ? null : attachedShapes;
+  });
+
+  return updatedValue;
+}
+
+export function filterAttachedShapeProps(
+  shapeId: string,
+  arrowProps: ArrowProps[],
+  prevUpdatedProps: DeletedShapeProps,
+  shapes: Map<string, Shapes>,
+): { [key: string]: AttachedShape | null } {
+  const updatedValue: { [key: string]: AttachedShape | null } = {};
+
+  arrowProps.forEach((props) => {
+    let filterArrowProps: AttachedShape;
+
+    if (prevUpdatedProps.updatedShapes[props._id]) {
+      filterArrowProps = prevUpdatedProps.updatedShapes[props._id] as AttachedShape;
+    } else {
+      const shape = shapes.get(props._id) as Arrow;
+      filterArrowProps = shape?.attachedShape as AttachedShape;
+    }
+
+    filterArrowProps = Object.fromEntries(
+      Object.entries(filterArrowProps ?? {}).filter(([, id]) => id !== shapeId),
+    ) as AttachedShape;
+
+    updatedValue[props._id] = Object.keys(filterArrowProps).length === 0 ? null : filterArrowProps;
+  });
+
+  return updatedValue;
+}
+
+/**
+ * Utility function to get the start or end points of an arrow based on its position.
+ * @param arrow {Arrow}
+ * @param position {ArrowPosition}
+ * @returns {[number, number]} - The x and y coordinates of the arrow's start or end point based on the position.
+ */
+export function getArrowPointsForPosition(arrow: Arrow, position: ArrowPosition): [number, number] {
+  if (position === "START") {
+    return [arrow.styleProperties.points[0], arrow.styleProperties.points[1]];
+  } else {
+    const points = arrow.styleProperties.points;
+    return [points[points.length - 2], points[points.length - 1]];
+  }
+}
+
+/**
+ * Utility function to get the transformed position of a pointer in a Konva stage.
+ * @param nodes {Node<NodeConfig[]>}
+ * @returns {Array<{ shapeId: string; shapeValue: Partial<Shape> }>}
+ */
+export function getResizeShape(nodes: Node<NodeConfig>[]): UpdatingShapePayLoad[] {
+  const newValues: UpdatingShapePayLoad[] = [];
+
+  nodes.forEach((n) => {
+    // Resize Shape -- based on shape type >> "Rectangle", "Ellipse", "Free Hand" ... etc.
+    switch ((n.attrs as Shapes).type) {
+      // Resize -- Rectangle
+      case "rectangle": {
+        const resizedValue = getRectangleResizeValue(n);
+
+        newValues.push({
+          shapeId: n.attrs.id,
+          shapeStyle: resizedValue,
+        });
+        break;
+      }
+      // Resize -- Ellipse
+      case "ellipse": {
+        break;
+      }
+      // Resize -- Point Arrow
+      case "arrow": {
+        break;
+      }
+      // Resize -- Free hand
+      case "free hand": {
+        break;
+      }
+      // Resize -- Text
+      case "text": {
+        break;
+      }
+    }
+  });
+
+  return newValues;
+}

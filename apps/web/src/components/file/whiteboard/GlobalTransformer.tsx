@@ -1,0 +1,173 @@
+import Konva from "konva";
+import { Group, Transformer } from "react-konva";
+import { KonvaEventObject } from "konva/lib/Node";
+import { forwardRef, MutableRefObject, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+// Redux
+import { RootState } from "../../../redux/store";
+import { updateExistingShapes } from "../../../redux/slices/appSlice";
+
+// Constant
+import { ArrowSupportedShapes } from "../../../lib/constant";
+
+// Utils
+import { getUpdatedAttachProps, updateAttachedArrowPosition } from "../../../utils/ShapeUtils";
+
+import {
+  getRectangleResizeValue,
+  getResizeShape,
+  updatePointsAfterTransformation,
+} from "../../../utils/Helper";
+
+// Component Interface
+interface GlobalTransformerProps {
+  isDragging: MutableRefObject<boolean>;
+  isTransforming: MutableRefObject<boolean>;
+}
+
+const GlobalTransformer = forwardRef<Konva.Transformer, GlobalTransformerProps>(
+  ({ isDragging, isTransforming }, tr) => {
+    const groupRef = useRef<Konva.Group>(null);
+
+    const { type: activeTool } = useSelector((state: RootState) => state.app.activeTool);
+    const shapes = useSelector((state: RootState) => state.app.shapes);
+
+    const dispatch = useDispatch();
+
+    const dragShape = (attrs: Konva.NodeConfig) => {
+      const { x, y, arrowProps = null } = attrs;
+      if (!x || !y) return;
+
+      // Update the position of ArrowSupportedShape during movements
+      if (ArrowSupportedShapes.includes(attrs.type)) {
+        if (!arrowProps?.length) return;
+        const updatedArrowPosition = updateAttachedArrowPosition(shapes, arrowProps);
+
+        if (updatedArrowPosition.length > 0) {
+          dispatch(updateExistingShapes(updatedArrowPosition));
+        }
+      }
+    };
+
+    const handleTransforming = (e: KonvaEventObject<MouseEvent>) => {
+      isTransforming.current = true;
+      if (!e.currentTarget) return;
+
+      const nodes = (e.currentTarget as Konva.Transformer).nodes();
+
+      if (nodes.length > 0) {
+        nodes.forEach((n) => {
+          getRectangleResizeValue(n);
+        });
+      }
+    };
+
+    const handleTransformingEnd = (e: KonvaEventObject<MouseEvent>) => {
+      isTransforming.current = false;
+      if (!e?.currentTarget) return;
+
+      const nodes = (e.currentTarget as Konva.Transformer).nodes();
+
+      if (nodes.length > 0) {
+        const newShapeValue = getResizeShape(nodes);
+        dispatch(updateExistingShapes(newShapeValue));
+      }
+    };
+
+    // Event handler functions
+    const handleDragMove = (e: KonvaEventObject<MouseEvent>) => {
+      if (!(e.target instanceof Konva.Transformer) || activeTool !== "cursor") return;
+
+      const nodes = (e.currentTarget as Konva.Transformer).nodes();
+      isDragging.current = true;
+
+      if (!nodes.length) return;
+
+      if (nodes.length === 1) {
+        const currentShapeAttrs = nodes[0]?.attrs;
+
+        dragShape(currentShapeAttrs);
+      } else {
+        nodes.forEach((node) => {
+          const shapeAttrs = node?.attrs;
+
+          dragShape(shapeAttrs);
+        });
+      }
+    };
+
+    const handleDragEnd = (e: KonvaEventObject<MouseEvent>) => {
+      if (!e?.currentTarget?.attrs || !groupRef.current) return;
+      const attrs = e.currentTarget.attrs;
+
+      // TODO: Write a logic when going beyond the canvas size.
+
+      // Check Is any attachedShape is detached or not.
+      if ((attrs).type === "arrow") {
+        const arrow = attrs;
+
+        // Check whether arrow attached shape is detached or not.
+        const newPoints = updatePointsAfterTransformation(arrow.styleProperties.points, groupRef.current);
+        const updatedAttachProps = getUpdatedAttachProps(arrow, shapes);
+
+        if (updatedAttachProps && updatedAttachProps.length > 0) {
+          updatedAttachProps[0].shapeStyle = {
+            points: newPoints
+          }
+          dispatch(updateExistingShapes(updatedAttachProps));
+        } else {
+          dispatch(
+            updateExistingShapes({
+              shapeId: arrow._id,
+              shapeStyle: {
+                points: newPoints
+              }
+            }),
+          );
+        }
+      }
+    };
+
+    return (
+      <Group ref={groupRef}>
+        <Transformer
+          ref={tr}
+          anchorCornerRadius={1.5}
+          anchorSize={9}
+          rotateLineVisible={false}
+          anchorFill={"#1b262c"}
+          ignoreStroke={true}
+          anchorStyleFunc={(anchor) => {
+            const node = anchor?.getParent();
+
+            if (!node) return;
+
+            if (anchor.hasName("top-center") || anchor.hasName("bottom-center")) {
+              anchor.height(6);
+              anchor.width(30);
+              anchor.opacity(0);
+            }
+
+            // For middle anchors - full height
+            if (anchor.hasName("middle-left") || anchor.hasName("middle-right")) {
+              anchor.height(30);
+              anchor.width(6);
+              anchor.opacity(0);
+            }
+
+            // For rotating anchor (top-right corner)
+            if (anchor.hasName("rotater")) {
+              anchor.cornerRadius(8);
+            }
+          }}
+          onTransform={handleTransforming}
+          onTransformEnd={handleTransformingEnd}
+          onDragMove={handleDragMove}
+          onDragEnd={handleDragEnd}
+        />
+      </Group>
+    );
+  },
+);
+export default GlobalTransformer;
