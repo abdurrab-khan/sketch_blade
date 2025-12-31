@@ -93,6 +93,9 @@ main::-webkit-scrollbar {
     grid-auto-flow: column;
     gap: 0.5rem;
   }
+  .primary__btn {
+    @apply text-primary-text-light bg-linear-to-r from-blue-400 to-blue-600 text-zinc-50 transition-transform dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/90;
+  }
 }
 
 /* Adding Custom utilities */

@@ -8,7 +8,7 @@ import type { File } from "@/types/file";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { BsThreeDots } from "react-icons/bs";
-import { FolderOpen, Move } from "lucide-react";
+import { FolderOpen, Move, Share2 } from "lucide-react";
 
 import ToggleLock from "./ToggleLock.tsx";
 import ToggleFavorite from "./ToggleFavorite.tsx";
@@ -26,6 +26,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import Share from "@/components/dialogs/Share.tsx";
+import { DialogTrigger } from "@radix-ui/react-dialog";
 
 interface FileActionProps {
   row: Row<File>;

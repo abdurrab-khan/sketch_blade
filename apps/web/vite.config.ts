@@ -22,10 +22,12 @@ export default defineConfig({
           return path.replace("/api", "");
         },
       },
-      // "/socket.io": {
-      //   target: "http://localhost:8080",
-      //   ws: true,
-      // },
+      "/socket": {
+        target: "ws://api:8080",
+        rewrite(path) {
+          return path.replace("/socket", "");
+        },
+      },
     },
   },
 });

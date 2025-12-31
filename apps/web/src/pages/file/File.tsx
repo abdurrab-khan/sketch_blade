@@ -1,57 +1,66 @@
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { ApiResponse } from "@/types/index.ts";
 import { useToast } from "@/hooks/use-toast.ts";
 import useResponse from "@/hooks/useResponse.tsx";
+import Whiteboard from "@/pages/file/components/Whiteboard";
+import { FileData } from "@/types/file";
+import { useAuth } from "@clerk/clerk-react";
 
 const File = () => {
-  const fileId = useParams().id;
+  const [token, setToken] = useState<string>("");
+  const [isTokenPending, setIsTokenPending] = useState<boolean>(true);
+
+  const { getToken } = useAuth();
+  const { id: fileId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  if (!fileId) {
-    navigate("/");
-
-    toast({
-      title: "Error",
-      description: "Invalid request parameters",
-      variant: "destructive",
-    });
-  }
-
-  const { data, isPending, isError, error } = useResponse({
+  const { data, isPending, isError, error } = useResponse<FileData>({
     queryKey: [fileId as string],
     queryProps: { uri: `/file/${fileId}` },
+    queryOptions: {
+      enabled: !!fileId,
+    },
   });
 
   useEffect(() => {
-    if (isError) {
-      const err = error as unknown as ApiResponse;
-      const route = err?.statusCode === 404 || !data ? "/404" : "/";
+    (async () => {
+      const token = await getToken(); // fetching token for authenticating user
 
-      navigate(route);
-    }
-  }, [isError, error, data, navigate]);
+      if (!token) {
+        navigate("/sign-in");
+        return;
+      }
 
-  if (isPending)
+      setToken(token);
+      setIsTokenPending(false);
+    })();
+  }, [getToken, toast, navigate]);
+
+  // If pending show loader spinner
+  if (isPending || isTokenPending)
     return (
       <div className={"size-screen flex-center bg-primary"}>
         <Loader2 size={64} className={"text-quaternary animate-spin"} />
       </div>
     );
 
+  // If getting any error navigate to dashboard
+  if (isError || !data?.data) {
+    navigate("/dashboard");
+
+    toast({
+      title: "Error",
+      description: error?.message ?? "Invalid file id",
+      variant: "destructive",
+    });
+    return;
+  }
+
   return (
     <main className={"size-screen bg-primary text-quaternary relative"}>
-      {/* <div className="flex size-full flex-col justify-between">
-        <Nav fileId={fileId as string} />
-        <ToolActions />
-        <Footer />
-      </div> */}
-      {/* Konva -- Canvas */}
-      {/* <Suspense fallback={<LoadingLayout />}>
-        <Whiteboard />
-      </Suspense> */}
+      <Whiteboard id={fileId!} file={data.data} token={token} />
     </main>
   );
 };

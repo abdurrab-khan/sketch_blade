@@ -1,4 +1,4 @@
-import server from "@/server";
+import { server } from "@/server";
 import databaseConnection from "@/db/DatabaseConnection";
 
 databaseConnection

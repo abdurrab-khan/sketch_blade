@@ -1,19 +1,11 @@
 import { Router } from "express";
-import {
-   createCanvasState,
-   deleteCanvasState,
-   updateCanvasState,
-} from "@/controllers/canvas.controller";
+import { saveCanvasState } from "@/controllers/canvas.controller";
 import userMiddleware from "@/middlewares/auth.middleware";
 
 const router = Router();
 
 router.use(userMiddleware);
 
-router
-   .route("")
-   .post(createCanvasState)
-   .put(updateCanvasState)
-   .delete(deleteCanvasState);
+router.route("/save/:fileId").post(saveCanvasState);
 
 export default router;

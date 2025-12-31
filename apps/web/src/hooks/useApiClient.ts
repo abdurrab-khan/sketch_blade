@@ -38,7 +38,7 @@ export default function useApiClient() {
           success: response.data?.success,
           statusCode: response.data?.statusCode || response.status,
           message: response?.data?.message || "",
-          data: response.data?.data || response.data,
+          data: response.data?.data || null,
         };
 
         response.data = customResponse;

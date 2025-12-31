@@ -10,3 +10,11 @@ export enum CollaboratorAction {
    View = "view",
    Comment = "comment",
 }
+
+export interface ServerToClientMessage {
+   "tldraw-message": (message: string) => void;
+}
+
+export interface ClientToServerMessage {
+   "tldraw-message": (message: string) => void;
+}

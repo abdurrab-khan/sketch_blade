@@ -35,7 +35,7 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
     header: HeaderLabel("Name"),
     cell: ({ row }) => (
       <span className={"font-medium text-gray-900 transition-all hover:text-gray-900/80"}>
-        <Link to={`/folders/${row.original._id}`}>{row.original.name}</Link>
+        <Link to={`/dashboard/folders/${row.original._id}`}>{row.original.name}</Link>
       </span>
     ),
   },

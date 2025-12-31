@@ -24,8 +24,7 @@ const buttonVariants = cva(
         app: "bg-tertiary text-zinc-50 hover:bg-tertiary/90 dark:bg-tertiary dark:text-zinc-50 hover:text-zinc-200 dark:hover:bg-tertiary/90",
         delete:
           "bg-red-500 text-zinc-50 hover:bg-red-500/90 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/90",
-        primary:
-          "transition-transform text-primary-text-light text-zinc-50 bg-linear-to-r from-blue-400 to-blue-600 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/90",
+        primary: "primary__btn",
         recover:
           "bg-linear-to-r from-orange-400 to-orange-500 text-white/90 border border-slate-500/20 hover:opacity-85 active:opacity-100",
       },

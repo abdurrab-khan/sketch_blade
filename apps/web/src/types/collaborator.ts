@@ -1,4 +1,4 @@
-export type CollaboratorActions = "edit" | "view";
+export type CollaboratorActions = "owner" | "edit" | "view";
 
 export interface CollaboratorUser {
   _id: string;

@@ -1,36 +1,3 @@
-import { ToolType } from "@/types/shapes";
-import { RefObject } from "react";
-
-/**
- * Utility function to get the custom cursor style based on the active tool and hover state.
- * This function returns a string representing the cursor style.
- * @param activeTool {ToolType} - The current active tool.
- * @param isHovered {boolean} - Indicates if the element is hovered.
- * @returns {string} - A string representing the cursor style.
- */
-export function getCustomCursor(activeTool: ToolType, isHovered: boolean): string {
-  if (isHovered && activeTool === "cursor") {
-    return "cursor-move";
-  }
-
-  if (["rectangle", "ellipse", "free hand", "point arrow"].includes(activeTool)) {
-    return "cursor-crosshair";
-  } else if (activeTool === "text") {
-    return "cursor-text";
-  } else if (activeTool === "hand") {
-    return "cursor-grab";
-  } else if (activeTool === "eraser") {
-    return "cursor-none";
-  } else {
-    return "cursor-default";
-  }
-}
-
-/**
- * Utility function to format a date string into a human-readable format.
- * @param date {string} - The date string to be formatted.
- * @returns {string} - A string representing the time elapsed since the date.
- */
 export function getFormattedTime(date: string) {
   const now = new Date();
   const diff = now.getTime() - new Date(date).getTime();
@@ -50,15 +17,15 @@ export function getFormattedTime(date: string) {
   }
 }
 
-/**
- * Utility function to check if all provided refs have a current value.
- * If all refs are valid, it returns an array of their current values.
- * otherwise, it returns null.
- * @param args {RefObject<unknown>[]} - An array of RefObject(s) to check.
- * @returns {unknown[] | null} - An array of current values of the RefObjects or null if any RefObject is not defined.
- */
-export function checkRefValue(...args: RefObject<unknown>[]): unknown[] | null {
-  if (args.some((a) => !a?.current)) return null;
+export function getRandomColor(): string {
+  // 1. Pick a random Hue from 0 to 360 (the full color wheel)
+  const hue = Math.floor(Math.random() * 360);
 
-  return args.map((a) => a.current);
+  // 2. Set Saturation to a high percentage for "vibrancy" (70% - 90%)
+  const saturation = 80;
+
+  // 3. Set Lightness to a medium-high level so it looks like a highlight (50% - 70%)
+  const lightness = 60;
+
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
