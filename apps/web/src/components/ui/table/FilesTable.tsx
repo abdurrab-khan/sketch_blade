@@ -25,13 +25,13 @@ const FilesTable: React.FC<FilesTableProps> = ({ data }) => {
       <div className="mb-2.5 h-fit">
         <div className="flex flex-wrap gap-x-2 gap-y-4">
           <Button variant={"outline"}>
-            <span className="flex items-center text-slate-600">
+            <span className="flex items-center text-slate-600 dark:text-slate-300">
               <FaFilter />
               <span className="ml-2">Filter</span>
             </span>
           </Button>
           <Button variant={"outline"}>
-            <span className="flex items-center text-slate-600">
+            <span className="flex items-center text-slate-600 dark:text-slate-300">
               <FaSortAmountDownAlt />
               <span className="ml-2">Filter</span>
             </span>

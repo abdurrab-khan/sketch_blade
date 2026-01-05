@@ -207,6 +207,8 @@ const validateFileOwnership = AsyncHandler(
          },
       ]);
 
+      console.log("Current file is: ", file);
+
       if (file.length === 0) {
          throw new ErrorHandler({
             statusCode: 404,

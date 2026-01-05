@@ -1,4 +1,4 @@
-export type CollaboratorActions = "owner" | "edit" | "view";
+export type CollaboratorActions = "edit" | "view";
 
 export interface CollaboratorUser {
   _id: string;
@@ -17,7 +17,7 @@ export interface ActiveCollaborators {
   active: boolean;
 }
 
-export interface ListCollaborator {
+export interface SearchUser {
   _id: string;
   email: string;
   fullName: string;

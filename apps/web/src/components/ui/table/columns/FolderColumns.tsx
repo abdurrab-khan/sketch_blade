@@ -17,7 +17,7 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
-        className={"border-black/70"}
+        className={"border-black/70 dark:border-blue-400/50"}
       />
     ),
     cell: ({ row }) => (
@@ -25,7 +25,7 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
-        className={"border-black/70"}
+        className={"border-black/70 dark:border-blue-400/50"}
       />
     ),
   },
@@ -34,7 +34,11 @@ export const folderColumns: ColumnDef<FolderDetails>[] = [
     accessorKey: "name",
     header: HeaderLabel("Name"),
     cell: ({ row }) => (
-      <span className={"font-medium text-gray-900 transition-all hover:text-gray-900/80"}>
+      <span
+        className={
+          "font-medium text-gray-900 transition-all hover:text-gray-900/80 dark:text-slate-200 dark:hover:text-white"
+        }
+      >
         <Link to={`/dashboard/folders/${row.original._id}`}>{row.original.name}</Link>
       </span>
     ),

@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 const NotFound = () => {
   return (
     <main>
-      <div className={"size-screen flex-center bg-primary"}>
+      <div className={"size-screen flex-center bg-primary dark:bg-primary-bg-dark"}>
         <motion.div className={"flex flex-col gap-4"}>
           <span className={"mx-auto"}>
             <motion.span
@@ -28,7 +28,7 @@ const NotFound = () => {
               opacity: 1,
               y: 0,
             }}
-            className={"text-tertiary text-center text-2xl font-bold"}
+            className={"text-tertiary text-center text-2xl font-bold dark:text-blue-400"}
           >
             404 Not Found
           </motion.h1>

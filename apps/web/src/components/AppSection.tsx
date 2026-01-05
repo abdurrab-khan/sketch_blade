@@ -28,14 +28,16 @@ const AppSection = () => {
     <div className={"main-container"} style={{ height: "calc(100vh - 5rem)" }}>
       <div className={"flex size-full flex-col gap-y-5 px-4 pt-9 md:px-0"}>
         <div className={"flex w-full flex-col gap-y-4 overflow-y-hidden"}>
-          <div className={"border-tertiary w-full rounded-md border px-4 py-2"}>
+          <div
+            className={"border-tertiary dark:border-border-dark w-full rounded-md border px-4 py-2"}
+          >
             <div>
               <ul className={"flex-start flex-wrap gap-4 capitalize select-none"}>
                 {navLinks.map(({ pathName, name }) => (
                   <li key={pathName} className="relative rounded-md py-1.5 text-sm">
                     <NavLink
                       to={pathName}
-                      className="text-quaternary hover:text-tertiary relative z-20 px-8 transition-colors"
+                      className="text-quaternary hover:text-tertiary dark:text-secondary-text-dark dark:hover:text-primary-text-dark relative z-20 px-8 transition-colors"
                     >
                       {name}
                     </NavLink>

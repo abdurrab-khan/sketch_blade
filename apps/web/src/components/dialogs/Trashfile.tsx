@@ -49,7 +49,7 @@ function TrashFile({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            <span className="text-red-500">Delete File</span>
+            <span className="text-red-500 dark:text-red-400">Delete File</span>
           </DialogTitle>
           <DialogDescription>Are you sure you want to delete this file?</DialogDescription>
         </DialogHeader>

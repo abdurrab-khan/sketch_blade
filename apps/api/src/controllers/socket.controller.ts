@@ -51,11 +51,15 @@ socket.on("connection", async (socket) => {
          },
       };
 
+      // checking ready only
+      const isReadonly =
+         file?.ownerId !== userId && collaborator?.role === "view";
+
       // and finally connect the socket to the room
       room.handleSocketConnect({
          sessionId: sessionId,
          socket: socketAdapter,
-         isReadonly: file?.ownerId !== userId || collaborator?.role === "view",
+         isReadonly,
       });
 
       // Handle tldraw sync messages

@@ -1,7 +1,9 @@
-import React, { useState } from "react";
-
 import z from "zod";
-import Fileform from "../form/File.tsx";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import Fileform from "../form/Fileform.tsx";
 import useMutate from "@/hooks/useMutate.ts";
 import useApiClient from "@/hooks/useApiClient.ts";
 
@@ -11,100 +13,57 @@ import { File } from "@/types/file.ts";
 import { ApiResponse, AxiosMutateProps } from "@/types/index.ts";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog.tsx";
-import { Collaborator } from "@/types/collaborator.ts";
-
-export interface ICollaboratorState {
-  newCollaborators: Collaborator[];
-  removedCollaborators: Collaborator[];
-}
 
 interface FileEditDialogProps {
   isOpen: boolean;
-  fileData: Partial<File>;
+  fileData: File;
   children?: React.ReactNode;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function UpdateFile({ isOpen, fileData, children, setIsOpen }: FileEditDialogProps) {
-  const [collaboratorState, setCollaboratorState] = useState<ICollaboratorState>({
-    newCollaborators: [],
-    removedCollaborators: [],
-  });
-
   const apiClient = useApiClient();
 
-  // Removing existing collaborators
-  const removeCollaborator = async (fileId: string) => {
-    const { removedCollaborators } = collaboratorState;
+  // Initializing form
+  const form = useForm<z.infer<typeof fileSchema>>({
+    resolver: zodResolver(fileSchema),
+    defaultValues: {
+      fileName: "",
+      description: "",
+    },
+  });
 
-    // return -- if no fileId or no collaborators to remove
-    if (!fileId || removedCollaborators.length <= 0) return;
+  const { reset } = form;
 
-    const removedIds = {
-      collaboratorIds: removedCollaborators.map((rc) => rc._id),
-    };
-
-    try {
-      await apiClient.put(`/collaborator/${fileId}`, removedIds);
-    } catch (err) {
-      throw new Error(
-        (err as ApiResponse)?.message || "An error occurred during removing collaborators",
-      );
+  // Initializing default values for form
+  useEffect(() => {
+    if (isOpen && fileData) {
+      reset({
+        fileName: fileData.name ?? "",
+        description: fileData.description ?? "",
+      });
     }
-  };
+  }, [reset, isOpen, fileData]);
 
-  // Adding new collaborators
-  const addCollaborator = async (fileId: string) => {
-    const { newCollaborators } = collaboratorState;
-
-    // return -- if no fileId or no new collaborators to add
-    if (!fileId || newCollaborators.length <= 0) return;
-
-    try {
-      await apiClient.post(`/collaborator/${fileId}`, newCollaborators);
-    } catch (err) {
-      throw new Error(
-        (err as ApiResponse)?.message || "An error occurred during adding collaborators",
-      );
-    }
-  };
-
+  // API mutation for update file
   const updateFile = async ({
     uri,
     data,
     method,
   }: AxiosMutateProps<z.infer<typeof fileSchema>>): Promise<ApiResponse<File>> => {
-    const fileId = fileData?._id;
     const fileFormData = {
       fileName: data?.fileName,
       description: data?.description,
     };
 
     try {
-      const haveToUpdateFile =
-        fileData?.description !== fileFormData?.description ||
-        fileData.name !== fileFormData?.fileName;
-
-      // Only update if need's to
-      if (haveToUpdateFile) {
-        await apiClient[method]<ApiResponse<File>>(uri, fileFormData);
-      }
-
-      if (fileId) {
-        await addCollaborator(fileId);
-        await removeCollaborator(fileId);
-      }
-
-      return {
-        statusCode: 200,
-        success: true,
-        message: "File updated successfully",
-      };
+      const updateRes = await apiClient[method]<ApiResponse<File>>(uri, fileFormData);
+      return updateRes.data;
     } catch (error) {
       throw new Error((error as Error)?.message ?? "An error occurred during file updation");
     } finally {
+      reset();
       setIsOpen(false);
-      cleaningState();
     }
   };
 
@@ -119,43 +78,32 @@ function UpdateFile({ isOpen, fileData, children, setIsOpen }: FileEditDialogPro
   const handleSubmit = (data: z.infer<typeof fileSchema>) => {
     if (isPending) return;
 
-    mutate({
-      uri: `/file/${fileData._id}`,
-      data: data,
-      method: "put",
-    });
-  };
-
-  // clean up --> collaborators state
-  const cleaningState = () => {
-    setCollaboratorState({
-      newCollaborators: [],
-      removedCollaborators: [],
-    });
-  };
-
-  // clean up --> if dialog is close
-  const handleOpenChange = (state: boolean) => {
-    if (!state) {
-      cleaningState();
+    const haveToUpdateFile =
+      fileData?.description !== data?.description || fileData.name !== data.fileName;
+    if (haveToUpdateFile) {
+      mutate({
+        uri: `/file/${fileData._id}`,
+        data: data,
+        method: "put",
+      });
+    } else {
+      setIsOpen(false);
     }
-    setIsOpen(state);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {children && <DialogTrigger>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Update File</DialogTitle>
+          <DialogTitle className="dark:text-primary-text-dark text-2xl">Update File</DialogTitle>
         </DialogHeader>
         <Fileform
           type="update"
-          fileData={fileData}
+          form={form}
+          fileId={fileData._id}
           isPending={isPending}
-          collaboratorState={collaboratorState}
-          setCollaboratorState={setCollaboratorState}
-          handleFormSubmit={handleSubmit}
+          updateFileSubmit={handleSubmit}
         />
       </DialogContent>
     </Dialog>

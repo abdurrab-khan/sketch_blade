@@ -54,7 +54,7 @@ function SideBar() {
               <FaPencilRuler size={26} className="text-white" />
             </span>
             <span className="text-3xl font-bold">
-              <p className="text-blue-900">SketchBlade</p>
+              <p className="text-blue-600 dark:text-blue-400">SketchBlade</p>
             </span>
           </div>
         </Link>
@@ -66,9 +66,9 @@ function SideBar() {
               end
               className={clsx(
                 pathname.startsWith(href) && (href !== "/dashboard" || href === pathname)
-                  ? "bg-linear-to-r from-blue-400 to-blue-600 text-white/95 shadow-xl shadow-slate-300/50"
-                  : "text-primary-text-light/85 bg-none",
-                "group cursor-pointer justify-start rounded-xl px-5 py-4",
+                  ? "bg-linear-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 dark:from-blue-600 dark:to-blue-700 dark:shadow-blue-500/20"
+                  : "text-primary-text-light/85 bg-none hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-blue-500/10 dark:hover:text-white",
+                "group cursor-pointer justify-start rounded-xl px-5 py-4 transition-all duration-200",
               )}
             >
               <div className="flex size-full items-center gap-4">
@@ -85,10 +85,10 @@ function SideBar() {
             <img className="size-full object-contain" src={user?.imageUrl} />
           </div>
           <div className="flex-1 text-start">
-            <div className="text-primary-text-light text-sm font-semibold">
+            <div className="text-primary-text-light text-sm font-semibold dark:text-white">
               {fullName.length > 24 ? fullName.slice(0, 24) + "..." : fullName}
             </div>
-            <div className="text-secondary-text-light/80 text-xs">
+            <div className="text-secondary-text-light/80 text-xs dark:text-slate-400">
               {emailAddress.length > 30 ? emailAddress.slice(0, 30) + "..." : emailAddress}
             </div>
           </div>

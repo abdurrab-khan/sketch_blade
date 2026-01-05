@@ -51,7 +51,10 @@ function TrashAction({ row }: TrashActionProps) {
     <React.Fragment>
       <DropdownMenu>
         <DropdownMenuTrigger title="Actions" asChild>
-          <Button variant="none" className="text-zinc-700 hover:text-zinc-700/50">
+          <Button
+            variant="none"
+            className="text-zinc-700 hover:text-zinc-700/50 dark:text-slate-400 dark:hover:text-blue-400"
+          >
             <BsThreeDots />
           </Button>
         </DropdownMenuTrigger>

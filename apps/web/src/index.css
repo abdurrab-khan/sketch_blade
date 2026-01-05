@@ -17,17 +17,62 @@
 
     /* BACKGROUND-COLORS */
     --primary-bg-light: #ffffff;
-    --secondary-bg-light: ;
+    --secondary-bg-light: #f8fafc;
 
-    --primary-bg-dark: #0f172a;
-    --secondary-bg-dark: #1e293b;
+    /* Modern dark theme - Deep navy/slate with subtle blue undertones */
+    --primary-bg-dark: #0a0f1a;
+    --secondary-bg-dark: #111827;
+    --tertiary-bg-dark: #1f2937;
 
     /* TEXT-COLORS */
     --primary-text-light: #1e293b;
     --secondary-text-light: #475569;
 
-    --primary-text-dark: #f1f5f9;
-    --secondary-text-dark: #cbd5e1;
+    /* Crisp, high-contrast text for dark mode */
+    --primary-text-dark: #f8fafc;
+    --secondary-text-dark: #94a3b8;
+    --tertiary-text-dark: #64748b;
+
+    /* BORDER COLORS */
+    --border-light: #e2e8f0;
+    --border-light-subtle: #f1f5f9;
+
+    /* Subtle borders with slight blue tint */
+    --border-dark: #1e3a5f;
+    --border-dark-subtle: #1a2744;
+
+    /* INPUT COLORS */
+    --input-bg-light: #ffffff;
+    --input-border-light: #cbd5e1;
+    --input-placeholder-light: #94a3b8;
+
+    /* Modern input styling for dark mode */
+    --input-bg-dark: #0f172a;
+    --input-border-dark: #1e3a5f;
+    --input-placeholder-dark: #64748b;
+
+    /* BUTTON COLORS */
+    --button-primary-light: #3b82f6;
+    --button-primary-dark: #2563eb;
+
+    /* CARD COLORS */
+    --card-bg-light: #ffffff;
+    --card-border-light: #e2e8f0;
+    --card-shadow-light: rgba(0, 0, 0, 0.1);
+
+    /* Elevated card with subtle glow effect */
+    --card-bg-dark: #111827;
+    --card-border-dark: #1e3a5f;
+    --card-shadow-dark: rgba(59, 130, 246, 0.08);
+
+    /* ICON COLORS */
+    --icon-light: #64748b;
+    --icon-dark: #60a5fa;
+
+    /* ACCENT COLORS for dark mode */
+    --accent-blue-dark: #3b82f6;
+    --accent-blue-glow: rgba(59, 130, 246, 0.15);
+    --hover-bg-dark: rgba(59, 130, 246, 0.1);
   }
 }
 
@@ -44,12 +89,42 @@
   --color-secondary-bg-light: var(--secondary-bg-light);
   --color-primary-bg-dark: var(--primary-bg-dark);
   --color-secondary-bg-dark: var(--secondary-bg-dark);
+  --color-tertiary-bg-dark: var(--tertiary-bg-dark);
 
   /* Custom Text */
   --color-primary-text-light: var(--primary-text-light);
-  --color-secondary-text-light: var(--primary-text-light);
+  --color-secondary-text-light: var(--secondary-text-light);
   --color-primary-text-dark: var(--primary-text-dark);
   --color-secondary-text-dark: var(--secondary-text-dark);
+  --color-tertiary-text-dark: var(--tertiary-text-dark);
+
+  /* Custom Border */
+  --color-border-light: var(--border-light);
+  --color-border-light-subtle: var(--border-light-subtle);
+  --color-border-dark: var(--border-dark);
+  --color-border-dark-subtle: var(--border-dark-subtle);
+
+  /* Custom Input */
+  --color-input-bg-light: var(--input-bg-light);
+  --color-input-border-light: var(--input-border-light);
+  --color-input-placeholder-light: var(--input-placeholder-light);
+  --color-input-bg-dark: var(--input-bg-dark);
+  --color-input-border-dark: var(--input-border-dark);
+  --color-input-placeholder-dark: var(--input-placeholder-dark);
+
+  /* Custom Card */
+  --color-card-bg-light: var(--card-bg-light);
+  --color-card-border-light: var(--card-border-light);
+  --color-card-bg-dark: var(--card-bg-dark);
+  --color-card-border-dark: var(--card-border-dark);
+
+  /* Custom Icon */
+  --color-icon-light: var(--icon-light);
+  --color-icon-dark: var(--icon-dark);
+
+  /* Accent & Hover */
+  --color-accent-blue-dark: var(--accent-blue-dark);
+  --color-hover-bg-dark: var(--hover-bg-dark);
 }
 
 main::-webkit-scrollbar {
@@ -94,7 +169,7 @@ main::-webkit-scrollbar {
     gap: 0.5rem;
   }
   .primary__btn {
-    @apply text-primary-text-light bg-linear-to-r from-blue-400 to-blue-600 text-zinc-50 transition-transform dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/90;
+    @apply bg-linear-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 transition-all hover:shadow-blue-500/40 dark:from-blue-500 dark:to-blue-600 dark:shadow-blue-500/20 dark:hover:from-blue-400 dark:hover:to-blue-500 dark:hover:shadow-blue-500/30;
   }
 }
 

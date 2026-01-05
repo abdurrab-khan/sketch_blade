@@ -41,7 +41,7 @@ const File = () => {
   // If pending show loader spinner
   if (isPending || isTokenPending)
     return (
-      <div className={"size-screen flex-center bg-primary"}>
+      <div className={"size-screen flex-center bg-primary dark:bg-primary-bg-dark"}>
         <Loader2 size={64} className={"text-quaternary animate-spin"} />
       </div>
     );

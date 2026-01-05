@@ -8,7 +8,7 @@ import type { File } from "@/types/file";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { BsThreeDots } from "react-icons/bs";
-import { FolderOpen, Move, Share2 } from "lucide-react";
+import { FolderOpen, Move } from "lucide-react";
 
 import ToggleLock from "./ToggleLock.tsx";
 import ToggleFavorite from "./ToggleFavorite.tsx";
@@ -26,20 +26,21 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import Share from "@/components/dialogs/Share.tsx";
-import { DialogTrigger } from "@radix-ui/react-dialog";
+import { FaUsers } from "react-icons/fa6";
+import Collaborators from "@/components/dialogs/Collaborators.tsx";
 
 interface FileActionProps {
   row: Row<File>;
 }
 
 function FileAction({ row }: FileActionProps) {
-  const { _id, name, description, owner, folder } = row.original;
+  const { _id, owner, folder } = row.original;
 
   const [open, setOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editFileDialogOpen, setEditFileDialogOpen] = useState(false);
   const [moveFileDialogOpen, setMoveFileDialogOpen] = useState(false);
+  const [collaboratorsDialogOpen, setCollaboratorsDialogOpen] = useState(false);
   const { email } = useSelector((state: RootState) => state.auth);
 
   // For enabling owner only features
@@ -49,7 +50,10 @@ function FileAction({ row }: FileActionProps) {
     <React.Fragment>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger title="Actions" asChild>
-          <Button variant="none" className="text-zinc-700 hover:text-zinc-700/50">
+          <Button
+            variant="none"
+            className="text-zinc-700 hover:text-zinc-700/50 dark:text-slate-400 dark:hover:text-blue-400"
+          >
             <BsThreeDots />
           </Button>
         </DropdownMenuTrigger>
@@ -61,44 +65,62 @@ function FileAction({ row }: FileActionProps) {
               <FolderOpen className="h-4 w-4" />
               Open
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setEditFileDialogOpen(true)} className={"w-full"}>
-              <FaEdit className="h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <ToggleFavorite
-              isFavorite={row.original?.isFavorite}
-              fileId={row.original._id}
-              setOpen={setOpen}
-            />
-            {isOwner ? (
-              <>
+
+            {/* Only owner can edit, lock, handle collaborators the file */}
+            {isOwner && (
+              <React.Fragment>
+                <DropdownMenuItem onSelect={() => setEditFileDialogOpen(true)} className={"w-full"}>
+                  <FaEdit className="h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setCollaboratorsDialogOpen(true)}>
+                  <FaUsers />
+                  Collaborators
+                </DropdownMenuItem>
                 <ToggleLock
                   isLocked={row.original?.isLocked}
                   fileId={row.original._id}
                   setOpen={setOpen}
                 />
-              </>
-            ) : null}
+              </React.Fragment>
+            )}
+
+            <ToggleFavorite
+              isFavorite={row.original?.isFavorite}
+              fileId={row.original._id}
+              setOpen={setOpen}
+            />
             <DropdownMenuItem onSelect={() => setDeleteDialogOpen(true)}>
               <MdDelete className="h-4 w-4" />
               Delete
             </DropdownMenuItem>
-            {!folder && (
-              <DropdownMenuItem onSelect={() => setMoveFileDialogOpen(true)} className={"w-full"}>
-                <Move className="h-4 w-4" />
-                Move File
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem onSelect={() => setMoveFileDialogOpen(true)} className={"w-full"}>
+              <Move className="h-4 w-4" />
+              Move File
+            </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <DeleteFile id={_id} isOpen={deleteDialogOpen} setIsOpen={setDeleteDialogOpen} />
-      <UpdateFile
-        isOpen={editFileDialogOpen}
-        setIsOpen={setEditFileDialogOpen}
-        fileData={{ _id, name, description }}
-      />
+
+      {/* Only owners can update, handle collaborators */}
+      {isOwner && (
+        <React.Fragment>
+          <UpdateFile
+            isOpen={editFileDialogOpen}
+            setIsOpen={setEditFileDialogOpen}
+            fileData={row.original}
+          />
+          <Collaborators
+            isOpen={collaboratorsDialogOpen}
+            fileId={row.original._id}
+            setIsOpen={setCollaboratorsDialogOpen}
+          />
+        </React.Fragment>
+      )}
+
+      {/* Show Only if file is not already in folder */}
       {!folder && (
         <MoveFileDialog
           _id={_id}

@@ -1,4 +1,4 @@
-import { ArrowProps, SelectionPurpose } from "./shapes";
+export type ExtractArray<T> = T extends (infer R)[] ? R : T;
 
 export interface AxiosMutateProps<T = unknown> {
   method: "post" | "put" | "delete";
@@ -17,32 +17,8 @@ export interface ApiResponse<T = unknown> {
   data?: T;
 }
 
-export interface Coordinates {
-  x: number;
-  y: number;
-}
-
-export interface FourCoordinates {
-  x: number;
-  y: number;
-  x2: number;
-  y2: number;
-}
-
-export interface Proximity {
-  shapeId: string | null;
-  isNear: boolean;
-  arrowProps: Omit<ArrowProps, "_id"> | null;
-}
-
-export interface SelectedShapesId {
-  _id: string[] | string;
-  purpose?: SelectionPurpose;
-}
-
 export interface Stat {
   totalDiagrams: number;
   totalFolders: number;
   totalSharedDiagrams: number;
-  totalCollaborators: number;
 }

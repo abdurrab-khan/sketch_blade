@@ -9,7 +9,7 @@ interface BodyProps {
 
 function Body({ query, setQuery }: BodyProps) {
   return (
-    <div className="flex min-h-full w-full flex-col gap-6 bg-linear-to-tl from-blue-500/15 to-white px-4 pt-[calc(2rem+var(--dashboard-header))] md:px-6">
+    <div className="dark:to-primary-bg-dark dark:from-secondary-bg-dark flex min-h-full w-full flex-col gap-6 bg-linear-to-tl from-blue-500/15 to-white px-4 pt-[calc(2rem+var(--dashboard-header))] md:px-6">
       <Banner />
       <StatManager />
       <div className="flex size-full flex-1 flex-col">

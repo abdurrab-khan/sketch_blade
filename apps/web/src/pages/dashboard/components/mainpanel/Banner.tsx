@@ -12,7 +12,7 @@ import CreateFile from "@/components/dialogs/Createfile";
 import Folderform from "@/components/dialogs/Folderform.tsx";
 
 const Button = ({ title }: { title: string }) => (
-  <div className="overflow-hidden rounded-xl shadow-xl shadow-slate-400/10 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-slate-400">
+  <div className="overflow-hidden rounded-xl shadow-xl shadow-slate-400/10 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-slate-400/50 dark:hover:shadow-xl dark:hover:shadow-slate-400/20">
     <div className="bg-linear-to-r from-blue-400 to-blue-600 px-8 py-3 text-white/90 transition-opacity hover:opacity-90">
       <div className="text-nowrap">
         <PlusIcon className="inline h-6! w-6!" />
@@ -98,13 +98,13 @@ function Banner() {
   return (
     <div className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
       <div>
-        <span className="text-primary-text-light flex items-center gap-x-3 text-4xl">
+        <span className="text-primary-text-light flex items-center gap-x-3 text-4xl dark:text-white">
           <span className="text-3xl">
             <Icon />
           </span>
           <h3 className="font-bold">{title}</h3>
         </span>
-        <span className="text-secondary-text-light/75 mt-1 block text-lg md:mt-2.5">
+        <span className="text-secondary-text-light/75 mt-1 block text-lg md:mt-2.5 dark:text-slate-400">
           <p className="font-medium">{description}</p>
         </span>
       </div>
