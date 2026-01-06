@@ -8,7 +8,7 @@ import CollaboratorRoleSelector from "./CollaboratorRoleSelector";
 
 import { useToast } from "@/hooks/use-toast";
 import useApiClient from "@/hooks/useApiClient";
-import CollaboratorInput from "./CollaboratorInput";
+import ShowCollaborators from "./ShowCollaborators";
 import SearchUsers from "./SearchUsers";
 
 interface ICollaboratorManagerProps {
@@ -18,14 +18,10 @@ interface ICollaboratorManagerProps {
 function CollaboratorManager({ fileId }: ICollaboratorManagerProps) {
   const [existingCollaborator, setExistingCollaborator] = useState<Collaborator[]>([]);
   const [currentRole, setCurrentRole] = useState<CollaboratorActions>("view");
+  const [selectedCollaborator, setSelectedCollaborator] = useState<Collaborator | null>(null);
 
   const apiClient = useApiClient();
   const { toast } = useToast();
-
-  // Handle on role change
-  const handleChangeRole = (role: CollaboratorActions) => {
-    setCurrentRole(role);
-  };
 
   // Fetching existing collaborators
   useEffect(() => {
@@ -51,16 +47,32 @@ function CollaboratorManager({ fileId }: ICollaboratorManagerProps) {
     <div className="relative space-y-2">
       <Label htmlFor="collaborator-search">Add Collaborators</Label>
       <div className={"flex items-start justify-between gap-x-2"}>
-        <div className="flex-1">
-          <CollaboratorInput
+        <div className="focus-within:ring-ring bg-secondary dark:bg-primary-bg-dark flex-1 rounded-md border border-zinc-300 focus-within:ring-2 focus-within:ring-offset-2 focus-within:outline-none">
+          <ShowCollaborators
+            fileId={fileId}
+            setRole={setCurrentRole}
+            existingCollaborators={existingCollaborator}
+            selectedCollaborator={selectedCollaborator}
+            setSelectedCollaborator={setSelectedCollaborator}
+            setExistingCollaborators={setExistingCollaborator}
+          />
+          <SearchUsers
             fileId={fileId}
             role={currentRole}
-            exisitingCollaborators={existingCollaborator}
+            existingCollaborators={existingCollaborator}
+            setExistingCollaborators={setExistingCollaborator}
+            setSelectedCollaborator={setSelectedCollaborator}
           />
-          <SearchUsers />
         </div>
         <div className="w-fit">
-          <CollaboratorRoleSelector role={currentRole} onValueChange={handleChangeRole} />
+          <CollaboratorRoleSelector
+            fileId={fileId}
+            role={currentRole}
+            setCurrentRole={setCurrentRole}
+            selectedCollaborator={selectedCollaborator}
+            setSelectedCollaborator={setSelectedCollaborator}
+            setExistingCollaborators={setExistingCollaborator}
+          />
         </div>
       </div>
     </div>

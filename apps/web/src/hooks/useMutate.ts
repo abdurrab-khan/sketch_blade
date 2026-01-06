@@ -3,27 +3,33 @@ import useApiClient from "./useApiClient.ts";
 import { ApiResponse, AxiosMutateProps } from "@/types/index.ts";
 import { QueryFilters, useMutation, useQueryClient } from "@tanstack/react-query";
 
-interface UseMutateProps<D> {
+interface UseMutateProps<Req, Res> {
   isShowToast?: boolean;
   options?: QueryFilters;
-  customMutationFn?: (data: AxiosMutateProps<D>) => Promise<ApiResponse>;
+  customMutationFn?: (data: AxiosMutateProps<Req>) => Promise<ApiResponse<Res | null>>;
+  customOnSuccess?: (res?: ApiResponse<Res>) => void;
   finallyFn?: () => void;
 }
 
-const useMutate = <G, R>({
+const useMutate = <Res = undefined, Req = undefined>({
   options,
   isShowToast,
   finallyFn,
+  customOnSuccess,
   customMutationFn,
-}: UseMutateProps<G>) => {
+}: UseMutateProps<Req, Res>) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const apiClient = useApiClient();
 
-  const mutationFn = async ({ method, uri, data }: AxiosMutateProps) => {
+  const mutationFn = async ({
+    method,
+    uri,
+    data,
+  }: AxiosMutateProps<Req>): Promise<ApiResponse<Res | null>> => {
     try {
-      const res = await apiClient[method]<ApiResponse<R>>(uri, data);
-      return res.data ?? null;
+      const res = await apiClient[method]<ApiResponse<Res>>(uri, data);
+      return res?.data;
     } catch (err) {
       const error = err as ApiResponse;
       throw new Error(error.message);
@@ -34,7 +40,11 @@ const useMutate = <G, R>({
     }
   };
 
-  const { mutate, isPending, isError, data } = useMutation({
+  const { mutate, isPending, isError, data } = useMutation<
+    ApiResponse<Res | null>,
+    Error,
+    AxiosMutateProps<Req>
+  >({
     mutationKey: ["deleteFile"],
     mutationFn: customMutationFn ?? mutationFn,
     onSuccess: async (res) => {
@@ -49,6 +59,12 @@ const useMutate = <G, R>({
         );
       }
 
+      // call on success function if it's there
+      if (typeof customOnSuccess === "function") {
+        customOnSuccess(res);
+      }
+
+      // Show toast if isShowToast true
       if (isShowToast) {
         toast({
           title: "Success",

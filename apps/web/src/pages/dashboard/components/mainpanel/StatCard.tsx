@@ -7,7 +7,7 @@ import { Stat } from "@/types";
 
 function StatManager() {
   const { data, isLoading } = useResponse<Stat>({
-    queryKey: ["getFiles", "getFolders"],
+    queryKey: ["getStats"],
     queryProps: {
       uri: "/stat",
     },

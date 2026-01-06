@@ -27,7 +27,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { FaUsers } from "react-icons/fa6";
-import Collaborators from "@/components/dialogs/Collaborators.tsx";
+import HandleCollaborators from "@/components/dialogs/HandleCollaborators.tsx";
 
 interface FileActionProps {
   row: Row<File>;
@@ -112,7 +112,7 @@ function FileAction({ row }: FileActionProps) {
             setIsOpen={setEditFileDialogOpen}
             fileData={row.original}
           />
-          <Collaborators
+          <HandleCollaborators
             isOpen={collaboratorsDialogOpen}
             fileId={row.original._id}
             setIsOpen={setCollaboratorsDialogOpen}

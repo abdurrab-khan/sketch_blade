@@ -152,7 +152,7 @@ export const addCollaborator = AsyncHandler(
 
 export const removeCollaborator = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
-      const { collaboratorIds } = zodParserHelper(
+      const { collaboratorId } = zodParserHelper(
          removeCollaboratorSchema,
          req.body ?? {},
       );
@@ -165,20 +165,9 @@ export const removeCollaborator = AsyncHandler(
          });
       }
 
-      const updatedFile = await Collaborator.deleteMany({
-         _id: {
-            $in: collaboratorIds,
-         },
-      });
+      const deleteFile = await Collaborator.findByIdAndDelete(collaboratorId);
 
-      console.log(
-         "Collaborator ids are: ",
-         updatedFile,
-         " ---- delete count is: ",
-         collaboratorIds,
-      );
-
-      if (updatedFile.deletedCount === 0) {
+      if (!deleteFile) {
          throw new ErrorHandler({
             statusCode: 500,
             message: "Failed to remove collaborator",

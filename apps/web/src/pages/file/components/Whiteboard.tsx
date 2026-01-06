@@ -43,7 +43,7 @@ function Whiteboard({ id, file, token }: IWhiteboardProps) {
       color: getRandomColor(),
     },
   });
-  const customComponents = useMemo(() => Components(file.role), [file.role]);
+  const customComponents = useMemo(() => Components(file.role, id), [file.role, id]);
 
   // Return nothing if store is not there
   if (!store?.store) {

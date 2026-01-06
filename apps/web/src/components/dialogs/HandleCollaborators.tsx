@@ -1,4 +1,11 @@
-import { DialogHeader, Dialog, DialogTrigger, DialogContent, DialogTitle } from "../ui/dialog";
+import {
+  DialogHeader,
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "../ui/dialog";
 import CollaboratorManager from "../collaborators/CollaboratorManager";
 
 interface ICollaboratorProps {
@@ -8,15 +15,18 @@ interface ICollaboratorProps {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function Collaborators({ isOpen, setIsOpen, fileId, children }: ICollaboratorProps) {
+function HandleCollaborators({ isOpen, setIsOpen, fileId, children }: ICollaboratorProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {children && <DialogTrigger>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="dark:text-primary-text-dark text-2xl">
-            Manege Collaborators
+            Manage Collaborators
           </DialogTitle>
+          <DialogDescription>
+            Add collaborators to this file and control who can access it.
+          </DialogDescription>
         </DialogHeader>
         <CollaboratorManager fileId={fileId} />
       </DialogContent>
@@ -24,4 +34,4 @@ function Collaborators({ isOpen, setIsOpen, fileId, children }: ICollaboratorPro
   );
 }
 
-export default Collaborators;
+export default HandleCollaborators;
