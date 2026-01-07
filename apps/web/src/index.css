@@ -168,6 +168,19 @@ main::-webkit-scrollbar {
     grid-auto-flow: column;
     gap: 0.5rem;
   }
+
+  .chip-shimmer__animation:before {
+    content: "";
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    inset: 0;
+    filter: blur(24px);
+    opacity: 0.4;
+    background: linear-gradient(to left, #e66465, #9198e5);
+    animation: 2s infinite shimmer;
+  }
+
   .primary__btn {
     @apply bg-linear-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 transition-all hover:shadow-blue-500/40 dark:from-blue-500 dark:to-blue-600 dark:shadow-blue-500/20 dark:hover:from-blue-400 dark:hover:to-blue-500 dark:hover:shadow-blue-500/30;
   }
@@ -197,5 +210,14 @@ main::-webkit-scrollbar {
     display: flex;
     justify-content: end;
     align-items: center;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(120%);
   }
 }

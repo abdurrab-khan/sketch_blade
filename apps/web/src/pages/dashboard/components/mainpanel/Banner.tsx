@@ -89,10 +89,12 @@ function Banner() {
   const location = useLocation();
 
   const key = useMemo(
-    () => BannerKeys.find((k) => location.pathname.startsWith(k)),
+    () =>
+      BannerKeys.find(
+        (k) => location.pathname.startsWith(k) && (k !== "/dashboard" || k === location.pathname),
+      ),
     [location.pathname],
   );
-
   const { title, icon: Icon, description, button: TButton } = BannerContent[key!];
 
   return (

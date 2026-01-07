@@ -29,7 +29,7 @@ export default function AuthProtection({ children }: AuthLayoutProps) {
 
   if (!isLoaded) {
     return (
-      <div className={"size-screen flex-center bg-primary"}>
+      <div className={"size-screen flex-center bg-primary dark:bg-secondary-bg-dark"}>
         <Loader2 size={64} className={"text-quaternary animate-spin"} />
       </div>
     );

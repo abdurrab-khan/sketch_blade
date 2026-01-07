@@ -92,10 +92,7 @@ export const getCollaborators = AsyncHandler(
 export const addCollaborator = AsyncHandler(
    async (req: Request, res: Response): Promise<void> => {
       const file = req.file;
-      const collaboratorsData = zodParserHelper(
-         addCollaboratorSchema,
-         req.body ?? {},
-      );
+      const reqData = zodParserHelper(addCollaboratorSchema, req.body ?? {});
 
       if (!file || !file.isOwner) {
          throw new ErrorHandler({
@@ -104,46 +101,42 @@ export const addCollaborator = AsyncHandler(
          });
       }
 
-      const collaborators = await Promise.all(
-         collaboratorsData.map(async (collaborator) => {
-            const { email, role } = collaborator;
+      const { email, role } = reqData;
 
-            const user = await User.findOne({ email }).lean();
+      const user = await User.findOne({ email }).lean();
 
-            if (!user) {
-               throw new ErrorHandler({
-                  statusCode: 400,
-                  message: `User with email ${email} does not exist`,
-               });
-            }
-
-            return {
-               role: role,
-               fileId: file._id,
-               userId: user.clerkId,
-            };
-         }),
-      );
-
-      if (collaborators.length === 0) {
+      if (!user) {
          throw new ErrorHandler({
             statusCode: 400,
-            message: "No valid collaborators to add",
+            message: `User with email ${email} does not exist`,
          });
       }
 
-      const createdCollaborators = await Collaborator.insertMany(collaborators);
+      const createdCollaborator = await Collaborator.insertOne({
+         fileId: file._id,
+         userId: user.clerkId,
+         role,
+      });
 
-      if (!createdCollaborators || createdCollaborators.length === 0) {
+      if (!createdCollaborator) {
          throw new ErrorHandler({
             statusCode: 500,
             message: "Failed to add collaborators",
          });
       }
 
+      const resData = {
+         _id: createdCollaborator._id,
+         fullName: `${user.firstName} ${user.lastName}`,
+         profileUrl: user.profileUrl,
+         email: user.email,
+         role: createdCollaborator.role,
+      };
+
       res.status(200).json(
          new ApiResponse({
-            statusCode: 201,
+            statusCode: 200,
+            data: resData,
             message: "Collaborators are added successfully",
          }),
       );

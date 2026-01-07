@@ -7,7 +7,7 @@ interface UseMutateProps<Req, Res> {
   isShowToast?: boolean;
   options?: QueryFilters;
   customMutationFn?: (data: AxiosMutateProps<Req>) => Promise<ApiResponse<Res | null>>;
-  customOnSuccess?: (res?: ApiResponse<Res>) => void;
+  customOnSuccess?: (res: Res | null) => void;
   finallyFn?: () => void;
 }
 
@@ -61,7 +61,7 @@ const useMutate = <Res = undefined, Req = undefined>({
 
       // call on success function if it's there
       if (typeof customOnSuccess === "function") {
-        customOnSuccess(res);
+        customOnSuccess(res?.data ?? null);
       }
 
       // Show toast if isShowToast true

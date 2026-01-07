@@ -28,7 +28,9 @@ function HandleCollaborators({ isOpen, setIsOpen, fileId, children }: ICollabora
             Add collaborators to this file and control who can access it.
           </DialogDescription>
         </DialogHeader>
-        <CollaboratorManager fileId={fileId} />
+        <div className="min-w-full">
+          <CollaboratorManager fileId={fileId} />
+        </div>
       </DialogContent>
     </Dialog>
   );

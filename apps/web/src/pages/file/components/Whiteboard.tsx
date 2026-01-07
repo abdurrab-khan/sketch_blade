@@ -14,6 +14,7 @@ import "tldraw/tldraw.css";
 import ActivityFeed from "./whitboard/ActivityFeed";
 import Components from "./ui-zone/components";
 import StoreSnapshot from "./whitboard/StoreSnapshot";
+import useTheme from "@/hooks/useTheme";
 
 interface IWhiteboardProps {
   id: string;
@@ -24,6 +25,7 @@ interface IWhiteboardProps {
 const SOCKET_URL = import.meta.env["VITE_SOCKET_URL"];
 
 function Whiteboard({ id, file, token }: IWhiteboardProps) {
+  const isDarkMode = useTheme();
   const auth = useSelector((root: RootState) => root.auth);
   const store = useSync({
     connect: useCallback(
@@ -52,7 +54,16 @@ function Whiteboard({ id, file, token }: IWhiteboardProps) {
 
   return (
     <section className="fixed inset-0 size-full">
-      <Tldraw className="tldraw__editor" store={store} components={customComponents}>
+      <Tldraw
+        className="tldraw__editor"
+        store={store}
+        components={customComponents}
+        onMount={(editor) => {
+          editor.user.updateUserPreferences({
+            colorScheme: isDarkMode ? "dark" : "light",
+          });
+        }}
+      >
         <ActivityFeed store={store.store} />
         <StoreSnapshot store={store.store} fileId={id} />
       </Tldraw>

@@ -76,9 +76,10 @@ const CollaboratorsChips: React.FC<ICollaboratorsChipsProps> = ({
         duration: 0.15,
       }}
       className={cn(
-        "flex cursor-pointer items-center justify-center gap-x-2.5 rounded-full border border-zinc-200 bg-zinc-400 px-3 py-2 text-white select-none focus:border-2 dark:border-blue-500/30 dark:bg-blue-500/20 dark:text-white",
+        "relative flex cursor-pointer items-center justify-center gap-x-2.5 overflow-hidden rounded-full border border-zinc-200 bg-zinc-400 px-3 py-2 text-white select-none focus:border-2 dark:border-blue-500/30 dark:bg-blue-500/20 dark:text-white",
         selectedCollaborator?._id === collaborator._id &&
           "dark:ring-offset-primary-bg-dark ring-2 ring-slate-800 ring-offset-2 dark:ring-blue-400",
+        isPending && "chip-shimmer__animation",
       )}
       onClick={handleSelectCollaborator}
     >

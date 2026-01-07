@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Share2 } from "lucide-react";
-import { DialogTrigger } from "@/components/ui/dialog";
 import { PeopleMenu } from "tldraw";
 import { CollaboratorActions } from "@/types/collaborator";
 import HandleCollaborators from "@/components/dialogs/HandleCollaborators";
@@ -10,7 +9,7 @@ interface ITLDrawSharePanel {
   role: CollaboratorActions;
 }
 
-function TLDrawSharePanel({ role }: ITLDrawSharePanel) {
+function TLDrawSharePanel({ role, fileId }: ITLDrawSharePanel) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -18,9 +17,9 @@ function TLDrawSharePanel({ role }: ITLDrawSharePanel) {
       <PeopleMenu />
       {role !== "view" && (
         <HandleCollaborators fileId={fileId} isOpen={isOpen} setIsOpen={setIsOpen}>
-          <DialogTrigger className="primary__btn flex cursor-pointer items-center justify-center gap-2 rounded-md px-6 py-2.5 text-sm">
+          <div className="primary__btn flex cursor-pointer items-center justify-center gap-2 rounded-md px-6 py-2.5 text-sm">
             <Share2 size={"18px"} /> Share
-          </DialogTrigger>
+          </div>
         </HandleCollaborators>
       )}
     </div>

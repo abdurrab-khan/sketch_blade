@@ -17,7 +17,7 @@ export default class ApiResponse {
       this.statusCode = statusCode;
       this.success = statusCode < 300 ? true : false;
 
-      if (data !== undefined) {
+      if (data) {
          this.data = data;
       }
    }

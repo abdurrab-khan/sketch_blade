@@ -8,8 +8,7 @@ import CollaboratorRoleSelector from "./CollaboratorRoleSelector";
 
 import { useToast } from "@/hooks/use-toast";
 import useApiClient from "@/hooks/useApiClient";
-import ShowCollaborators from "./ShowCollaborators";
-import SearchUsers from "./SearchUsers";
+import CollaboratorInput from "./CollaboratorInput";
 
 interface ICollaboratorManagerProps {
   fileId: string;
@@ -30,6 +29,7 @@ function CollaboratorManager({ fileId }: ICollaboratorManagerProps) {
         const collaboratorRes = await apiClient.get<ApiResponse<Collaborator[]>>(
           `/collaborator/${fileId}`,
         );
+
         return collaboratorRes.data?.data ?? [];
       } catch (error) {
         toast({
@@ -44,24 +44,18 @@ function CollaboratorManager({ fileId }: ICollaboratorManagerProps) {
   }, [apiClient, fileId, toast]);
 
   return (
-    <div className="relative space-y-2">
+    <div className="relative max-w-full space-y-2">
       <Label htmlFor="collaborator-search">Add Collaborators</Label>
-      <div className={"flex items-start justify-between gap-x-2"}>
-        <div className="focus-within:ring-ring bg-secondary dark:bg-primary-bg-dark flex-1 rounded-md border border-zinc-300 focus-within:ring-2 focus-within:ring-offset-2 focus-within:outline-none">
-          <ShowCollaborators
+      <div className={"flex w-full items-start justify-between gap-x-2"}>
+        <div className="min-w-0 flex-1">
+          <CollaboratorInput
+            role={currentRole}
             fileId={fileId}
-            setRole={setCurrentRole}
             existingCollaborators={existingCollaborator}
             selectedCollaborator={selectedCollaborator}
+            setRole={setCurrentRole}
             setSelectedCollaborator={setSelectedCollaborator}
             setExistingCollaborators={setExistingCollaborator}
-          />
-          <SearchUsers
-            fileId={fileId}
-            role={currentRole}
-            existingCollaborators={existingCollaborator}
-            setExistingCollaborators={setExistingCollaborator}
-            setSelectedCollaborator={setSelectedCollaborator}
           />
         </div>
         <div className="w-fit">

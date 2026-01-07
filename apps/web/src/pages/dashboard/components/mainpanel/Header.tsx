@@ -1,7 +1,7 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { IoIosSearch, IoMdNotificationsOutline } from "react-icons/io";
+import { IoIosSearch } from "react-icons/io";
 import ThemeToggle from "@/components/ThemeToggle";
+import Notification from "@/components/dialogs/Notification";
 
 interface HeaderProps {
   query: string;
@@ -26,9 +26,7 @@ function Header({ query, setQuery }: HeaderProps) {
           </div>
         </div>
         <div className="ml-3">
-          <Button variant={"outline"} size={"icon"} className="mr-2">
-            <IoMdNotificationsOutline />
-          </Button>
+          <Notification />
           <ThemeToggle />
         </div>
       </div>

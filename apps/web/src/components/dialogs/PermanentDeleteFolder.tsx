@@ -36,7 +36,6 @@ function DeleteFolder({
   const { isPending } = mutate;
 
   const handleDelete = () => {
-    console.log("handleDelete");
     if (isPending) return;
 
     mutate.mutate({
@@ -48,7 +47,7 @@ function DeleteFolder({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {children && <DialogTrigger>{children}</DialogTrigger>}
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>
             <span className="text-red-500">Delete Folder</span>
