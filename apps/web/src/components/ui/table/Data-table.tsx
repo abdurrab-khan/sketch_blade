@@ -1,6 +1,8 @@
 import * as React from "react";
+
+import { Button } from "../button.tsx";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table.tsx";
 import {
-  ColumnFiltersState,
   SortingState,
   VisibilityState,
   flexRender,
@@ -11,20 +13,24 @@ import {
   useReactTable,
   ColumnDef,
 } from "@tanstack/react-table";
-import { Button } from "../button.tsx";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table.tsx";
 
 import { File, Folder } from "@/types/file.ts";
+import { useOutletContext } from "react-router";
+
 interface DataTableProps<T> {
   columns: ColumnDef<T>[];
   data: T[];
 }
 
 function DataTable<T extends File | Folder>({ columns, data }: DataTableProps<T>) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+
+  const [searchValue, setSearchValue] = useOutletContext() as [
+    string,
+    React.Dispatch<React.SetStateAction<string>>,
+  ];
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -32,7 +38,7 @@ function DataTable<T extends File | Folder>({ columns, data }: DataTableProps<T>
     columns,
     getRowId: (row) => row._id,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setSearchValue,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -41,7 +47,7 @@ function DataTable<T extends File | Folder>({ columns, data }: DataTableProps<T>
     onRowSelectionChange: setRowSelection,
     state: {
       sorting,
-      columnFilters,
+      globalFilter: searchValue,
       columnVisibility,
       rowSelection,
     },

@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { IoIosSearch } from "react-icons/io";
 import ThemeToggle from "@/components/ThemeToggle";
-import Notification from "@/components/dialogs/Notification";
+import Notification from "@/components/dropdown/Notification";
+import { useLocation } from "react-router";
 
 interface HeaderProps {
   query: string;
@@ -9,6 +10,29 @@ interface HeaderProps {
 }
 
 function Header({ query, setQuery }: HeaderProps) {
+  const { pathname } = useLocation();
+
+  const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+
+    const url = new URL(window.location.href);
+
+    if (e.target.value) {
+      url.searchParams.set("q", e.target.value);
+    } else {
+      url.searchParams.delete("q");
+    }
+
+    window.history.replaceState({}, "", url.toString());
+  };
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const q = url.searchParams.get("q") || "";
+
+    setQuery(q);
+  }, [setQuery, pathname]);
+
   return (
     <header className="dark:bg-primary-bg-dark/90 fixed top-0 left-0 z-40 h-(--dashboard-header) w-full border-b border-slate-300/20 bg-white/80 drop-shadow-2xl backdrop-blur-xl dark:border-blue-500/10">
       <div className="flex size-full items-center px-2.5 xl:pr-3 xl:pl-[calc(var(--side-bar)+12px)]">
@@ -20,7 +44,7 @@ function Header({ query, setQuery }: HeaderProps) {
                 className="w-full border-none bg-transparent px-3 py-2.5 text-slate-900 ring-0 outline-none placeholder:font-semibold placeholder:text-slate-400/60 dark:text-white dark:placeholder:text-slate-500"
                 placeholder="Search Diagrams, folders..."
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={handleOnChange}
               />
             </span>
           </div>

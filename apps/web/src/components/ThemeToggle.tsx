@@ -1,9 +1,14 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { MdDarkMode, MdLightMode } from "react-icons/md";
 
 function ThemeToggle() {
-  const [mode, setMode] = useState<"light" | "dark">("light");
+  const [mode, setMode] = useState<"light" | "dark">(() => {
+    const isDarkMode =
+      localStorage.theme === "dark" ||
+      (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    return isDarkMode ? "dark" : "light";
+  });
 
   const toggleTheme = () => {
     if (mode === "light") {
@@ -18,14 +23,9 @@ function ThemeToggle() {
   };
 
   useEffect(() => {
-    const isDarkMode =
-      localStorage.theme === "dark" ||
-      (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches);
-
+    const isDarkMode = mode === "dark";
     document.documentElement.classList.toggle("dark", isDarkMode);
-
-    setMode(isDarkMode ? "dark" : "light");
-  }, []);
+  }, [mode]);
 
   console.log("Current theme mode:", mode);
 
@@ -41,4 +41,4 @@ function ThemeToggle() {
   );
 }
 
-export default ThemeToggle;
+export default memo(ThemeToggle);
