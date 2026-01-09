@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 
 import { Button } from "../button.tsx";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../table.tsx";
@@ -12,44 +12,53 @@ import {
   getSortedRowModel,
   useReactTable,
   ColumnDef,
+  Row,
 } from "@tanstack/react-table";
 
 import { File, Folder } from "@/types/file.ts";
-import { useOutletContext } from "react-router";
 
 interface DataTableProps<T> {
-  columns: ColumnDef<T>[];
   data: T[];
+  columns: ColumnDef<T>[];
+  sorting?: SortingState;
+  searchValue: string;
+  setSearchValue: React.Dispatch<React.SetStateAction<string>>;
+  setSorting?: React.Dispatch<React.SetStateAction<SortingState>>;
+  globalFilterFn?: (row: Row<T>) => boolean;
 }
 
-function DataTable<T extends File | Folder>({ columns, data }: DataTableProps<T>) {
+function DataTable<T extends File | Folder>({
+  data,
+  columns,
+  sorting,
+  searchValue,
+  setSorting,
+  setSearchValue,
+  globalFilterFn,
+}: DataTableProps<T>) {
   const [rowSelection, setRowSelection] = React.useState({});
-  const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-
-  const [searchValue, setSearchValue] = useOutletContext() as [
-    string,
-    React.Dispatch<React.SetStateAction<string>>,
-  ];
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
     getRowId: (row) => row._id,
-    onSortingChange: setSorting,
+
     onGlobalFilterChange: setSearchValue,
+    globalFilterFn: globalFilterFn,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
+    onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,
+    onColumnVisibilityChange: setColumnVisibility,
     state: {
-      sorting,
-      globalFilter: searchValue,
-      columnVisibility,
       rowSelection,
+      columnVisibility,
+      sorting: sorting || [],
+      globalFilter: searchValue,
     },
   });
 

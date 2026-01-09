@@ -68,8 +68,8 @@ createRoot(document.getElementById("root")!).render(
     afterSignOutUrl="/sign-in"
     signInUrl="/sign-in"
     signUpUrl="/sign-up"
-    signInForceRedirectUrl={"/"}
-    signUpForceRedirectUrl={"/"}
+    signInForceRedirectUrl={"/dashboard"}
+    signUpForceRedirectUrl={"/dashboard"}
   >
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>

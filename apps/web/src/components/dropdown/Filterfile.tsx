@@ -1,34 +1,75 @@
-import React from "react";
+import React, { useEffect, useMemo } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { useLocation } from "react-router";
 
 import { FaFilter } from "react-icons/fa6";
 
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import DropdownLayout from "./DropdownLayout";
-import { DropdownMenuLabel, DropdownMenuSeparator } from "../ui/dropdown-menu";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { DropdownMenuLabel, DropdownMenuSeparator } from "../ui/dropdown-menu";
+
+import { File } from "@/types/file";
+import type { FileFilter } from "@/types";
+
+type Option = { type: "folder" | "owner"; id: string; label: string };
 
 interface IFilterLayoutProps {
+  type: "folder" | "owner";
   labelTitle: string;
-  options: {
-    id: string;
-    label: string;
-  }[];
+  options: Option[];
+  filterValues: FileFilter;
+  setFilterValue: React.Dispatch<React.SetStateAction<FileFilter>>;
 }
 
-const FilterLayout = ({ labelTitle, options }: IFilterLayoutProps) => {
+interface IFileFilterProps {
+  data: File[];
+  filterValues: FileFilter;
+  setFilterValue: React.Dispatch<React.SetStateAction<FileFilter>>;
+}
+
+const FilterRadioItem: React.FC<Option> = ({ type, id, label }) => {
   return (
-    <div className="not-first:mt-1">
+    <Label
+      htmlFor={`${type}-${id}`}
+      className="flex w-full items-center gap-x-1.5 text-sm font-normal"
+    >
+      <RadioGroupItem id={`${type}-${id}`} value={id} />
+      {label}
+    </Label>
+  );
+};
+
+const FilterLayout: React.FC<IFilterLayoutProps> = ({
+  type,
+  labelTitle,
+  options,
+  filterValues,
+  setFilterValue,
+}) => {
+  // Handle radio button value change
+  const handleValueChange = (value: string) => {
+    setFilterValue((prev) => ({
+      ...prev,
+      [type]: value,
+    }));
+
+    // Let's update the URL query params as well
+    const url = new URL(window.location.href);
+    url.searchParams.set(type, value);
+    window.history.replaceState({}, "", url.toString());
+  };
+
+  return (
+    <div className="not-first:mt-1.5">
       <Label>{labelTitle}</Label>
       <div className="mt-1 ml-2">
-        <RadioGroup defaultValue="">
+        <RadioGroup value={filterValues[type]} defaultValue="All" onValueChange={handleValueChange}>
+          <FilterRadioItem type={type} id="All" label="All" />
           {options.map(({ id, label }) => (
-            <div className="flex items-center gap-x-1.5">
-              <RadioGroupItem value={label} id={id} />
-              <Label htmlFor={id} className="w-full text-sm font-normal">
-                {label}
-              </Label>
-            </div>
+            <FilterRadioItem type={type} key={id} id={id} label={label} />
           ))}
         </RadioGroup>
       </div>
@@ -36,7 +77,39 @@ const FilterLayout = ({ labelTitle, options }: IFilterLayoutProps) => {
   );
 };
 
-function Filterfile() {
+function FileFilter({ data = [], filterValues, setFilterValue }: IFileFilterProps) {
+  console.log("Data in FileFilter:", data);
+  const { pathname } = useLocation();
+  const { email: userEmail } = useSelector((root: RootState) => root.auth);
+  const FilterFolderOptions = useMemo(
+    () =>
+      Array.from(new Map(data.map((file) => [file?.folder?._id, file?.folder?.name])))
+        .filter(([id]) => id !== undefined)
+        .map(([id, name]) => ({ id: id as string, label: name as string })),
+    [data],
+  );
+  const FilterOwnerOption = useMemo(
+    () =>
+      Array.from(new Map(data.map((file) => [file.owner.email, file.owner.fullName]))).map(
+        ([email, fullName]) => ({ id: email, label: email === userEmail ? "Me" : fullName }),
+      ),
+    [data, userEmail],
+  );
+
+  useEffect(() => {
+    // On mount, read URL query params to set initial filter values
+    const url = new URL(window.location.href);
+
+    const folderParam = url.searchParams.get("folder");
+    const ownerParam = url.searchParams.get("owner");
+
+    setFilterValue((prev) => ({
+      ...prev,
+      folder: folderParam ? folderParam : prev.folder,
+      owner: ownerParam ? ownerParam : prev.owner,
+    }));
+  }, [pathname, setFilterValue]);
+
   return (
     <DropdownLayout
       triggerTitle="Filter File"
@@ -54,25 +127,22 @@ function Filterfile() {
       <DropdownMenuSeparator />
       <div className="px-1.5">
         <FilterLayout
+          type="folder"
           labelTitle="Filter by folder"
-          options={[
-            { id: "inbox", label: "Inbox" },
-            { id: "projects", label: "Projects" },
-            { id: "designs", label: "Designs" },
-            { id: "documents", label: "Documents" },
-          ]}
+          filterValues={filterValues}
+          setFilterValue={setFilterValue}
+          options={FilterFolderOptions}
         />
         <FilterLayout
+          type="owner"
           labelTitle="Filter by owner"
-          options={[
-            { id: "me", label: "Me" },
-            { id: "team", label: "Team" },
-            { id: "guest", label: "Guest" },
-          ]}
+          filterValues={filterValues}
+          setFilterValue={setFilterValue}
+          options={FilterOwnerOption}
         />
       </div>
     </DropdownLayout>
   );
 }
 
-export default Filterfile;
+export default FileFilter;

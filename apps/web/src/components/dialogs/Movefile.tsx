@@ -3,7 +3,6 @@ import { debounce } from "lodash";
 import { Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils.ts";
-import { getFormattedTime } from "@/utils/AppUtils.ts";
 
 import useMutate from "@/hooks/useMutate.ts";
 import useApiClient from "@/hooks/useApiClient.ts";
@@ -50,15 +49,14 @@ const FolderCard: React.FC<FolderCardProps> = ({ id, name, setSelectFolderId }) 
   return (
     <Label
       htmlFor={id}
-      className="mx-1 cursor-pointer rounded-md bg-[#7886C7] px-4 py-3.5 text-white/95 outline-[#FF714B] first:mt-4 last:mb-2 has-checked:bg-[#1A3D64] has-checked:outline-2 has-checked:outline-offset-2"
+      className="group bg-secondary/50 hover:bg-secondary hover:border-border has-checked:border-primary has-checked:bg-primary/30 dark:bg-secondary/30 dark:hover:bg-secondary/50 dark:has-checked:bg-primary/40 has-checked:ring-primary/50 mx-1 flex cursor-pointer items-center justify-between rounded-lg border border-transparent px-4 py-3 transition-all duration-200 first:mt-4 last:mb-2 has-checked:ring-2"
     >
-      <div className="flex justify-between">
-        <span className="flex items-center gap-x-3">
-          <FaFolderOpen />
-          <p>{name}</p>
-        </span>
-        <input id={id} type="radio" name="folder" className="opacity-0" onChange={handleChange} />
-      </div>
+      <span className="flex items-center gap-x-3">
+        <FaFolderOpen className="text-muted-foreground group-has-checked:text-primary h-5 w-5" />
+        <p className="text-foreground group-has-checked:text-primary text-sm font-medium">{name}</p>
+      </span>
+      <input id={id} type="radio" name="folder" className="sr-only" onChange={handleChange} />
+      <div className="border-muted-foreground/50 group-has-checked:border-primary group-has-checked:bg-primary h-4 w-4 rounded-full border-2 transition-all group-has-checked:shadow-[inset_0_0_0_2px_white] dark:group-has-checked:shadow-[inset_0_0_0_2px_hsl(var(--background))]" />
     </Label>
   );
 };
@@ -130,6 +128,12 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
 
   const handleSearchFolder = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputSearch(e.target.value);
+
+    if (e.target.value.trim() === "") {
+      setListFolders([]);
+      return;
+    }
+
     searchFolders(e.target.value);
   };
 
@@ -141,7 +145,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
       {children && <DialogTrigger>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Move Folder</DialogTitle>
+          <DialogTitle className="dark:text-primary-text-dark text-2xl">Move to Folder</DialogTitle>
           <DialogDescription>Move the folder to another location</DialogDescription>
         </DialogHeader>
         <div>
@@ -149,7 +153,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
             <Label>Search Folder</Label>
             <Input
               className={cn(
-                "rounded-none border-0 border-b bg-transparent! shadow-none ring-0 outline-none focus:border-0 focus:border-b focus:placeholder-gray-500 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
+                "mb-2 rounded-none border-0 border-b bg-transparent! shadow-none ring-0 outline-none focus:border-0 focus:border-b focus:placeholder-gray-500 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
                 "placeholder:text-gray-400 dark:placeholder:text-gray-500",
               )}
               placeholder={"Search folder to move"}
@@ -158,7 +162,11 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
             />
           </div>
 
-          <div className={"max-h-56 min-h-10 overflow-y-auto"}>
+          <div
+            className={
+              "scrollbar-thin scrollbar-track-transparent scrollbar-thumb-blue-500/50 hover:scrollbar-thumb-blue-500/70 max-h-56 min-h-10 overflow-y-auto"
+            }
+          >
             <div className={"flex h-full flex-col flex-wrap gap-4"}>
               {isFetching || isSearchPending ? (
                 <div className={"flex-center size-full"}>

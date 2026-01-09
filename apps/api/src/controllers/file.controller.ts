@@ -282,7 +282,6 @@ const getFiles = AsyncHandler(
                pipeline: [
                   {
                      $project: {
-                        _id: 0,
                         name: 1,
                         state: 1,
                         createdAt: 1,

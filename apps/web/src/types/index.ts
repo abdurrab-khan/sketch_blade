@@ -22,3 +22,10 @@ export interface Stat {
   totalFolders: number;
   totalSharedDiagrams: number;
 }
+
+export type SortType = "name" | "createdAt" | "updatedAt";
+
+export type FileFilter = {
+  folder: "All" | string;
+  owner: "All" | string;
+};

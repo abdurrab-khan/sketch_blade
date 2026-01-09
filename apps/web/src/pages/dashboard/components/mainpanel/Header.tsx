@@ -41,7 +41,7 @@ function Header({ query, setQuery }: HeaderProps) {
             <IoIosSearch size={22} className="text-slate-400/60 dark:text-blue-400" />
             <span className="block w-full flex-1">
               <input
-                className="w-full border-none bg-transparent px-3 py-2.5 text-slate-900 ring-0 outline-none placeholder:font-semibold placeholder:text-slate-400/60 dark:text-white dark:placeholder:text-slate-500"
+                className="w-full border-none bg-transparent px-3 py-2.5 text-sm font-medium text-slate-900 ring-0 outline-none placeholder:font-semibold placeholder:text-slate-400/60 dark:text-white dark:placeholder:text-slate-500"
                 placeholder="Search Diagrams, folders..."
                 value={query}
                 onChange={handleOnChange}

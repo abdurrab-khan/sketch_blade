@@ -94,10 +94,12 @@ function FileAction({ row }: FileActionProps) {
               <MdDelete className="h-4 w-4" />
               Delete
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setMoveFileDialogOpen(true)} className={"w-full"}>
-              <Move className="h-4 w-4" />
-              Move File
-            </DropdownMenuItem>
+            {!folder && (
+              <DropdownMenuItem onSelect={() => setMoveFileDialogOpen(true)} className={"w-full"}>
+                <Move className="h-4 w-4" />
+                Move File
+              </DropdownMenuItem>
+            )}
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
