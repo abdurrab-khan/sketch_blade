@@ -211,6 +211,45 @@ main::-webkit-scrollbar {
     justify-content: end;
     align-items: center;
   }
+
+  .style-scrollbar {
+    /* Light mode scrollbar */
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background: var(--secondary-bg-light);
+      border-radius: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--border-light);
+      border-radius: 4px;
+      transition: background 0.2s ease;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background: var(--secondary-text-light);
+    }
+
+    /* Dark mode scrollbar */
+    &:where(.dark, .dark *)::-webkit-scrollbar-track {
+      background: var(--secondary-bg-dark);
+    }
+    &:where(.dark, .dark *)::-webkit-scrollbar-thumb {
+      background: var(--border-dark);
+    }
+    &:where(.dark, .dark *)::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-blue-dark);
+    }
+
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-light) var(--secondary-bg-light);
+
+    &:where(.dark, .dark *) {
+      scrollbar-color: var(--border-dark) var(--secondary-bg-dark);
+    }
+  }
 }
 
 @keyframes shimmer {

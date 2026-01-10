@@ -28,6 +28,8 @@ function FolderFiles() {
     );
   }
 
+  console.log("Folder Files Data:", data);
+
   return (
     <div className="flex size-full flex-1 flex-col gap-y-3">
       <div className="flex size-full flex-1 flex-col">

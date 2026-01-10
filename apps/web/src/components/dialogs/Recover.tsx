@@ -1,7 +1,7 @@
 import React from "react";
 import useMutate from "@/hooks/useMutate";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import {
   Dialog,
@@ -49,30 +49,39 @@ function RecoverDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      {children && <DialogTrigger>{children}</DialogTrigger>}
-      <DialogContent className="sm:max-w-[425px]">
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            <span className="text-red-500 dark:text-red-400">Delete File</span>
+          <DialogTitle className="text-2xl text-green-500 dark:text-green-400">
+            Recover {type === "file" ? "File" : "Folder"}
           </DialogTitle>
-          <DialogDescription>Are you sure you want to recover your {type}?</DialogDescription>
+          <DialogDescription>
+            This will restore your {type} from trash and move it back to its original location.
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4"></div>
-        </div>
-        <DialogFooter>
-          <div className={"flex w-full items-center justify-between"}>
+        <DialogFooter className="mt-4">
+          <div className="flex w-full items-center justify-between">
             <DialogClose asChild>
-              <Button type="button">Cancel</Button>
+              <Button type="button" variant="outline">
+                Cancel
+              </Button>
             </DialogClose>
-            <Button type="button" onClick={handleRecover} disabled={isPending}>
+            <Button
+              type="button"
+              onClick={handleRecover}
+              disabled={isPending}
+              className="bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700"
+            >
               {isPending ? (
                 <>
                   Recovering...
-                  <Loader2 className={"ml-1 h-6 w-6 animate-spin"} />
+                  <Loader2 className="ml-1 h-4 w-4 animate-spin" />
                 </>
               ) : (
-                "Recover"
+                <>
+                  <RotateCcw className="mr-1 h-4 w-4" />
+                  Recover
+                </>
               )}
             </Button>
           </div>

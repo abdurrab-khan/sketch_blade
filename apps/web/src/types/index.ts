@@ -1,3 +1,5 @@
+import { File, FolderDetails } from "./file";
+
 export type ExtractArray<T> = T extends (infer R)[] ? R : T;
 
 export interface AxiosMutateProps<T = unknown> {
@@ -15,6 +17,14 @@ export interface ApiResponse<T = unknown> {
   statusCode: number;
   message: string;
   data?: T;
+}
+
+export interface ExtendedFile extends File {
+  type: "file";
+}
+
+export interface ExtendedFolder extends FolderDetails {
+  type: "folder";
 }
 
 export interface Stat {

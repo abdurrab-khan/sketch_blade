@@ -94,12 +94,10 @@ function FileAction({ row }: FileActionProps) {
               <MdDelete className="h-4 w-4" />
               Delete
             </DropdownMenuItem>
-            {!folder && (
-              <DropdownMenuItem onSelect={() => setMoveFileDialogOpen(true)} className={"w-full"}>
-                <Move className="h-4 w-4" />
-                Move File
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem onSelect={() => setMoveFileDialogOpen(true)} className={"w-full"}>
+              <Move className="h-4 w-4" />
+              {folder ? "Change Folder" : "Move to Folder"}
+            </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -122,15 +120,12 @@ function FileAction({ row }: FileActionProps) {
         </React.Fragment>
       )}
 
-      {/* Show Only if file is not already in folder */}
-      {!folder && (
-        <MoveFileDialog
-          _id={_id}
-          existingFolderId={row.original?.folder?._id}
-          isOpen={moveFileDialogOpen}
-          setIsOpen={setMoveFileDialogOpen}
-        />
-      )}
+      <MoveFileDialog
+        _id={_id}
+        existingFolderId={row.original?.folder?._id}
+        isOpen={moveFileDialogOpen}
+        setIsOpen={setMoveFileDialogOpen}
+      />
     </React.Fragment>
   );
 }

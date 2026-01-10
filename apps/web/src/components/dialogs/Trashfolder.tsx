@@ -1,5 +1,5 @@
 import React from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import useMutate from "@/hooks/useMutate";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,30 +45,37 @@ function Trashfolder({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      {children && <DialogTrigger>{children}</DialogTrigger>}
-      <DialogContent className="sm:max-w-[425px]">
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            <span className="text-red-500 dark:text-red-400">Delete File</span>
-          </DialogTitle>
-          <DialogDescription>Are you sure you want to delete this file?</DialogDescription>
+          <DialogTitle className="dark:text-primary-text-dark text-2xl">Move to Trash</DialogTitle>
+          <DialogDescription>
+            This folder and all its contents will be moved to trash. You can restore it later.
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4"></div>
-        </div>
-        <DialogFooter>
-          <div className={"flex w-full items-center justify-between"}>
+        <DialogFooter className="mt-4">
+          <div className="flex w-full items-center justify-between">
             <DialogClose asChild>
-              <Button type="button">Cancel</Button>
+              <Button type="button" variant="outline">
+                Cancel
+              </Button>
             </DialogClose>
-            <Button type="button" onClick={handleDelete} disabled={mutate.isPending}>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={mutate.isPending}
+            >
               {mutate.isPending ? (
                 <>
-                  Deleting...
-                  <Loader2 className={"ml-1 h-6 w-6 animate-spin"} />
+                  Moving...
+                  <Loader2 className="ml-1 h-4 w-4 animate-spin" />
                 </>
               ) : (
-                "Delete"
+                <>
+                  <Trash2 className="mr-1 h-4 w-4" />
+                  Move to Trash
+                </>
               )}
             </Button>
           </div>

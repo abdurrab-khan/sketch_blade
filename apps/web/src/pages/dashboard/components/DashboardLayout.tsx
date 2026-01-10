@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Body from "./mainpanel/Body";
 import Header from "./mainpanel/Header";
 

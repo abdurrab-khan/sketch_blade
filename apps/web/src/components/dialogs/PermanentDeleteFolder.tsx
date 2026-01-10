@@ -1,5 +1,5 @@
 import React from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import useMutate from "@/hooks/useMutate";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,10 +33,9 @@ function DeleteFolder({
     options: { queryKey },
     finallyFn: () => setIsOpen(false),
   });
-  const { isPending } = mutate;
 
   const handleDelete = () => {
-    if (isPending) return;
+    if (mutate.isPending) return;
 
     mutate.mutate({
       method: "delete",
@@ -46,37 +45,40 @@ function DeleteFolder({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      {children && <DialogTrigger>{children}</DialogTrigger>}
-      <DialogContent className="sm:max-w-106.25">
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            <span className="text-red-500">Delete Folder</span>
+          <DialogTitle className="text-2xl text-red-500 dark:text-red-400">
+            Delete Folder Permanently
           </DialogTitle>
-          <DialogDescription className={"text-quaternary"}>
-            Are you sure you want to delete this folder?
+          <DialogDescription>
+            This action cannot be undone. This folder and all its contents will be permanently
+            removed from our servers.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4"></div>
-        </div>
-        <DialogFooter>
-          <div className={"flex w-full items-center justify-between"}>
+        <DialogFooter className="mt-4">
+          <div className="flex w-full items-center justify-between">
             <DialogClose asChild>
-              <Button type="button">Cancel</Button>
+              <Button type="button" variant="outline">
+                Cancel
+              </Button>
             </DialogClose>
             <Button
               type="button"
-              variant={"delete"}
+              variant="destructive"
               onClick={handleDelete}
               disabled={mutate.isPending}
             >
-              {isPending ? (
+              {mutate.isPending ? (
                 <>
                   Deleting...
-                  <Loader2 className={"ml-1 h-6 w-6 animate-spin"} />
+                  <Loader2 className="ml-1 h-4 w-4 animate-spin" />
                 </>
               ) : (
-                "Delete"
+                <>
+                  <Trash2 className="mr-1 h-4 w-4" />
+                  Delete Forever
+                </>
               )}
             </Button>
           </div>

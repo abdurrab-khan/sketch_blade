@@ -2,7 +2,7 @@ import { useState } from "react";
 import DataTable from "./Data-table.tsx";
 import { folderColumns } from "./columns/FolderColumns.tsx";
 
-import { Folder, FolderDetails } from "@/types/file.ts";
+import { FolderDetails } from "@/types/file.ts";
 import { Row, SortingState } from "@tanstack/react-table";
 import Sortfile from "@/components/dropdown/Sort.tsx";
 import { useOutletContext } from "react-router";
@@ -23,10 +23,9 @@ const FolderTable = ({ data }: FolderTableProps) => {
     },
   ]);
 
-  const globalFilterFn = (row: Row<Folder>) => {
+  const globalFilterFn = (row: Row<FolderDetails>) => {
     if (!searchValue) return true;
     const data = row.original;
-
     return data.name.toLowerCase().includes(searchValue.toLowerCase());
   };
 

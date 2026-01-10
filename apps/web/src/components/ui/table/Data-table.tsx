@@ -16,6 +16,7 @@ import {
 } from "@tanstack/react-table";
 
 import { File, Folder } from "@/types/file.ts";
+import { ExtendedFile, ExtendedFolder } from "@/types/index.ts";
 
 interface DataTableProps<T> {
   data: T[];
@@ -27,7 +28,7 @@ interface DataTableProps<T> {
   globalFilterFn?: (row: Row<T>) => boolean;
 }
 
-function DataTable<T extends File | Folder>({
+function DataTable<T extends File | Folder | (ExtendedFile | ExtendedFolder)>({
   data,
   columns,
   sorting,
@@ -57,7 +58,7 @@ function DataTable<T extends File | Folder>({
     state: {
       rowSelection,
       columnVisibility,
-      sorting: sorting || [],
+      sorting: sorting,
       globalFilter: searchValue,
     },
   });

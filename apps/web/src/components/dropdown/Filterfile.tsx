@@ -14,7 +14,7 @@ import { DropdownMenuLabel, DropdownMenuSeparator } from "../ui/dropdown-menu";
 import { File } from "@/types/file";
 import type { FileFilter } from "@/types";
 
-type Option = { type: "folder" | "owner"; id: string; label: string };
+type Option = { id: string; label: string };
 
 interface IFilterLayoutProps {
   type: "folder" | "owner";
@@ -30,7 +30,7 @@ interface IFileFilterProps {
   setFilterValue: React.Dispatch<React.SetStateAction<FileFilter>>;
 }
 
-const FilterRadioItem: React.FC<Option> = ({ type, id, label }) => {
+const FilterRadioItem: React.FC<Option & { type: "folder" | "owner" }> = ({ type, id, label }) => {
   return (
     <Label
       htmlFor={`${type}-${id}`}
@@ -78,7 +78,7 @@ const FilterLayout: React.FC<IFilterLayoutProps> = ({
 };
 
 function FileFilter({ data = [], filterValues, setFilterValue }: IFileFilterProps) {
-  console.log("Data in FileFilter:", data);
+  console.log("Filter data is: ", data);
   const { pathname } = useLocation();
   const { email: userEmail } = useSelector((root: RootState) => root.auth);
   const FilterFolderOptions = useMemo(

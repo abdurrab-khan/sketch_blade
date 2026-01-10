@@ -1,19 +1,23 @@
+import { Row } from "@tanstack/react-table";
+import { useOutletContext } from "react-router";
+
 import { Loader2 } from "lucide-react";
-import { File, FolderDetails } from "@/types/file";
+
+import { ExtendedFile, ExtendedFolder } from "@/types";
+
 import useResponse from "@/hooks/useResponse.tsx";
+
 import DataTable from "@/components/ui/table/Data-table.tsx";
 import trashColumn from "@/components/ui/table/columns/TrashColumns.tsx";
 
-interface IExtendedFile extends File {
-  type: "file" | "folder";
-}
-
-interface IExtendedFolder extends FolderDetails {
-  type: "file" | "folder";
-}
-
 function Trash() {
-  const { data, isPending } = useResponse<Array<IExtendedFile | IExtendedFolder>>({
+  // Get search value from outlet context
+  const [searchValue, setSearchValue] = useOutletContext() as [
+    string,
+    React.Dispatch<React.SetStateAction<string>>,
+  ];
+
+  const { data, isPending } = useResponse<(ExtendedFile | ExtendedFolder)[]>({
     queryKey: ["getTrashData"],
     queryProps: { uri: "/trash" },
   });
@@ -28,7 +32,20 @@ function Trash() {
     );
   }
 
-  return <DataTable data={data?.data ?? []} columns={trashColumn} />;
+  const globalFilterFn = (row: Row<ExtendedFile | ExtendedFolder>) => {
+    const data = row.original;
+    return !searchValue || data.name.toLowerCase().includes(searchValue.toLowerCase());
+  };
+
+  return (
+    <DataTable
+      data={data?.data || []}
+      columns={trashColumn}
+      searchValue={searchValue}
+      setSearchValue={setSearchValue}
+      globalFilterFn={globalFilterFn}
+    />
+  );
 }
 
 export default Trash;

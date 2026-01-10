@@ -1,17 +1,8 @@
-import React, { useMemo, useState, useTransition } from "react";
-import { debounce } from "lodash";
+import React, { useState } from "react";
+import useMutate from "@/hooks/useMutate.ts";
+
 import { Loader2 } from "lucide-react";
 
-import { cn } from "@/lib/utils.ts";
-
-import useMutate from "@/hooks/useMutate.ts";
-import useApiClient from "@/hooks/useApiClient.ts";
-
-import { ApiResponse } from "@/types/index.ts";
-import { FolderDetails } from "@/types/file.ts";
-
-import { Label } from "@/components/ui/label.tsx";
-import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
 import {
@@ -23,14 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog.tsx";
-import { FaFolderOpen } from "react-icons/fa6";
-import useResponse from "@/hooks/useResponse";
-
-interface FolderCardProps {
-  id: string;
-  name: string;
-  setSelectFolderId: React.Dispatch<React.SetStateAction<string>>;
-}
+import Movefile from "../form/Movefile";
 
 interface MoveFileDialogProps {
   _id: string;
@@ -40,27 +24,6 @@ interface MoveFileDialogProps {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const FolderCard: React.FC<FolderCardProps> = ({ id, name, setSelectFolderId }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const folderId = e.target.id;
-    setSelectFolderId(folderId);
-  };
-
-  return (
-    <Label
-      htmlFor={id}
-      className="group bg-secondary/50 hover:bg-secondary hover:border-border has-checked:border-primary has-checked:bg-primary/30 dark:bg-secondary/30 dark:hover:bg-secondary/50 dark:has-checked:bg-primary/40 has-checked:ring-primary/50 mx-1 flex cursor-pointer items-center justify-between rounded-lg border border-transparent px-4 py-3 transition-all duration-200 first:mt-4 last:mb-2 has-checked:ring-2"
-    >
-      <span className="flex items-center gap-x-3">
-        <FaFolderOpen className="text-muted-foreground group-has-checked:text-primary h-5 w-5" />
-        <p className="text-foreground group-has-checked:text-primary text-sm font-medium">{name}</p>
-      </span>
-      <input id={id} type="radio" name="folder" className="sr-only" onChange={handleChange} />
-      <div className="border-muted-foreground/50 group-has-checked:border-primary group-has-checked:bg-primary h-4 w-4 rounded-full border-2 transition-all group-has-checked:shadow-[inset_0_0_0_2px_white] dark:group-has-checked:shadow-[inset_0_0_0_2px_hsl(var(--background))]" />
-    </Label>
-  );
-};
-
 const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
   _id,
   isOpen,
@@ -68,19 +31,7 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
   children,
   existingFolderId,
 }) => {
-  const [inputSearch, setInputSearch] = useState<string>("");
   const [selectedFolder, setSelectedFolder] = useState<string>(existingFolderId || "");
-  const [listFolders, setListFolders] = useState<FolderDetails[]>([]);
-
-  const apiClient = useApiClient();
-  const [isSearchPending, startTransition] = useTransition();
-
-  const { data, isPending, isFetching } = useResponse<FolderDetails[]>({
-    queryKey: ["getFolder"],
-    queryProps: {
-      uri: "/folder",
-    },
-  });
 
   const fileUpdateMutation = useMutate({
     options: { queryKey: ["getFiles"] },
@@ -102,98 +53,31 @@ const MoveFileDialog: React.FC<MoveFileDialogProps> = ({
     });
   };
 
-  const searchFolders = useMemo(
-    () =>
-      debounce((searchQuery: string) => {
-        startTransition(async () => {
-          try {
-            const folders = await apiClient.get<ApiResponse<FolderDetails[]>>(
-              `/folder/search?name=${encodeURIComponent(searchQuery)}`,
-            );
-
-            startTransition(() => {
-              if (folders.data?.data) {
-                const data = folders.data.data;
-                setListFolders(data);
-              }
-            });
-          } catch (err) {
-            setListFolders([]);
-            console.error("Error occurred during finding folders: ", err);
-          }
-        });
-      }, 500),
-    [apiClient],
-  );
-
-  const handleSearchFolder = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputSearch(e.target.value);
-
-    if (e.target.value.trim() === "") {
-      setListFolders([]);
-      return;
-    }
-
-    searchFolders(e.target.value);
-  };
-
-  const folderData =
-    listFolders.length > 0 && inputSearch.length > 0 ? listFolders : (data?.data ?? []);
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {children && <DialogTrigger>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="dark:text-primary-text-dark text-2xl">Move to Folder</DialogTitle>
+          <DialogTitle className="dark:text-primary-text-dark text-primary-text-light text-2xl">
+            {existingFolderId ? "Change File Location" : "Move File to Folder"}
+          </DialogTitle>
           <DialogDescription>Move the folder to another location</DialogDescription>
         </DialogHeader>
         <div>
-          <div>
-            <Label>Search Folder</Label>
-            <Input
-              className={cn(
-                "mb-2 rounded-none border-0 border-b bg-transparent! shadow-none ring-0 outline-none focus:border-0 focus:border-b focus:placeholder-gray-500 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
-                "placeholder:text-gray-400 dark:placeholder:text-gray-500",
-              )}
-              placeholder={"Search folder to move"}
-              value={inputSearch}
-              onChange={handleSearchFolder}
-            />
+          <div className={"style-scrollbar max-h-60 min-h-10 overflow-y-auto"}>
+            <Movefile selectedFolder={selectedFolder} setSelectedFolder={setSelectedFolder} />
           </div>
-
-          <div
-            className={
-              "scrollbar-thin scrollbar-track-transparent scrollbar-thumb-blue-500/50 hover:scrollbar-thumb-blue-500/70 max-h-56 min-h-10 overflow-y-auto"
-            }
-          >
-            <div className={"flex h-full flex-col flex-wrap gap-4"}>
-              {isFetching || isSearchPending ? (
-                <div className={"flex-center size-full"}>
-                  <Loader2 className={"h-8 w-8 animate-spin"} />
-                </div>
-              ) : folderData.length <= 0 ? (
-                <div className={"flex h-10 items-center justify-center"}>
-                  <p className={"text-xs text-gray-500"}>No folder found</p>
-                </div>
-              ) : (
-                <>
-                  {folderData.map(({ _id, name }) => (
-                    <FolderCard
-                      key={_id}
-                      id={_id}
-                      name={name}
-                      setSelectFolderId={setSelectedFolder}
-                    />
-                  ))}
-                </>
-              )}
-            </div>
-          </div>
-          <Separator />
+          <Separator className="mt-2" />
         </div>
         <DialogFooter>
-          <Button className={"w-full"} disabled={!selectedFolder} onClick={handleMoveIntoFolder}>
+          <Button
+            variant={"primary"}
+            className={"w-full"}
+            disabled={
+              !selectedFolder || fileUpdateMutation.isPending || selectedFolder === existingFolderId
+            }
+            onClick={handleMoveIntoFolder}
+          >
             {fileUpdateMutation.isPending ? (
               <>
                 Moving... <Loader2 className={"h-8 w-8 animate-spin"} />

@@ -3,7 +3,10 @@ import { Link, NavLink, useLocation } from "react-router";
 import { MdGroups, MdSpaceDashboard } from "react-icons/md";
 import { FaClockRotateLeft, FaFolder, FaStar, FaTrash } from "react-icons/fa6";
 import clsx from "clsx";
-import { useUser } from "@clerk/clerk-react";
+import { SignedIn, SignOutButton, useUser } from "@clerk/clerk-react";
+import DropdownLayout from "@/components/dropdown/DropdownLayout";
+import { DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { IoLogOutOutline } from "react-icons/io5";
 
 const NavLinks = [
   {
@@ -38,22 +41,64 @@ const NavLinks = [
   },
 ];
 
-function SideBar() {
+const ProfileButton = () => {
   const { user } = useUser();
-  const { pathname } = useLocation();
-
   const fullName = user?.fullName?.toString() ?? "Unknown";
   const emailAddress = user?.emailAddresses[0]?.emailAddress ?? "Invalid email address";
 
   return (
-    <nav className="flex size-full flex-col justify-between overflow-y-auto px-8 py-6">
+    <DropdownLayout
+      trigger={
+        <button className="cursor-pointer rounded-lg px-2.5 py-2.5">
+          <div className="flex items-center gap-x-2">
+            <div className="aspect-square size-8 overflow-hidden rounded-lg bg-blue-500">
+              <img className="object-fit size-full" src={user?.imageUrl} />
+            </div>
+            <div className="flex-1 text-start">
+              <div className="text-primary-text-light text-sm font-semibold dark:text-white">
+                {fullName.length > 24 ? fullName.slice(0, 24) + "..." : fullName}
+              </div>
+              <div className="text-secondary-text-light/80 text-xs dark:text-slate-400">
+                {emailAddress.length > 30 ? emailAddress.slice(0, 30) + "..." : emailAddress}
+              </div>
+            </div>
+          </div>
+        </button>
+      }
+      triggerTitle="Profile options"
+    >
+      <DropdownMenuLabel className="text-secondary-text-light/80 text-xs font-normal dark:text-slate-400">
+        Manage your account settings
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+
+      {/* Sign out button using Clerk */}
+      <SignedIn>
+        <SignOutButton redirectUrl="/sign-in">
+          <button className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">
+            <IoLogOutOutline className="h-4 w-4" />
+            Sign out
+          </button>
+        </SignOutButton>
+      </SignedIn>
+    </DropdownLayout>
+  );
+};
+
+function SideBar() {
+  const location = useLocation();
+
+  const pathname = location.pathname.replace(/\/+$/, "") || "/dashboard";
+
+  return (
+    <nav className="flex size-full flex-col justify-between overflow-y-auto px-4 py-6 xl:px-8">
       <div>
         <Link to={"/"} className="border-none outline-none">
-          <div className="flex items-center gap-x-4">
+          <div className="flex items-center gap-x-2.5">
             <span className="rounded-xl bg-blue-500 p-2.5">
-              <FaPencilRuler size={26} className="text-white" />
+              <FaPencilRuler className="text-xl text-white xl:text-2xl" />
             </span>
-            <span className="text-3xl font-bold">
+            <span className="text-xl font-bold xl:text-2xl">
               <p className="text-blue-600 dark:text-blue-400">SketchBlade</p>
             </span>
           </div>
@@ -71,7 +116,7 @@ function SideBar() {
                 "group cursor-pointer justify-start rounded-xl px-5 py-4 transition-all duration-200",
               )}
             >
-              <div className="flex size-full items-center gap-4">
+              <div className="flex size-full items-center gap-3 xl:gap-4">
                 <Icon className="h-5! w-5!" />
                 <span className="text-base font-medium">{name}</span>
               </div>
@@ -79,21 +124,7 @@ function SideBar() {
           ))}
         </div>
       </div>
-      <button className="cursor-pointer rounded-lg px-2.5 py-2.5">
-        <div className="flex items-center gap-x-2">
-          <div className="size-9 overflow-hidden rounded-lg bg-blue-500">
-            <img className="size-full object-contain" src={user?.imageUrl} />
-          </div>
-          <div className="flex-1 text-start">
-            <div className="text-primary-text-light text-sm font-semibold dark:text-white">
-              {fullName.length > 24 ? fullName.slice(0, 24) + "..." : fullName}
-            </div>
-            <div className="text-secondary-text-light/80 text-xs dark:text-slate-400">
-              {emailAddress.length > 30 ? emailAddress.slice(0, 30) + "..." : emailAddress}
-            </div>
-          </div>
-        </div>
-      </button>
+      <ProfileButton />
     </nav>
   );
 }

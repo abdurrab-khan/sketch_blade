@@ -37,15 +37,10 @@ interface TrashActionProps {
 }
 
 function TrashAction({ row }: TrashActionProps) {
-  const { email } = useSelector((state: RootState) => state.auth);
-
   const _id = row.original?._id;
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [recoverDialogOpen, setRecoverDialogOpen] = useState(false);
-
-  // For enabling owner only features
-  const isOwner = row.original?.owner.email === email;
 
   return (
     <React.Fragment>
@@ -66,12 +61,10 @@ function TrashAction({ row }: TrashActionProps) {
               <GrPowerReset className="h-4 w-4" />
               Recover
             </DropdownMenuItem>
-            {isOwner && (
-              <DropdownMenuItem onSelect={() => setDeleteDialogOpen(true)} className={"w-full"}>
-                <MdDelete className="h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem onSelect={() => setDeleteDialogOpen(true)} className={"w-full"}>
+              <MdDelete className="h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
