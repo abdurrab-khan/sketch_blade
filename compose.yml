@@ -1,0 +1,88 @@
+services:
+  mongo:
+    container_name: mongo-db
+    image: mongo:4.4
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE:?"ERROR:" Database name is required}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME:?"ERROR:" Root username is required}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD:?"ERROR:" Root password is required}
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  ngrok:
+    container_name: ngrok-webhook
+    image: ngrok/ngrok:latest
+    command:
+      - "http"
+      - "api:8080"
+      - "--url=aware-wanted-puma.ngrok-free.app"
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:?"ERROR:" Ngrok authtoken is required}
+    ports:
+      - "4040:4040"
+    depends_on:
+      - api
+
+  api:
+    container_name: sketch-blade-api
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      args:
+        - PORT=${PORT:?"ERROR:" Port is required}
+        - MONGO_URI=${MONGO_URI:?"ERROR:" MongoDB URI is required}
+        - CLERK_PUBLIC_KEY=${CLERK_PUBLIC_KEY:?"ERROR:" Clean public key is required}
+        - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:?"ERROR:" Clerk signing secret is required}
+        - CLERK_SIGNING_SECRET=${CLERK_SIGNING_SECRET:?"ERROR:" Clerk signing secret is required}
+    ports:
+      - 8080:8080
+    depends_on:
+      mongo:
+        condition: service_healthy
+        required: true
+    develop:
+      watch:
+        - path: ./apps/api/src
+          action: sync
+          target: /home/sketch-blade-api/src
+        - path: ./apps/api/package.json
+          action: rebuild
+          target: /home/sketch-blade-api/package.json
+
+  web:
+    container_name: sketch-blade-web
+    build:
+      context: ./apps/web
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+        - VITE_CLERK_PUBLIC_KEY=${VITE_CLERK_PUBLIC_KEY}
+    ports:
+      - 5173:5173
+    depends_on:
+      api:
+        condition: service_started
+    develop:
+      watch:
+        - path: ./apps/web/src
+          action: sync
+          target: /home/sketch-blade-web/src
+          ignore:
+            - vite-env.d.ts
+
+        - path: ./apps/web/package.json
+          action: rebuild
+          target: /home/sketch-blade-web/package.json
+
+volumes:
+  mongo-data:
+    driver: local
+    labels:
+      com.docker.compose.project: sketch-blade
