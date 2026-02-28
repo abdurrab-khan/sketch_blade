@@ -1,163 +1,82 @@
 import type { Request, Response } from "express";
 import { ApiResponse, AsyncHandler } from "@/utils";
-import { File } from "@/models";
+import { Collaborator, File, Folder } from "@/models";
 
 const getStat = AsyncHandler(async (req: Request, res: Response) => {
    const userId = req.userId;
 
-   const stat = await File.aggregate([
+   const fileDetails = await File.aggregate([
       {
-         $facet: {
-            totalDiagrams: [
+         $match: {
+            ownerId: userId,
+            state: "active",
+         },
+      },
+      {
+         $lookup: {
+            from: "collaborators",
+            let: {
+               fileId: "$_id",
+            },
+            pipeline: [
                {
                   $match: {
-                     ownerId: userId,
-                     state: "active",
+                     $expr: {
+                        $eq: ["$fileId", "$$fileId"],
+                     },
                   },
                },
                {
                   $count: "count",
                },
             ],
-            totalFolders: [
-               {
-                  $match: {
-                     ownerId: userId,
-                  },
+            as: "totalCollaborators",
+         },
+      },
+      {
+         $group: {
+            _id: null,
+            totalDiagrams: { $sum: 1 },
+            totalCollaborators: {
+               $sum: {
+                  $ifNull: [
+                     { $arrayElemAt: ["$totalCollaborators.count", 0] },
+                     0,
+                  ],
                },
-               {
-                  $lookup: {
-                     from: "folders",
-                     let: {
-                        ownerId: userId,
-                     },
-                     pipeline: [
-                        {
-                           $match: {
-                              $expr: {
-                                 $and: [
-                                    {
-                                       $eq: ["$ownerId", "$$ownerId"],
-                                    },
-                                    {
-                                       $eq: ["$state", "active"],
-                                    },
-                                 ],
-                              },
-                           },
-                        },
-                        {
-                           $count: "count",
-                        },
-                     ],
-                     as: "folderCount",
-                  },
-               },
-               {
-                  $replaceRoot: {
-                     newRoot: {
-                        $arrayElemAt: ["$folderCount", 0],
-                     },
-                  },
-               },
-            ],
-            totalSharedDiagrams: [
-               {
-                  $match: {
-                     ownerId: userId,
-                     state: "active",
-                  },
-               },
-               {
-                  $group: {
-                     _id: null,
-                     fileIds: {
-                        $push: "$_id",
-                     },
-                  },
-               },
-               {
-                  $lookup: {
-                     from: "collaborators",
-                     let: {
-                        fileIds: "$fileIds",
-                     },
-                     pipeline: [
-                        {
-                           $match: {
-                              $expr: {
-                                 $in: ["$fileId", "$$fileIds"],
-                              },
-                           },
-                        },
-                        {
-                           $group: {
-                              _id: "$fileId",
-                           },
-                        },
-                        {
-                           $count: "count",
-                        },
-                     ],
-                     as: "sharedCount",
-                  },
-               },
-               {
-                  $project: {
-                     count: {
-                        $ifNull: [
-                           {
-                              $arrayElemAt: ["$sharedCount.count", 0],
-                           },
-                           0,
-                        ],
-                     },
-                  },
-               },
-            ],
+            },
          },
       },
       {
          $project: {
-            totalDiagrams: {
-               $ifNull: [
-                  {
-                     $arrayElemAt: ["$totalDiagrams.count", 0],
-                  },
-                  0,
-               ],
-            },
-            totalFolders: {
-               $ifNull: [
-                  {
-                     $arrayElemAt: ["$totalFolders.count", 0],
-                  },
-                  0,
-               ],
-            },
-            totalSharedDiagrams: {
-               $ifNull: [
-                  {
-                     $arrayElemAt: ["$totalSharedDiagrams.count", 0],
-                  },
-                  0,
-               ],
-            },
+            _id: 0,
+            totalDiagrams: 1,
+            totalCollaborators: 1,
          },
       },
    ]);
+   const totalFolders = await Folder.countDocuments({
+      ownerId: userId,
+      state: "active",
+   });
+   const sharedDiagrams = await Collaborator.countDocuments({
+      userId,
+      role: {
+         $ne: "owner",
+      },
+   });
 
-   const emptyStat = {
-      totalFolders: 0,
-      totalDiagrams: 0,
-      totalCollaborators: 0,
-      totalSharedDiagrams: 0,
+   const stats = {
+      totalFolders: totalFolders || 0,
+      totalDiagrams: fileDetails[0]?.totalDiagrams || 0,
+      totalCollaborators: fileDetails[0]?.totalCollaborators || 0,
+      totalSharedDiagrams: sharedDiagrams || 0,
    };
 
    res.status(200).json(
       new ApiResponse({
          statusCode: 200,
-         data: stat[0] ?? emptyStat,
+         data: stats,
          message: "Stat found successfully",
       }),
    );

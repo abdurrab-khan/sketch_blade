@@ -30,11 +30,6 @@ const NavLinks = [
     icon: FaStar,
   },
   {
-    name: "Recent",
-    href: "/dashboard/recent",
-    icon: FaClockRotateLeft,
-  },
-  {
     name: "Trash",
     href: "/dashboard/trash",
     icon: FaTrash,
@@ -93,7 +88,7 @@ function SideBar() {
   return (
     <nav className="flex size-full flex-col justify-between overflow-y-auto px-4 py-6 xl:px-8">
       <div>
-        <Link to={"/"} className="border-none outline-none">
+        <Link to={"/dashboard"} className="border-none outline-none">
           <div className="flex items-center gap-x-2.5">
             <span className="rounded-xl bg-blue-500 p-2.5">
               <FaPencilRuler className="text-xl text-white xl:text-2xl" />

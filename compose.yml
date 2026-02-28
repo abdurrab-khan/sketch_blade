@@ -1,7 +1,7 @@
 services:
   mongo:
     container_name: mongo-db
-    image: mongo:4.4
+    image: mongo:latest
     ports:
       - "27017:27017"
     environment:
@@ -11,7 +11,7 @@ services:
     volumes:
       - mongo-data:/data/db
     healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD-SHELL", 'mongosh --eval "db.adminCommand(''ping'').ok"']
       interval: 30s
       timeout: 10s
       retries: 3

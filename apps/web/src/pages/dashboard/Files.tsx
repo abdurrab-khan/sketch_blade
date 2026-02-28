@@ -11,7 +11,7 @@ const Files = () => {
 
   if (isPending) {
     return (
-      <div className={"flex-center size-full flex-1"}>
+      <div className={"flex-center size-full flex-1 dark:text-white bg-primary dark:bg-primary-bg-dark"}>
         <div>
           <Loader2 className={"h-8 w-8 animate-spin"} />
         </div>

@@ -12,7 +12,7 @@ import "./index.css";
 import App from "@/App.tsx";
 
 import { File, SignIn, SignUp, NotFound } from "@/pages";
-import { Files, Folders, Shared, Recent, Trash, Favorite, FolderFiles } from "@/pages/dashboard";
+import { Files, Folders, Shared, Trash, Favorite, FolderFiles } from "@/pages/dashboard";
 import AuthProtection from "@/components/AuthProtection.tsx";
 
 const queryClient = new QueryClient();
@@ -40,7 +40,6 @@ const router = createBrowserRouter(
         </Route>
         <Route path="shared-with-me" element={<Shared />} />
         <Route path="favorite" element={<Favorite />} />
-        <Route path="recent" element={<Recent />} />
         <Route path="trash" element={<Trash />} />
       </Route>
 

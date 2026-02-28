@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 
-const NotFound = () => {
+const NotFound = () => {  
   return (
     <main>
       <div className={"size-screen flex-center bg-primary dark:bg-primary-bg-dark"}>

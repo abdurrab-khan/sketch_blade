@@ -69,12 +69,6 @@ const BannerContent: Record<
     description: "Quickly access your favorite diagrams and files for faster workflows.",
     button: null,
   },
-  "/dashboard/recent": {
-    title: "Recent",
-    icon: LuFileClock,
-    description: "Continue working on your most recently opened or edited diagrams.",
-    button: null,
-  },
   "/dashboard/trash": {
     title: "Trash",
     icon: IoTrashOutline,
