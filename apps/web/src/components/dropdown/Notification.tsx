@@ -8,8 +8,6 @@ import DropdownLayout from "./DropdownLayout";
 function Notification() {
   const [notifications, setNotifications] = useState<Array<any>>([]);
 
-  console.log("Notifications:", notifications);
-
   return (
     <DropdownLayout
       triggerTitle="Notification"

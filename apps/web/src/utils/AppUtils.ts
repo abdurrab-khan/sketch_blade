@@ -1,6 +1,16 @@
 export function getFormattedTime(date: string) {
   const now = new Date();
-  const diff = now.getTime() - new Date(date).getTime();
+  
+  // If no timezone info, add Z to treat it as UTC
+  const normalizedDate = date.includes("Z") || date.includes("+") 
+    ? date 
+    : date.replace(" ", "T") + "Z";
+
+  const diff = now.getTime() - new Date(normalizedDate).getTime();
+  
+  // Guard: if diff is negative, return "just now"
+  if (diff < 0) return "just now";
+
   const seconds = Math.floor(diff / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);

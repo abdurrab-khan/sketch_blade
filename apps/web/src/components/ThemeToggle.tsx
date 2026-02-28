@@ -27,8 +27,6 @@ function ThemeToggle() {
     document.documentElement.classList.toggle("dark", isDarkMode);
   }, [mode]);
 
-  console.log("Current theme mode:", mode);
-
   return (
     <Button
       title={mode === "light" ? "Switch to dark mode" : "Switch to light mode"}

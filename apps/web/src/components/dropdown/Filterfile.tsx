@@ -78,7 +78,6 @@ const FilterLayout: React.FC<IFilterLayoutProps> = ({
 };
 
 function FileFilter({ data = [], filterValues, setFilterValue }: IFileFilterProps) {
-  console.log("Filter data is: ", data);
   const { pathname } = useLocation();
   const { email: userEmail } = useSelector((root: RootState) => root.auth);
   const FilterFolderOptions = useMemo(

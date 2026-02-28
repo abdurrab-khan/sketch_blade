@@ -9,9 +9,6 @@ const userMiddleware = AsyncHandler(
          const authHeader = req.headers.authorization;
          const token = authHeader && authHeader.replace("Bearer ", "");
 
-         console.log("Auth Middleware - Token:", token);
-         console.log("API Request - Path:", req.path, "Method:", req.method);
-
          if (!token)
             return res.status(401).json(
                new ApiResponse({

@@ -15,8 +15,6 @@ const apiClient = Axios.create({
 export default function useApiClient() {
   const { getToken } = useAuth();
 
-  console.log("useApiClient initialized");
-
   useEffect(() => {
     apiClient.interceptors.request.use(
       async function (config) {

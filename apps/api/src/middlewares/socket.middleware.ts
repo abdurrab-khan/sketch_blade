@@ -17,7 +17,6 @@ const socketMiddleware = async (
       const { accessToken } = socket.handshake.query;
 
       if (!accessToken || typeof accessToken !== "string") {
-         console.log("Missing required accessToken, disconnecting:", socket.id);
          socket.disconnect();
          return;
       }

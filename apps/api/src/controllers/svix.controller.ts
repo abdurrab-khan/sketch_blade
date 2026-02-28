@@ -108,7 +108,6 @@ const deleteUser = async (clerkId: string) => {
 export const svixController = AsyncHandler(
    async (req: Request, res: Response): Promise<any> => {
       try {
-         console.log("Svix Controller working...... ");
          const CLERK_SIGNING_SECRET = process.env.CLERK_SIGNING_SECRET;
 
          if (!CLERK_SIGNING_SECRET) {
@@ -135,8 +134,6 @@ export const svixController = AsyncHandler(
          const svix_id = headers["svix-id"] as string;
          const svix_timestamp = headers["svix-timestamp"] as string;
          const svix_signature = headers["svix-signature"] as string;
-
-         console.log("Svix Header is....... ", headers);
 
          if (!svix_id || !svix_timestamp || !svix_signature) {
             return res.status(400).json({
