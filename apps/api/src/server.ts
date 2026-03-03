@@ -86,3 +86,4 @@ app.get(COMMON_ROUTE + "assets", userMiddleware, assetsRouter);
 app.use(ErrorMiddleware);
 
 export { server, socket };
+export default app;

@@ -12,7 +12,7 @@ const saveCanvasState = AsyncHandler(async (req: Request, res: Response) => {
 
    const update = await canvasStateModel.findOneAndUpdate(
       { fileId },
-      { snapshot },
+      { $set: { snapshot } },
       { upsert: true, new: true },
    );
 
