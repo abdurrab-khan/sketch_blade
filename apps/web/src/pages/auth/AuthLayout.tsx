@@ -12,7 +12,7 @@ function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
   return (
     <div className="flex min-h-screen w-full">
       {/* Left Panel - Auth Form */}
-      <div className="dark:bg-primary-bg-dark relative flex w-full flex-col items-center justify-center bg-slate-50 px-6 py-12 lg:w-1/2">
+      <div className="relative flex w-full flex-col items-center justify-center bg-slate-950 px-6 py-12 lg:w-1/2">
         {/* Mobile Logo */}
         <div className="absolute top-6 left-6 lg:hidden">
           <Link to="/" className="flex items-center gap-x-2 outline-none">

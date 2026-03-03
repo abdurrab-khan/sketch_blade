@@ -10,8 +10,10 @@ import { createRoutesFromElements, Route, RouterProvider } from "react-router";
 
 import "./index.css";
 import App from "@/App.tsx";
+import Navbar from "@/components/Navbar.tsx";
 
-import { File, SignIn, SignUp, NotFound } from "@/pages";
+import { File, SignIn, SignUp, NotFound, Home, AboutUs } from "@/pages";
+import HomeLayout from "@/pages/HomeLayout.tsx";
 import { Files, Folders, Shared, Trash, Favorite, FolderFiles } from "@/pages/dashboard";
 import AuthProtection from "@/components/AuthProtection.tsx";
 
@@ -25,6 +27,11 @@ if (!PUBLISHABLE_KEY) {
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
+      <Route path="/" element={<HomeLayout />}>
+        <Route index element={<Home />} />
+        <Route path="about" element={<AboutUs />} />
+      </Route>
+
       <Route
         path="/dashboard"
         element={
@@ -64,7 +71,7 @@ createRoot(document.getElementById("root")!).render(
   // <StrictMode>
   <ClerkProvider
     publishableKey={PUBLISHABLE_KEY}
-    afterSignOutUrl="/sign-in"
+    afterSignOutUrl="/"
     signInUrl="/sign-in"
     signUpUrl="/sign-up"
     signInForceRedirectUrl={"/dashboard"}

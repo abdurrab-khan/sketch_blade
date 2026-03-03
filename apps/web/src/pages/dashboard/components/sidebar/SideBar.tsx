@@ -1,7 +1,7 @@
 import { FaPencilRuler } from "react-icons/fa";
 import { Link, NavLink, useLocation } from "react-router";
 import { MdGroups, MdSpaceDashboard } from "react-icons/md";
-import { FaClockRotateLeft, FaFolder, FaStar, FaTrash } from "react-icons/fa6";
+import { FaFolder, FaStar, FaTrash } from "react-icons/fa6";
 import clsx from "clsx";
 import { SignedIn, SignOutButton, useUser } from "@clerk/clerk-react";
 import DropdownLayout from "@/components/dropdown/DropdownLayout";
@@ -69,7 +69,7 @@ const ProfileButton = () => {
 
       {/* Sign out button using Clerk */}
       <SignedIn>
-        <SignOutButton redirectUrl="/sign-in">
+        <SignOutButton redirectUrl="/">
           <button className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">
             <IoLogOutOutline className="h-4 w-4" />
             Sign out
