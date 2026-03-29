@@ -38,7 +38,6 @@ function Whiteboard({ id, file, token }: IWhiteboardProps) {
             accessToken: token,
           },
         });
-
         return socketIoToTldrawSocket(socket);
       },
       [id, token],

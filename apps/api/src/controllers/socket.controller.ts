@@ -7,9 +7,9 @@ socket.on("connection", async (socket) => {
    console.log("Socket.IO client connected:", socket.id);
 
    const userId = socket.userId;
-   const sessionId = socket.handshake.query.sessionId as string;
    const roomId = socket.handshake.query.roomId as string;
    const fileId = socket.handshake.query.fileId as string;
+   const sessionId = socket.handshake.query.sessionId as string;
 
    if (!(sessionId && roomId && fileId)) {
       console.log("Missing required parameters, disconnecting:", socket.id);
