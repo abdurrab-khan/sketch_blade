@@ -1,4 +1,6 @@
 import { Router } from "express";
+
+import fileAuth from "@/middlewares/file.middleware";
 import {
    createFile,
    getFile,
@@ -13,12 +15,8 @@ import {
    moveFileIntoFolder,
    toggleLock,
 } from "@/controllers/file.controller";
-import userMiddleware from "@/middlewares/auth.middleware";
-import fileAuth from "@/middlewares/file.middleware";
 
 const router = Router();
-
-router.use(userMiddleware);
 
 router.route("/shared").get(getSharedFiles);
 

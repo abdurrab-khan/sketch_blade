@@ -116,9 +116,20 @@ export const svixController = AsyncHandler(
 
          const wh = new Webhook(CLERK_SIGNING_SECRET);
          const headers = req.headers;
-         const payload = Buffer.isBuffer(req.body)
-            ? req.body
-            : Buffer.from(JSON.stringify(req.body));
+         
+         // Ensure we have the raw body as a Buffer for signature verification
+         let payload: Buffer;
+         if (Buffer.isBuffer(req.body)) {
+            payload = req.body;
+         } else if (typeof req.body === "string") {
+            payload = Buffer.from(req.body);
+         } else {
+            // If body is already parsed as object, we can't verify signature correctly
+            return res.status(400).json({
+               success: false,
+               message: "Invalid webhook payload - body must be raw",
+            });
+         }
 
          const svix_id = headers["svix-id"] as string;
          const svix_timestamp = headers["svix-timestamp"] as string;
@@ -136,6 +147,8 @@ export const svixController = AsyncHandler(
             "svix-timestamp": svix_timestamp,
             "svix-signature": svix_signature,
          } as WebhookRequiredHeaders) as ClerkEvent;
+
+         console.log("Event found from clerk: ", evt);
 
          switch (evt.type) {
             case "user.created":

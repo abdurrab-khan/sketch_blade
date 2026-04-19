@@ -1,24 +1,17 @@
 import { isValidObjectId, Types } from "mongoose";
 import * as zod from "zod";
 
-const collaboratorSchema = zod.object({
+const addCollaboratorSchema = zod.object({
    email: zod.email("Invalid email address").min(1, "Email is required").trim(),
    role: zod.enum(["edit", "view", "comment"]),
 });
 
-const addCollaboratorSchema = zod
-   .array(collaboratorSchema)
-   .min(1, "At least one collaborator must be added");
-
 const removeCollaboratorSchema = zod.object({
-   collaboratorIds: zod.array(
-      zod
-         .string("Collaborator ID must be a string")
-         .refine((id) => isValidObjectId(id), {
-            message: "Invalid collaborator id",
-         })
-         .transform((id) => new Types.ObjectId(id)),
-   ),
+   collaboratorId: zod
+      .string("Collaborator ID must be a string")
+      .refine((id) => isValidObjectId(id), {
+         message: "Invalid collaborator id",
+      }),
 });
 
 const updateCollaboratorSchema = zod.object({

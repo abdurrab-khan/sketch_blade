@@ -1,41 +1,28 @@
 import type { Request, Response } from "express";
 import { ApiResponse, AsyncHandler } from "@/utils";
-import { File } from "@/models";
+import { Collaborator, File, Folder } from "@/models";
 
 const getStat = AsyncHandler(async (req: Request, res: Response) => {
    const userId = req.userId;
 
-   const stat = await File.aggregate([
+   const fileDetails = await File.aggregate([
       {
          $match: {
             ownerId: userId,
-         },
-      },
-      {
-         $group: {
-            _id: null,
-            totalDiagrams: {
-               $sum: 1,
-            },
-            ownerId: {
-               $first: "$ownerId",
-            },
-            fileIds: {
-               $push: "$_id",
-            },
+            state: "active",
          },
       },
       {
          $lookup: {
             from: "collaborators",
             let: {
-               fileIds: "$fileIds",
+               fileId: "$_id",
             },
             pipeline: [
                {
                   $match: {
                      $expr: {
-                        $in: ["$fileId", "$$fileIds"],
+                        $eq: ["$fileId", "$$fileId"],
                      },
                   },
                },
@@ -47,90 +34,49 @@ const getStat = AsyncHandler(async (req: Request, res: Response) => {
          },
       },
       {
-         $lookup: {
-            from: "collaborators",
-            let: {
-               userId: "$ownerId",
+         $group: {
+            _id: null,
+            totalDiagrams: { $sum: 1 },
+            totalCollaborators: {
+               $sum: {
+                  $ifNull: [
+                     { $arrayElemAt: ["$totalCollaborators.count", 0] },
+                     0,
+                  ],
+               },
             },
-            pipeline: [
-               {
-                  $match: {
-                     $expr: {
-                        $eq: ["$userId", "$$userId"],
-                     },
-                  },
-               },
-               {
-                  $count: "count",
-               },
-            ],
-            as: "totalSharedDiagrams",
-         },
-      },
-      {
-         $lookup: {
-            from: "folders",
-            let: {
-               ownerId: "$ownerId",
-            },
-            pipeline: [
-               {
-                  $match: {
-                     $expr: {
-                        $eq: ["$ownerId", "$$ownerId"],
-                     },
-                  },
-               },
-               {
-                  $count: "count",
-               },
-            ],
-            as: "totalFolders",
          },
       },
       {
          $project: {
             _id: 0,
             totalDiagrams: 1,
-            totalCollaborators: {
-               $ifNull: [
-                  {
-                     $arrayElemAt: ["$totalCollaborators.count", 0],
-                  },
-                  0,
-               ],
-            },
-            totalSharedDiagrams: {
-               $ifNull: [
-                  {
-                     $arrayElemAt: ["$totalSharedDiagrams.count", 0],
-                  },
-                  0,
-               ],
-            },
-            totalFolders: {
-               $ifNull: [
-                  {
-                     $arrayElemAt: ["$totalFolders.count", 0],
-                  },
-                  0,
-               ],
-            },
+            totalCollaborators: 1,
          },
       },
    ]);
+   const totalFolders = await Folder.countDocuments({
+      ownerId: userId,
+      state: "active",
+   });
+   const sharedDiagrams = await Collaborator.countDocuments({
+      userId,
+      role: {
+         $ne: "owner",
+      },
+   });
 
-   const emptyStat = {
-      totalFolders: 0,
-      totalDiagrams: 0,
-      totalCollaborators: 0,
-      totalSharedDiagrams: 0,
+   const stats = {
+      totalFolders: totalFolders || 0,
+      totalDiagrams: fileDetails[0]?.totalDiagrams || 0,
+      totalCollaborators: fileDetails[0]?.totalCollaborators || 0,
+      totalSharedDiagrams: sharedDiagrams || 0,
    };
 
    res.status(200).json(
       new ApiResponse({
          statusCode: 200,
-         data: stat[0] ?? emptyStat,
+         data: stats,
          message: "Stat found successfully",
       }),
    );

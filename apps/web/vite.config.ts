@@ -1,6 +1,6 @@
 import path from "path";
-import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
@@ -18,14 +18,15 @@ export default defineConfig({
         target: "http://api:8080",
         changeOrigin: true,
         secure: false,
-        rewrite(path) {
-          return path.replace("/api", "");
-        },
+        rewrite(path){
+          return path.replace("/api", "")
+        } 
       },
-      // "/socket.io": {
-      //   target: "http://localhost:8080",
-      //   ws: true,
-      // },
+      "/socket.io": {
+        target: "http://api:8080",
+        changeOrigin: true,
+        ws: true,
+      },
     },
   },
 });

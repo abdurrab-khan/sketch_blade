@@ -20,7 +20,7 @@ const fileColumns: ColumnDef<File>[] = [
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
-        className={"border-black/70"}
+        className={"border-black/70 dark:border-blue-400/50"}
       />
     ),
     cell: ({ row }) => (
@@ -28,7 +28,7 @@ const fileColumns: ColumnDef<File>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
-        className={"border-black/70"}
+        className={"border-black/70 dark:border-blue-400/50"}
       />
     ),
     enableSorting: false,
@@ -39,12 +39,12 @@ const fileColumns: ColumnDef<File>[] = [
     accessorKey: "name",
     header: HeaderLabel("Name"),
     cell: ({ row }) => (
-      <div className="text-gray-900 transition-all hover:text-gray-900/80">
+      <div className="text-gray-900 transition-all hover:text-gray-900/80 dark:text-slate-200 dark:hover:text-white">
         <div className="flex items-center justify-center gap-x-1.5">
           <span className={"font-medium"}>
             <Link to={`/file/${row.original._id}`}>{row.original.name}</Link>
           </span>
-          {row.original?.isLocked && <CiLock className="text-lg" />}
+          {row.original?.isLocked && <CiLock className="text-lg dark:text-blue-400" />}
         </div>
       </div>
     ),
@@ -74,7 +74,9 @@ const fileColumns: ColumnDef<File>[] = [
     cell: ({ row }) => (
       <div className="size-full empty:bg-yellow-500">
         {row.original.folder ? (
-          <Badge className="bg-blue-500 text-white">{row.original.folder?.name}</Badge>
+          <Badge className="bg-blue-500 text-white dark:bg-blue-600 dark:text-white">
+            {row.original.folder?.name}
+          </Badge>
         ) : null}
       </div>
     ),

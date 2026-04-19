@@ -1,17 +1,18 @@
-import React from "react";
 import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
-import type { File, Folder } from "@/types/file.ts";
 
-import TrashAction from "./rows/TrashAction.tsx";
 import { CiLock } from "react-icons/ci";
+
 import ShowDate from "./rows/DisplayDate.tsx";
+import TrashAction from "./rows/TrashAction.tsx";
 import HeaderLabel from "./rows/HeaderLabel.tsx";
 import { Badge } from "@/components/ui/badge.tsx";
 import ProfileImg from "@/components/ProfileImg.tsx";
 import { Checkbox } from "@/components/ui/checkbox.tsx";
 
-const trashColumns: ColumnDef<File | Folder>[] = [
+import { ExtendedFile, ExtendedFolder } from "@/types/index.ts";
+
+const trashColumns: ColumnDef<ExtendedFile | ExtendedFolder>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -21,7 +22,7 @@ const trashColumns: ColumnDef<File | Folder>[] = [
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
-        className={"border-black/70"}
+        className={"border-black/70 dark:border-blue-400/50"}
       />
     ),
     cell: ({ row }) => (
@@ -29,7 +30,7 @@ const trashColumns: ColumnDef<File | Folder>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
-        className={"border-black/70"}
+        className={"border-black/70 dark:border-blue-400/50"}
       />
     ),
     enableSorting: false,
@@ -41,10 +42,16 @@ const trashColumns: ColumnDef<File | Folder>[] = [
     header: HeaderLabel("Name"),
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-x-1.5">
-        <span className={"font-medium text-gray-900 transition-all hover:text-gray-900/80"}>
+        <span
+          className={
+            "font-medium text-gray-900 transition-all hover:text-gray-900/80 dark:text-slate-200 dark:hover:text-white"
+          }
+        >
           <span>{row.original.name}</span>
         </span>
-        {row.original?.isLocked && <CiLock className="text-lg" />}
+        {row.original.type === "file" && row.original.isLocked && (
+          <CiLock className="text-lg dark:text-blue-400" />
+        )}
       </div>
     ),
   },

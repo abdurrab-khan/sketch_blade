@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { ApiResponse } from "@/types";
 
 const apiClient = Axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: "/api/v1",
   timeout: 10000,
   withCredentials: true,
   headers: {
@@ -38,7 +38,7 @@ export default function useApiClient() {
           success: response.data?.success,
           statusCode: response.data?.statusCode || response.status,
           message: response?.data?.message || "",
-          data: response.data?.data || response.data,
+          data: response.data?.data || null,
         };
 
         response.data = customResponse;

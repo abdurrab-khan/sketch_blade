@@ -9,6 +9,8 @@ import Collaborator from "./collaborators.model";
 
 import User from "./user.model";
 
+import CanvasState from "./canvasState.model";
+
 export {
    File,
    DeletedFile,
@@ -17,4 +19,5 @@ export {
    FolderFileBridge,
    Collaborator,
    User,
+   CanvasState,
 };

@@ -1,11 +1,9 @@
-import { NextFunction, Request, Response, Router } from "express";
-import bodyParser from "body-parser";
+import { Request, Response, Router } from "express";
 import { svixController } from "@/controllers/svix.controller";
 
 const svixRouter = Router();
 
 svixRouter
-   .route("/webhook/clerk")
-   .post(bodyParser.raw({ type: "application/json" }), svixController);
+   .post("/webhook/clerk", svixController);
 
 export default svixRouter;

@@ -11,17 +11,6 @@ const fileSchema = z.object({
       message: "File name can only contain letters, numbers, underscores, and hyphens",
     }),
   description: z.string().optional(),
-  collaborators: z
-    .array(
-      z.object({
-        _id: z.string("Collaborator ID is required"),
-        fullName: z.string("Full name is required"),
-        profileUrl: z.url("Profile URL must be a valid URL"),
-        email: z.email("Valid email is required"),
-        role: z.literal(["edit", "view"]),
-      }),
-    )
-    .optional(),
 });
 
 // <=======================> FOLDER ZOD SCHEMA <=======================>

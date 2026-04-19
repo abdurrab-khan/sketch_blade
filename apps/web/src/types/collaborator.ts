@@ -17,7 +17,7 @@ export interface ActiveCollaborators {
   active: boolean;
 }
 
-export interface ListCollaborator {
+export interface SearchUser {
   _id: string;
   email: string;
   fullName: string;

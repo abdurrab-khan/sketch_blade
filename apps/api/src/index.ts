@@ -1,7 +1,7 @@
-import server from "@/server";
-import databaseConnection from "@/db/DatabaseConnection";
+import { server } from "@/server";
+import mongoDBConnection from "@/db/MongoDBConnection";
 
-databaseConnection
+mongoDBConnection
    .connect()
    .then(() => {
       const PORT = Number(process.env.PORT) || 5000;

@@ -1,0 +1,29 @@
+import { useState } from "react";
+import { Share2 } from "lucide-react";
+import { PeopleMenu } from "tldraw";
+import { CollaboratorActions } from "@/types/collaborator";
+import HandleCollaborators from "@/components/dialogs/HandleCollaborators";
+
+interface ITLDrawSharePanel {
+  fileId: string;
+  role: CollaboratorActions;
+}
+
+function TLDrawSharePanel({ role, fileId }: ITLDrawSharePanel) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="tlui-style-panel my-2.5 mr-2 flex w-fit! max-w-fit! items-center gap-x-1.5">
+      <PeopleMenu />
+      {role !== "view" && (
+        <HandleCollaborators fileId={fileId} isOpen={isOpen} setIsOpen={setIsOpen}>
+          <div className="primary__btn flex cursor-pointer items-center justify-center gap-2 rounded-md px-6 py-2.5 text-sm">
+            <Share2 size={"18px"} /> Share
+          </div>
+        </HandleCollaborators>
+      )}
+    </div>
+  );
+}
+
+export default TLDrawSharePanel;

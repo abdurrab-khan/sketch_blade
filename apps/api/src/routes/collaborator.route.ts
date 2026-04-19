@@ -5,12 +5,9 @@ import {
    getCollaborators,
    removeCollaborator,
 } from "@/controllers/collaborator.controller";
-import userMiddleware from "@/middlewares/auth.middleware";
 import fileAuth from "@/middlewares/file.middleware";
 
 const router = Router();
-
-router.use(userMiddleware);
 
 router
    .route("/:fileId")

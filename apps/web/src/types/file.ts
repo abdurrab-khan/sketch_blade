@@ -1,4 +1,4 @@
-import { Collaborator } from "./collaborator.ts";
+import { Collaborator, CollaboratorActions } from "./collaborator.ts";
 import { Owner } from "./user.ts";
 
 export interface File {
@@ -11,6 +11,13 @@ export interface File {
   isFavorite: boolean;
   createdAt: string;
   updatedAt?: string;
+}
+
+export interface FileData {
+  name: string;
+  isLocked: boolean;
+  description: string;
+  role: CollaboratorActions;
 }
 
 export interface Folder {

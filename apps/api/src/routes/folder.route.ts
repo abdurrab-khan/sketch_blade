@@ -9,11 +9,9 @@ import {
    deleteFolder,
    getFolderFiles,
 } from "@/controllers/folder.controller";
-import userMiddleware from "@/middlewares/auth.middleware";
 
 const router = Router();
 
-router.use(userMiddleware);
 
 router.route("/trash/:folderId").delete(trashFolder);
 router.route("/recover/:folderId").post(recoverFolder);

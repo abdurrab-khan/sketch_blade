@@ -64,7 +64,7 @@ function FolderForm({ _id, children, isOpen, setIsOpen, folderData }: FolderForm
       {children && <DialogTrigger>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl">
+          <DialogTitle className="dark:text-primary-text-dark text-2xl">
             {_id ? "Update Folder" : "Create New Folder"}
           </DialogTitle>
         </DialogHeader>

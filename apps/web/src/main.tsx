@@ -10,12 +10,12 @@ import { createRoutesFromElements, Route, RouterProvider } from "react-router";
 
 import "./index.css";
 import App from "@/App.tsx";
-import File from "./pages/file/File.tsx";
-import NotFound from "./pages/NotFound.tsx";
-import Sign_In from "@/pages/auth/Sign_In.tsx";
-import Sign_Up from "@/pages/auth/Sign_Up.tsx";
+import Navbar from "@/components/Navbar.tsx";
+
+import { File, SignIn, SignUp, NotFound, Home, AboutUs } from "@/pages";
+import HomeLayout from "@/pages/HomeLayout.tsx";
+import { Files, Folders, Shared, Trash, Favorite, FolderFiles } from "@/pages/dashboard";
 import AuthProtection from "@/components/AuthProtection.tsx";
-import { Files, Folder, FolderFiles, Shared, Favorite, Recent, Trash } from "@/pages/home";
 
 const queryClient = new QueryClient();
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLIC_KEY;
@@ -27,8 +27,13 @@ if (!PUBLISHABLE_KEY) {
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
+      <Route path="/" element={<HomeLayout />}>
+        <Route index element={<Home />} />
+        <Route path="about" element={<AboutUs />} />
+      </Route>
+
       <Route
-        path="/"
+        path="/dashboard"
         element={
           <AuthProtection>
             <App />
@@ -37,12 +42,11 @@ const router = createBrowserRouter(
       >
         <Route index element={<Files />} />
         <Route path="folders">
-          <Route index element={<Folder />} />
+          <Route index element={<Folders />} />
           <Route path=":folderId" element={<FolderFiles />} />
         </Route>
         <Route path="shared-with-me" element={<Shared />} />
         <Route path="favorite" element={<Favorite />} />
-        <Route path="recent" element={<Recent />} />
         <Route path="trash" element={<Trash />} />
       </Route>
 
@@ -55,8 +59,8 @@ const router = createBrowserRouter(
         }
       />
 
-      <Route path="sign-in" element={<Sign_In />} />
-      <Route path="sign-up" element={<Sign_Up />} />
+      <Route path="sign-in" element={<SignIn />} />
+      <Route path="sign-up" element={<SignUp />} />
 
       <Route path="*" element={<NotFound />} />
     </Route>,
@@ -64,21 +68,21 @@ const router = createBrowserRouter(
 );
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ClerkProvider
-      publishableKey={PUBLISHABLE_KEY}
-      afterSignOutUrl="/sign-in"
-      signInUrl="/sign-in"
-      signUpUrl="/sign-up"
-      signInForceRedirectUrl={"/"}
-      signUpForceRedirectUrl={"/"}
-    >
-      <Provider store={store}>
-        <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-          <Toaster />
-        </QueryClientProvider>
-      </Provider>
-    </ClerkProvider>
-  </StrictMode>,
+  // <StrictMode>
+  <ClerkProvider
+    publishableKey={PUBLISHABLE_KEY}
+    afterSignOutUrl="/"
+    signInUrl="/sign-in"
+    signUpUrl="/sign-up"
+    signInForceRedirectUrl={"/dashboard"}
+    signUpForceRedirectUrl={"/dashboard"}
+  >
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        <Toaster />
+      </QueryClientProvider>
+    </Provider>
+  </ClerkProvider>,
+  // </StrictMode>,
 );

@@ -246,8 +246,6 @@ const searchFolders = AsyncHandler(async (req: Request, res: Response) => {
    // const folders = await Folder.find().byName(name);
    const folders = ["something"];
 
-   console.log("Response is: ", folders);
-
    res.status(200).json(
       new ApiResponse({
          statusCode: 200,
