@@ -50,12 +50,8 @@ const useResponse = <T,>({
     ...queryOptions,
   });
 
-  const errorMessage = useMemo(() => {
-    if (result.isError && result.error) {
-      return result.error.message || "An error occurred";
-    }
-    return null;
-  }, [result.isError, result.error]);
+  const errorMessage =
+    result.isError && result.error ? result.error.message || "An error occurred" : null;
 
   useEffect(() => {
     if (errorMessage) {

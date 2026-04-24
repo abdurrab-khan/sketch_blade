@@ -25,9 +25,9 @@ const AppSection = () => {
   const { pathname } = useLocation();
 
   return (
-    <div className={"main-container"} style={{ height: "calc(100vh - 5rem)" }}>
-      <div className={"flex size-full flex-col gap-y-5 px-4 pt-9 md:px-0"}>
-        <div className={"flex w-full flex-col gap-y-4 overflow-y-hidden"}>
+    <div className={"main-container h-full w-full overflow-hidden"}>
+      <div className={"flex h-full flex-col gap-y-5 px-4 pt-9 md:px-0"}>
+        <div className={"flex w-full shrink-0 flex-col gap-y-4"}>
           <div
             className={"border-tertiary dark:border-border-dark w-full rounded-md border px-4 py-2"}
           >
@@ -53,7 +53,7 @@ const AppSection = () => {
             </div>
           </div>
         </div>
-        <div className={"size-full flex-1 overflow-y-auto"}>
+        <div className={"min-h-0 flex-1 overflow-y-auto pb-4"}>
           <Outlet />
         </div>
       </div>

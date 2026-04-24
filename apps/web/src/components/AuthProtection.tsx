@@ -15,28 +15,39 @@ export default function AuthProtection({ children }: AuthLayoutProps) {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (isLoaded && (!session || !isSignedIn)) {
-      navigate("/sign-in");
-    } else {
-      const sessionData = {
-        _id: session?.user.id,
-        name: session?.user.fullName,
-        email: session?.user.primaryEmailAddress?.emailAddress,
-      };
-      dispatch(addUser(sessionData));
+    if (!isLoaded) {
+      return;
     }
+
+    if (!session || !isSignedIn) {
+      navigate("/sign-in");
+      return;
+    }
+
+    const sessionData = {
+      _id: session.user.id,
+      name: session.user.fullName,
+      email: session.user.primaryEmailAddress?.emailAddress,
+    };
+    dispatch(addUser(sessionData));
   }, [isLoaded, session, navigate, isSignedIn, dispatch]);
 
   if (!isLoaded) {
     return (
-      <div className={"size-screen flex-center bg-primary dark:text-white dark:bg-secondary-bg-dark"}>
+      <div
+        className={
+          "flex-center dark:bg-secondary-bg-dark fixed inset-0 overflow-hidden dark:text-white"
+        }
+      >
         <Loader2 size={64} className={"text-quaternary animate-spin"} />
       </div>
     );
   }
 
   if (!session) {
-    return <div className={"size-screen flex-center bg-primary"}>Redirecting...</div>;
+    return (
+      <div className={"flex-center bg-primary fixed inset-0 overflow-hidden"}>Redirecting...</div>
+    );
   }
 
   return <div>{children}</div>;

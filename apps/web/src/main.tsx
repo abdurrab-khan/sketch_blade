@@ -11,10 +11,16 @@ import { createRoutesFromElements, Route, RouterProvider } from "react-router";
 import "./index.css";
 import App from "@/App.tsx";
 
-import { File, SignIn, SignUp, NotFound, Home, AboutUs } from "@/pages";
-import HomeLayout from "@/pages/HomeLayout.tsx";
+import HomeLayout from "@/pages/home/HomeLayout";
 import { Files, Folders, Shared, Trash, Favorite, FolderFiles } from "@/pages/dashboard";
 import AuthProtection from "@/components/AuthProtection.tsx";
+import Home from "./pages/home/Home";
+import AboutUs from "./pages/home/AboutUs";
+import File from "./pages/file/File";
+import SignInPage from "./pages/auth/SignIn";
+import NotFound from "./pages/NotFound";
+import SignUpPage from "./pages/auth/SignUp";
+import { ThemeProvider } from "./context/ThemeProvider";
 
 const queryClient = new QueryClient();
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLIC_KEY;
@@ -58,8 +64,8 @@ const router = createBrowserRouter(
         }
       />
 
-      <Route path="sign-in" element={<SignIn />} />
-      <Route path="sign-up" element={<SignUp />} />
+      <Route path="sign-in" element={<SignInPage />} />
+      <Route path="sign-up" element={<SignUpPage />} />
 
       <Route path="*" element={<NotFound />} />
     </Route>,
@@ -78,11 +84,12 @@ createRoot(document.getElementById("root")!).render(
     >
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-          <Toaster />
+          <ThemeProvider>
+            <RouterProvider router={router} />
+            <Toaster />
+          </ThemeProvider>
         </QueryClientProvider>
       </Provider>
     </ClerkProvider>
-    ,
   </StrictMode>,
 );

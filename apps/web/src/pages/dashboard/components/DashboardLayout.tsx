@@ -6,7 +6,7 @@ function DashboardLayout() {
   const [query, setQuery] = useState("");
 
   return (
-    <div className="size-full">
+    <div className="relative size-full">
       <Header query={query} setQuery={setQuery} />
       <Body query={query} setQuery={setQuery} />
     </div>

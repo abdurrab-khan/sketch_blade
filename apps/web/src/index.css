@@ -1,6 +1,32 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--primary-bg-light);
+    color: var(--primary-text-light);
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  html.dark,
+  html.dark body {
+    background-color: var(--primary-bg-dark);
+    color: var(--primary-text-dark);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+  }
+}
+
 @layer theme {
   :root {
     --side-bar: 320px;
