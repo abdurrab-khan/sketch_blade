@@ -10,7 +10,6 @@ import { createRoutesFromElements, Route, RouterProvider } from "react-router";
 
 import "./index.css";
 import App from "@/App.tsx";
-import Navbar from "@/components/Navbar.tsx";
 
 import { File, SignIn, SignUp, NotFound, Home, AboutUs } from "@/pages";
 import HomeLayout from "@/pages/HomeLayout.tsx";
@@ -68,21 +67,22 @@ const router = createBrowserRouter(
 );
 
 createRoot(document.getElementById("root")!).render(
-  // <StrictMode>
-  <ClerkProvider
-    publishableKey={PUBLISHABLE_KEY}
-    afterSignOutUrl="/"
-    signInUrl="/sign-in"
-    signUpUrl="/sign-up"
-    signInForceRedirectUrl={"/dashboard"}
-    signUpForceRedirectUrl={"/dashboard"}
-  >
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-        <Toaster />
-      </QueryClientProvider>
-    </Provider>
-  </ClerkProvider>,
-  // </StrictMode>,
+  <StrictMode>
+    <ClerkProvider
+      publishableKey={PUBLISHABLE_KEY}
+      afterSignOutUrl="/"
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInForceRedirectUrl={"/dashboard"}
+      signUpForceRedirectUrl={"/dashboard"}
+    >
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+          <Toaster />
+        </QueryClientProvider>
+      </Provider>
+    </ClerkProvider>
+    ,
+  </StrictMode>,
 );

@@ -1,5 +1,5 @@
-import DashboardLayout from "@/pages/dashboard/components/DashboardLayout";
 import SideBar from "@/pages/dashboard/components/sidebar/SideBar";
+import DashboardLayout from "@/pages/dashboard/components/DashboardLayout";
 
 function App() {
   return (

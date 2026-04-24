@@ -18,8 +18,12 @@ function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRe
     onReceiveMessage: (callback) => {
       // Listen for tldraw sync protocol messages
       const handler = (message: any) => {
-        // console.log("📥 Received:", message);
-        callback(message);
+        try {
+          const parsedMessage = typeof message === "string" ? JSON.parse(message) : message;
+          callback(parsedMessage);
+        } catch (error) {
+          console.error("Failed to parse socket payload:", error);
+        }
       };
 
       ioSocket.on("tldraw-message", handler);
@@ -58,7 +62,18 @@ function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRe
     statusChangeListeners.forEach((cb) => cb({ status: "online" }));
   };
 
-  const disconnectHandler = () => {
+  const disconnectHandler = (reason?: string) => {
+    if (reason === "io server disconnect") {
+      tldrawSocket.connectionStatus = "error";
+      statusChangeListeners.forEach((cb) =>
+        cb({
+          status: "error",
+          reason: "Disconnected by server",
+        }),
+      );
+      return;
+    }
+
     tldrawSocket.connectionStatus = "offline";
     statusChangeListeners.forEach((cb) => cb({ status: "offline" }));
   };
@@ -69,7 +84,7 @@ function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRe
     statusChangeListeners.forEach((cb) =>
       cb({
         status: "error",
-        reason: error.message || "Connection error",
+        reason: error?.message || error?.description || "Connection error",
       }),
     );
   };

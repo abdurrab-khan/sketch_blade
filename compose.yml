@@ -1,7 +1,7 @@
 services:
   mongo:
     container_name: mongo-db
-    image: mongo:latest
+    image: mongo:8
     ports:
       - "27017:27017"
     environment:
@@ -19,7 +19,7 @@ services:
 
   ngrok:
     container_name: ngrok-webhook
-    image: ngrok/ngrok:latest
+    image: ngrok/ngrok:alpine
     command:
       - "http"
       - "api:8080"
@@ -64,6 +64,9 @@ services:
       args:
         - VITE_API_URL=${VITE_API_URL}
         - VITE_CLERK_PUBLIC_KEY=${VITE_CLERK_PUBLIC_KEY}
+    environment:
+      - VITE_PROXY_TARGET=http://api:8080
+      - VITE_SOCKET_URL=http://localhost:8080
     ports:
       - 5173:5173
     depends_on:

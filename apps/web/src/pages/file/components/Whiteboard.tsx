@@ -5,6 +5,7 @@ import { RootState } from "@/redux/store";
 
 import { io } from "socket.io-client";
 import { Tldraw } from "tldraw";
+import { Loader2 } from "lucide-react";
 
 import { FileData } from "@/types/file";
 import { getRandomColor } from "@/utils/AppUtils";
@@ -22,20 +23,45 @@ interface IWhiteboardProps {
   token: string;
 }
 
+const getSocketServerUrl = () => {
+  const socketUrl = import.meta.env["VITE_SOCKET_URL"];
+  if (socketUrl) {
+    return socketUrl;
+  }
+
+  const apiUrl = import.meta.env["VITE_API_URL"];
+  if (!apiUrl) {
+    if (import.meta.env.DEV) {
+      return "http://localhost:8080";
+    }
+
+    return undefined;
+  }
+
+  try {
+    return new URL(apiUrl).origin;
+  } catch {
+    return apiUrl;
+  }
+};
+
 function Whiteboard({ id, file, token }: IWhiteboardProps) {
   const isDarkMode = useTheme();
   const auth = useSelector((root: RootState) => root.auth);
+
   const store = useSync({
     connect: useCallback(
       (query) => {
-        const socket = io({
+        const socket = io(getSocketServerUrl(), {
           path: "/socket.io",
-          transports: ["websocket"],
+          transports: ["polling", "websocket"],
+          auth: {
+            accessToken: token,
+          },
           query: {
             ...query,
             fileId: id,
             roomId: `room-${id}`,
-            accessToken: token,
           },
         });
         return socketIoToTldrawSocket(socket);
@@ -51,16 +77,28 @@ function Whiteboard({ id, file, token }: IWhiteboardProps) {
   });
   const customComponents = useMemo(() => Components(file.role, id), [file.role, id]);
 
-  // Return nothing if store is not there
-  if (!store?.store) {
-    return <></>;
+  if (store.status === "error") {
+    return (
+      <section className="flex-center text-quaternary fixed inset-0 size-full px-4 text-center">
+        Failed to sync this file. Please refresh and try again.
+      </section>
+    );
+  }
+
+  // Keep showing a loader until sync store is ready.
+  if (store.status !== "synced-remote") {
+    return (
+      <section className="flex-center text-quaternary fixed inset-0 size-full">
+        <Loader2 size={48} className="animate-spin" />
+      </section>
+    );
   }
 
   return (
     <section className="fixed inset-0 size-full">
       <Tldraw
         className="tldraw__editor"
-        store={store}
+        store={store.store}
         components={customComponents}
         onMount={(editor) => {
           editor.user.updateUserPreferences({

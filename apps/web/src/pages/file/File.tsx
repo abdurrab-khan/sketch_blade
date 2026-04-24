@@ -26,37 +26,44 @@ const File = () => {
 
   useEffect(() => {
     (async () => {
-      const token = await getToken(); // fetching token for authenticating user
+      try {
+        const token = await getToken();
 
-      if (!token) {
-        navigate("/sign-in");
-        return;
+        if (!token) {
+          navigate("/sign-in");
+          return;
+        }
+
+        setToken(token);
+      } finally {
+        setIsTokenPending(false);
       }
-
-      setToken(token);
-      setIsTokenPending(false);
     })();
-  }, [getToken, toast, navigate]);
+  }, [getToken, navigate]);
+
+  useEffect(() => {
+    if (isPending) return;
+
+    if (isError || !data?.data) {
+      toast({
+        title: "Error",
+        description: error?.message ?? "Invalid file id",
+        variant: "destructive",
+      });
+      navigate("/dashboard");
+    }
+  }, [isPending, isError, data?.data, error, toast, navigate]);
 
   // If pending show loader spinner
   if (isPending || isTokenPending)
     return (
-      <div className={"size-screen flex-center dark:text-white bg-primary dark:bg-primary-bg-dark"}>
-        <Loader2 size={64} className={"text-quaternary animate-spin"} />
+      <div className={"size-screen flex-center bg-primary dark:bg-primary-bg-dark dark:text-white"}>
+        <Loader2 size={48} className={"text-quaternary animate-spin"} />
       </div>
     );
 
-  // If getting any error navigate to dashboard
-  if (isError || !data?.data) {
-    navigate("/dashboard");
-
-    toast({
-      title: "Error",
-      description: error?.message ?? "Invalid file id",
-      variant: "destructive",
-    });
-    return;
-  }
+  // Keep a stable fallback while navigation effect redirects
+  if (isError || !data?.data) return null;
 
   return (
     <main className={"size-screen bg-primary text-quaternary relative"}>

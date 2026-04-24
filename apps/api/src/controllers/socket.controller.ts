@@ -41,7 +41,7 @@ socket.on("connection", async (socket) => {
       // Create a socket adapter for TLSocketRoom
       const socketAdapter: WebSocketMinimal = {
          send: (message) => {
-            socket.emit("tldraw-message", JSON.parse(message));
+            socket.emit("tldraw-message", message);
          },
          close: () => {
             socket.disconnect();
@@ -64,8 +64,14 @@ socket.on("connection", async (socket) => {
 
       // Handle tldraw sync messages
       socket.on("tldraw-message", (message) => {
-         // Ensure message is a string - Socket.IO might send it as an object or buffer
-         room.handleSocketMessage(sessionId, message);
+         try {
+            const payload =
+               typeof message === "string" ? message : JSON.stringify(message);
+
+            room.handleSocketMessage(sessionId, payload);
+         } catch (error) {
+            console.error("Error handling tldraw socket message:", error);
+         }
       });
 
       // Handle disconnect

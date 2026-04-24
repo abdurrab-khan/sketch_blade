@@ -3,6 +3,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
+const API_PROXY_TARGET = process.env["VITE_PROXY_TARGET"] ?? "http://localhost:8080";
+
 export default defineConfig({
   plugins: [tailwindcss(), react()],
   resolve: {
@@ -15,15 +17,15 @@ export default defineConfig({
     host: "0.0.0.0",
     proxy: {
       "/api/v1": {
-        target: "http://api:8080",
+        target: API_PROXY_TARGET,
         changeOrigin: true,
         secure: false,
-        rewrite(path){
-          return path.replace("/api", "")
-        } 
+        rewrite(path) {
+          return path.replace("/api", "");
+        },
       },
       "/socket.io": {
-        target: "http://api:8080",
+        target: API_PROXY_TARGET,
         changeOrigin: true,
         ws: true,
       },
