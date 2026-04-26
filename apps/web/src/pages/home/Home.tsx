@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion, useScroll, useTransform, type Variants } from "motion/react";
 import { useNavigate } from "react-router";
 import { SignedIn } from "@clerk/clerk-react";
 import { FaPencil, FaUsers, FaShare, FaLightbulb, FaShield } from "react-icons/fa6";
@@ -67,7 +67,7 @@ const stats = [
   { label: "Uptime", value: "99.9%" },
 ];
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -78,7 +78,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
@@ -194,7 +194,7 @@ export default function Home() {
             y: mousePosition.y * 0.05,
           }}
           transition={{ type: "spring", bounce: 0, duration: 1 }}
-          className="absolute top-1/4 -right-[10%] h-[600px] w-[600px] rounded-full bg-blue-600/10 blur-[120px]"
+          className="absolute top-1/4 -right-[10%] size-150 rounded-full bg-blue-600/10 blur-[120px]"
         />
         <motion.div
           animate={{
@@ -202,7 +202,7 @@ export default function Home() {
             y: mousePosition.y * -0.05,
           }}
           transition={{ type: "spring", bounce: 0, duration: 1 }}
-          className="absolute bottom-1/4 -left-[10%] h-[600px] w-[600px] rounded-full bg-purple-600/10 blur-[120px]"
+          className="absolute bottom-1/4 -left-[10%] size-150 rounded-full bg-purple-600/10 blur-[120px]"
         />
       </div>
 
@@ -238,7 +238,7 @@ export default function Home() {
             >
               Imagine. Draw.
               <br />
-              <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent drop-shadow-sm">
+              <span className="bg-linear-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent drop-shadow-sm">
                 Collaborate.
               </span>
             </motion.h1>
@@ -288,7 +288,7 @@ export default function Home() {
               variants={itemVariants}
               className="group perspective-1000 relative mt-20 w-full max-w-4xl"
             >
-              <div className="pointer-events-none absolute inset-0 z-10 h-full bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
+              <div className="pointer-events-none absolute inset-0 z-10 h-full bg-linear-to-t from-slate-950 via-transparent to-transparent" />
               <motion.div
                 whileHover={{ rotateX: 2, rotateY: 2, scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
@@ -305,7 +305,7 @@ export default function Home() {
                     <div className="h-5 w-16 rounded bg-slate-800/80"></div>
                   </div>
                 </div>
-                <div className="relative flex aspect-[16/9] w-full cursor-crosshair flex-col items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 to-slate-950 opacity-90">
+                <div className="relative flex aspect-video w-full cursor-crosshair flex-col items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-slate-800 to-slate-950 opacity-90">
                   <div className="pointer-events-none absolute inset-0 flex -rotate-12 items-center justify-center font-mono text-[20rem] leading-none font-bold text-blue-500/10 blur-sm select-none">
                     UI
                   </div>
@@ -394,14 +394,14 @@ export default function Home() {
                 key={index}
                 variants={itemVariants}
                 whileHover={{ y: -8, scale: 1.02 }}
-                className="group relative overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-900/40 p-8 backdrop-blur-xl transition-all duration-300 hover:bg-slate-800/60 hover:shadow-2xl"
+                className="group relative overflow-hidden rounded-4xl border border-slate-800 bg-slate-900/40 p-8 backdrop-blur-xl transition-all duration-300 hover:bg-slate-800/60 hover:shadow-2xl"
               >
                 <div
-                  className={`absolute -top-10 -right-10 h-32 w-32 rounded-full bg-gradient-to-br opacity-20 blur-3xl transition-all duration-500 group-hover:opacity-60 ${feature.color}`}
+                  className={`absolute -top-10 -right-10 h-32 w-32 rounded-full bg-linear-to-br opacity-20 blur-3xl transition-all duration-500 group-hover:opacity-60 ${feature.color}`}
                 />
                 <div className="relative z-10">
                   <div
-                    className={`mb-6 inline-flex rounded-2xl bg-gradient-to-br p-4 ${feature.shadow} shadow-lg ${feature.color} text-white transition-transform duration-300 group-hover:scale-110`}
+                    className={`mb-6 inline-flex rounded-2xl bg-linear-to-br p-4 ${feature.shadow} shadow-lg ${feature.color} text-white transition-transform duration-300 group-hover:scale-110`}
                   >
                     <Icon size={28} />
                   </div>
@@ -424,7 +424,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="rounded-3xl border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50 p-8 shadow-xl backdrop-blur-lg md:p-12"
+            className="rounded-3xl border border-slate-700/50 bg-linear-to-br from-slate-800/50 to-slate-900/50 p-8 shadow-xl backdrop-blur-lg md:p-12"
           >
             <h2 className="mb-2 text-center text-3xl font-bold text-white md:text-4xl">
               We'd Love Your Feedback
@@ -448,7 +448,7 @@ export default function Home() {
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={isLoading || isSuccess || !feedback.trim()}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 font-semibold text-white shadow-lg shadow-blue-500/40 transition-all hover:shadow-blue-500/60 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-500 to-blue-600 px-6 py-4 font-semibold text-white shadow-lg shadow-blue-500/40 transition-all hover:shadow-blue-500/60 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isLoading ? (
                   <motion.span
@@ -480,15 +480,15 @@ export default function Home() {
             whileInView={{ opacity: 1, scale: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
-            className="group relative overflow-hidden rounded-[3rem] border border-blue-500/20 bg-gradient-to-b from-blue-900/40 to-indigo-900/10 px-6 py-20 text-center shadow-2xl backdrop-blur-2xl md:px-12"
+            className="group relative overflow-hidden rounded-[3rem] border border-blue-500/20 bg-linear-to-b from-blue-900/40 to-indigo-900/10 px-6 py-20 text-center shadow-2xl backdrop-blur-2xl md:px-12"
           >
-            <div className="absolute inset-x-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-50"></div>
-            <div className="absolute inset-x-0 bottom-0 h-px w-full bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-30"></div>
+            <div className="absolute inset-x-0 top-0 h-px w-full bg-linear-to-r from-transparent via-blue-400 to-transparent opacity-50"></div>
+            <div className="absolute inset-x-0 bottom-0 h-px w-full bg-linear-to-r from-transparent via-purple-400 to-transparent opacity-30"></div>
 
             <motion.div
               animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
               transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-              className="absolute -top-[50%] -left-[10%] h-[300px] w-[300px] rounded-full bg-blue-500/20 blur-[100px]"
+              className="absolute -top-[50%] -left-[10%] size-75 rounded-full bg-blue-500/20 blur-[100px]"
             />
 
             <div className="relative z-10">
@@ -518,7 +518,7 @@ export default function Home() {
           <div className="grid gap-12 border-b border-slate-800/60 pb-12 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
             <div className="lg:col-span-2">
               <div className="mb-6 flex items-center gap-3">
-                <div className="rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 p-2 text-white shadow-lg shadow-blue-500/20">
+                <div className="rounded-xl bg-linear-to-br from-blue-500 to-purple-600 p-2 text-white shadow-lg shadow-blue-500/20">
                   <FaPencil size={24} />
                 </div>
                 <span className="text-2xl font-bold tracking-tight text-white">SketchBlade</span>

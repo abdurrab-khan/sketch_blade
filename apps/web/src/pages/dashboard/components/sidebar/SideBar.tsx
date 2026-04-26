@@ -1,5 +1,5 @@
 import { FaPencilRuler } from "react-icons/fa";
-import { Link, NavLink, useLocation } from "react-router";
+import { Link, useLocation } from "react-router";
 import { MdGroups, MdSpaceDashboard } from "react-icons/md";
 import { FaFolder, FaStar, FaTrash } from "react-icons/fa6";
 import clsx from "clsx";
@@ -46,7 +46,7 @@ const ProfileButton = () => {
       trigger={
         <button className="cursor-pointer rounded-lg px-2.5 py-2.5">
           <div className="flex items-center gap-x-2">
-            <div className="aspect-square size-8 overflow-hidden rounded-lg bg-blue-500">
+            <div className="aspect-square size-8 overflow-hidden rounded-lg">
               <img className="object-fit size-full" src={user?.imageUrl} />
             </div>
             <div className="flex-1 text-start">
@@ -82,28 +82,26 @@ const ProfileButton = () => {
 
 function SideBar() {
   const location = useLocation();
-
   const pathname = location.pathname.replace(/\/+$/, "") || "/dashboard";
 
   return (
-    <nav className="flex size-full flex-col justify-between overflow-y-auto px-4 py-6 xl:px-8">
-      <div>
-        <Link to={"/dashboard"} className="border-none outline-none">
-          <div className="flex items-center gap-x-2.5">
-            <span className="rounded-xl bg-blue-500 p-2.5">
-              <FaPencilRuler className="text-xl text-white xl:text-2xl" />
-            </span>
-            <span className="text-xl font-bold xl:text-2xl">
-              <p className="text-blue-600 dark:text-blue-400">SketchBlade</p>
-            </span>
-          </div>
-        </Link>
-        <div className="mt-10 flex flex-col gap-3">
+    <nav className="flex size-full flex-col px-4 py-6 xl:px-5">
+      <Link to={"/dashboard"} className="border-none outline-none">
+        <div className="flex items-center gap-x-2.5">
+          <span className="rounded-xl bg-blue-500 p-2.5">
+            <FaPencilRuler className="text-xl text-white xl:text-2xl" />
+          </span>
+          <span className="text-xl font-bold xl:text-2xl">
+            <p className="text-blue-600 dark:text-blue-400">SketchBlade</p>
+          </span>
+        </div>
+      </Link>
+      <div className="mt-12 flex size-full flex-1 flex-col justify-between overflow-y-auto px-1">
+        <div className="flex flex-col gap-y-3">
           {NavLinks.map(({ name, href, icon: Icon }) => (
-            <NavLink
-              to={href}
-              key={name}
-              end
+            <Link
+              key={href}
+              to={"/dashboard" + (href === "/dashboard" ? "" : href.replace("/dashboard", ""))}
               className={clsx(
                 pathname.startsWith(href) && (href !== "/dashboard" || href === pathname)
                   ? "bg-linear-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 dark:from-blue-600 dark:to-blue-700 dark:shadow-blue-500/20"
@@ -115,11 +113,11 @@ function SideBar() {
                 <Icon className="h-5! w-5!" />
                 <span className="text-base font-medium">{name}</span>
               </div>
-            </NavLink>
+            </Link>
           ))}
         </div>
+        <ProfileButton />
       </div>
-      <ProfileButton />
     </nav>
   );
 }

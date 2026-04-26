@@ -1,25 +1,38 @@
-import { Loader2 } from "lucide-react";
-import useResponse from "@/hooks/useResponse.tsx";
-import FilesTable from "@/components/ui/table/FilesTable.tsx";
+import { Suspense } from "react";
+import { useSelector } from "react-redux";
+import useSuspenseResponse from "@/hooks/use-suspense-response";
+import { RootState } from "@/redux/store";
+
+import FilesTable from "@/pages/dashboard/components/mainpanel/table/FilesTable";
+import TableSkeleton from "./components/mainpanel/table/TableSkeleton";
+
 import type { File } from "@/types/file";
 
-function Favorite() {
-  const { data, isPending } = useResponse<File[]>({
+const FavoriteTableContent = () => {
+  const data = useSuspenseResponse<File[]>({
     queryKey: ["getFavoriteFiles"],
     queryProps: { uri: "/file/favorite" },
   });
 
-  if (isPending) {
-    return (
-      <div className={"flex-center size-full flex-1 dark:text-white bg-primary dark:bg-primary-bg-dark"}>
-        <div>
-          <Loader2 className={"h-8 w-8 animate-spin"} />
-        </div>
-      </div>
-    );
+  return <FilesTable data={data.data ?? []} />;
+};
+
+const FavoriteContent = () => {
+  const { _id: userClerkId } = useSelector((state: RootState) => state.auth);
+
+  if (!userClerkId) {
+    return <TableSkeleton />;
   }
 
-  return <FilesTable data={data?.data ?? []} />;
-}
+  return <FavoriteTableContent />;
+};
+
+const Favorite = () => {
+  return (
+    <Suspense fallback={<TableSkeleton />}>
+      <FavoriteContent />
+    </Suspense>
+  );
+};
 
 export default Favorite;

@@ -1,4 +1,4 @@
-import useMutate from "@/hooks/useMutate";
+import useMutate from "@/hooks/use-mutate";
 import { motion, AnimatePresence } from "motion/react";
 
 import { LucideLoaderCircle } from "lucide-react";

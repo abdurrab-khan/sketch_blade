@@ -1,6 +1,6 @@
 import React from "react";
 import { Loader2, Trash2 } from "lucide-react";
-import useMutate from "@/hooks/useMutate";
+import useMutate from "@/hooks/use-mutate";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

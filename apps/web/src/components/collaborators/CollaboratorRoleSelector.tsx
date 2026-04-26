@@ -5,7 +5,7 @@ import { Collaborator, CollaboratorActions } from "@/types/collaborator";
 import { ApiResponse } from "@/types";
 
 import { useToast } from "@/hooks/use-toast";
-import useApiClient from "@/hooks/useApiClient";
+import useApiClient from "@/hooks/use-api-client";
 import {
   Select,
   SelectTrigger,

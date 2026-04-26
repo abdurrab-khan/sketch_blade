@@ -1,25 +1,40 @@
-import { Loader2 } from "lucide-react";
-import useResponse from "@/hooks/useResponse.tsx";
-import FilesTable from "@/components/ui/table/FilesTable.tsx";
+import { Suspense } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import useSuspenseResponse from "@/hooks/use-suspense-response";
+
 import type { File } from "@/types/file";
 
-const Files = () => {
-  const { data, isPending } = useResponse<File[]>({
+import TableSkeleton from "./components/mainpanel/table/TableSkeleton";
+import FilesTable from "@/pages/dashboard/components/mainpanel/table/FilesTable";
+
+const FilesTableContent = () => {
+  const data = useSuspenseResponse<File[]>({
     queryKey: ["getFiles"],
     queryProps: { uri: "/file" },
   });
 
-  if (isPending) {
-    return (
-      <div className={"flex-center size-full flex-1 dark:text-white bg-primary dark:bg-primary-bg-dark"}>
-        <div>
-          <Loader2 className={"h-8 w-8 animate-spin"} />
-        </div>
-      </div>
-    );
+  debugger;
+
+  return <FilesTable data={data.data ?? []} />;
+};
+
+const FilesContent = () => {
+  const { _id: userClerkId } = useSelector((state: RootState) => state.auth);
+
+  if (!userClerkId) {
+    return <TableSkeleton />;
   }
 
-  return <FilesTable data={data?.data ?? []} />;
+  return <FilesTableContent />;
+};
+
+const Files = () => {
+  return (
+    <Suspense fallback={<TableSkeleton />}>
+      <FilesContent />
+    </Suspense>
+  );
 };
 
 export default Files;

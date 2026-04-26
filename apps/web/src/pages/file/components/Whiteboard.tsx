@@ -15,7 +15,7 @@ import "tldraw/tldraw.css";
 import ActivityFeed from "./whitboard/ActivityFeed";
 import Components from "./ui-zone/components";
 import StoreSnapshot from "./whitboard/StoreSnapshot";
-import useTheme from "@/hooks/useTheme";
+import useTheme from "@/hooks/use-theme";
 
 interface IWhiteboardProps {
   id: string;

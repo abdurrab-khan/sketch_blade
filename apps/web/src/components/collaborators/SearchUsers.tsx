@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 import { useToast } from "@/hooks/use-toast";
-import useApiClient from "@/hooks/useApiClient";
+import useApiClient from "@/hooks/use-api-client";
 import React, { useCallback, useMemo, TransitionStartFunction } from "react";
 
 import { debounce } from "lodash";

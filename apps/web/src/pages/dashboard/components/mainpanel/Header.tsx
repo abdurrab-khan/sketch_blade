@@ -4,10 +4,9 @@ import React, { useEffect, useState } from "react";
 import { IoIosSearch } from "react-icons/io";
 import { HiMenuAlt2 } from "react-icons/hi";
 
-import ThemeToggle from "@/components/ThemeToggle";
-import Notification from "@/components/dropdown/Notification";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import SideBar from "../sidebar/SideBar";
+import ThemeToggle from "@/components/ThemeToggle";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface HeaderProps {
   query: string;

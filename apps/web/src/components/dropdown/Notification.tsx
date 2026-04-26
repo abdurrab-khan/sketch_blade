@@ -1,12 +1,14 @@
+import { memo } from "react";
 import { IoMdNotificationsOutline } from "react-icons/io";
-import { Button } from "../ui/button";
-import { DropdownMenuLabel, DropdownMenuSeparator } from "../ui/dropdown-menu";
+
 import { Badge } from "../ui/badge";
-import { memo, useState } from "react";
+import { Button } from "../ui/button";
 import DropdownLayout from "./DropdownLayout";
+import { DropdownMenuLabel, DropdownMenuSeparator } from "../ui/dropdown-menu";
 
 function Notification() {
-  const [notifications, setNotifications] = useState<Array<any>>([]);
+  const notifications = [];
+  // const [notifications, setNotifications] = useState<Array<any>>([]);
 
   return (
     <DropdownLayout

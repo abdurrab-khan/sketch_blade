@@ -1,15 +1,11 @@
 import { useSession } from "@clerk/clerk-react";
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useEffect } from "react";
+import { Outlet, useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
 import { addUser } from "../redux/slices/authSlice";
 import { Loader2 } from "lucide-react";
 
-interface AuthLayoutProps {
-  children: React.ReactNode;
-}
-
-export default function AuthProtection({ children }: AuthLayoutProps) {
+export default function AuthProtection() {
   const { session, isLoaded, isSignedIn } = useSession();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -19,7 +15,7 @@ export default function AuthProtection({ children }: AuthLayoutProps) {
       return;
     }
 
-    if (!session || !isSignedIn) {
+    if (!session?.user || !isSignedIn) {
       navigate("/sign-in");
       return;
     }
@@ -50,5 +46,5 @@ export default function AuthProtection({ children }: AuthLayoutProps) {
     );
   }
 
-  return <div>{children}</div>;
+  return <Outlet />;
 }

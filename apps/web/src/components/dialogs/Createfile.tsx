@@ -2,8 +2,8 @@ import * as z from "zod";
 
 import { fileSchema } from "@/lib/zod/schemas.ts";
 
-import useMutate from "@/hooks/useMutate.ts";
-import useApiClient from "@/hooks/useApiClient.ts";
+import useMutate from "@/hooks/use-mutate";
+import useApiClient from "@/hooks/use-api-client";
 
 import { File } from "@/types/file.ts";
 import { ApiResponse, AxiosMutateProps } from "@/types/index.ts";

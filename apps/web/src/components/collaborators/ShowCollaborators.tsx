@@ -6,7 +6,7 @@ import { CollaboratorActions, Collaborator } from "@/types/collaborator.ts";
 
 import { cn } from "@/lib/utils.ts";
 import { XIcon } from "lucide-react";
-import useMutate from "@/hooks/useMutate";
+import useMutate from "@/hooks/use-mutate";
 
 interface ICollaboratorsChipsProps {
   fileId: string;

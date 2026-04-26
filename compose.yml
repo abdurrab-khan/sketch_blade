@@ -62,6 +62,7 @@ services:
     build:
       context: ./apps/web
       args:
+        - NODE_ENV=${NODE_ENV}
         - VITE_API_URL=${VITE_API_URL}
         - VITE_CLERK_PUBLIC_KEY=${VITE_CLERK_PUBLIC_KEY}
     environment:

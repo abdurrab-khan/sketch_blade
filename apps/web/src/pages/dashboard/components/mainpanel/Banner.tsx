@@ -5,7 +5,7 @@ import { IconType } from "react-icons";
 import { PlusIcon } from "lucide-react";
 import { IoTrashOutline } from "react-icons/io5";
 import { BsFillDiagram3Fill } from "react-icons/bs";
-import { LuFileClock, LuFileHeart } from "react-icons/lu";
+import { LuFileHeart } from "react-icons/lu";
 import { FaRegFolderOpen, FaUserGroup } from "react-icons/fa6";
 
 import CreateFile from "@/components/dialogs/Createfile";

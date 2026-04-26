@@ -30,6 +30,7 @@ export interface ExtendedFolder extends FolderDetails {
 export interface Stat {
   totalDiagrams: number;
   totalFolders: number;
+  totalCollaborators: number;
   totalSharedDiagrams: number;
 }
 

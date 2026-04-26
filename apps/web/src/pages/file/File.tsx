@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useToast } from "@/hooks/use-toast.ts";
-import useResponse from "@/hooks/useResponse.tsx";
+import useResponse from "@/hooks/use-response";
 import Whiteboard from "@/pages/file/components/Whiteboard";
 import { FileData } from "@/types/file";
 import { useAuth } from "@clerk/clerk-react";

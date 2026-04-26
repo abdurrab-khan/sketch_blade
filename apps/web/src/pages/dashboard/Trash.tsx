@@ -1,36 +1,28 @@
+import { Suspense } from "react";
 import { Row } from "@tanstack/react-table";
 import { useOutletContext } from "react-router";
-
-import { Loader2 } from "lucide-react";
+import { useSelector } from "react-redux";
 
 import { ExtendedFile, ExtendedFolder } from "@/types";
 
-import useResponse from "@/hooks/useResponse.tsx";
+import useSuspenseResponse from "@/hooks/use-suspense-response";
+import { RootState } from "@/redux/store";
 
-import DataTable from "@/components/ui/table/Data-table.tsx";
-import trashColumn from "@/components/ui/table/columns/TrashColumns.tsx";
+import DataTable from "@/pages/dashboard/components/mainpanel/table/Data-table";
+import trashColumn from "@/pages/dashboard/components/mainpanel/table/columns/TrashColumns";
+import TableSkeleton from "./components/mainpanel/table/TableSkeleton";
 
-function Trash() {
+const TrashTableContent = () => {
   // Get search value from outlet context
   const [searchValue, setSearchValue] = useOutletContext() as [
     string,
     React.Dispatch<React.SetStateAction<string>>,
   ];
 
-  const { data, isPending } = useResponse<(ExtendedFile | ExtendedFolder)[]>({
+  const data = useSuspenseResponse<(ExtendedFile | ExtendedFolder)[]>({
     queryKey: ["getTrashData"],
     queryProps: { uri: "/trash" },
   });
-
-  if (isPending) {
-    return (
-      <div className={"flex-center size-full flex-1 dark:text-white bg-primary dark:bg-primary-bg-dark"}>
-        <div>
-          <Loader2 className={"h-8 w-8 animate-spin"} />
-        </div>
-      </div>
-    );
-  }
 
   const globalFilterFn = (row: Row<ExtendedFile | ExtendedFolder>) => {
     const data = row.original;
@@ -39,13 +31,31 @@ function Trash() {
 
   return (
     <DataTable
-      data={data?.data || []}
+      data={data.data || []}
       columns={trashColumn}
       searchValue={searchValue}
       setSearchValue={setSearchValue}
       globalFilterFn={globalFilterFn}
     />
   );
-}
+};
+
+const TrashContent = () => {
+  const { _id: userClerkId } = useSelector((state: RootState) => state.auth);
+
+  if (!userClerkId) {
+    return <TableSkeleton showActions={false} />;
+  }
+
+  return <TrashTableContent />;
+};
+
+const Trash = () => {
+  return (
+    <Suspense fallback={<TableSkeleton showActions={false} />}>
+      <TrashContent />
+    </Suspense>
+  );
+};
 
 export default Trash;

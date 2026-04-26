@@ -12,14 +12,10 @@ import "./index.css";
 import App from "@/App.tsx";
 
 import HomeLayout from "@/pages/home/HomeLayout";
-import { Files, Folders, Shared, Trash, Favorite, FolderFiles } from "@/pages/dashboard";
 import AuthProtection from "@/components/AuthProtection.tsx";
-import Home from "./pages/home/Home";
-import AboutUs from "./pages/home/AboutUs";
-import File from "./pages/file/File";
-import SignInPage from "./pages/auth/SignIn";
-import NotFound from "./pages/NotFound";
-import SignUpPage from "./pages/auth/SignUp";
+import DashboardLayout from "./pages/dashboard/layout";
+import TableSkeleton from "./pages/dashboard/components/mainpanel/table/TableSkeleton";
+
 import { ThemeProvider } from "./context/ThemeProvider";
 
 const queryClient = new QueryClient();
@@ -31,43 +27,120 @@ if (!PUBLISHABLE_KEY) {
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route>
+    <Route element={<App />}>
+      {/* Home Layout */}
       <Route path="/" element={<HomeLayout />}>
-        <Route index element={<Home />} />
-        <Route path="about" element={<AboutUs />} />
+        <Route
+          index
+          lazy={async () => {
+            const module = await import("./pages/home/home");
+            return { Component: module.default };
+          }}
+        />
+
+        <Route
+          path="about"
+          lazy={async () => {
+            const module = await import("./pages/home/about-us");
+            return { Component: module.default };
+          }}
+        />
       </Route>
 
-      <Route
-        path="/dashboard"
-        element={
-          <AuthProtection>
-            <App />
-          </AuthProtection>
-        }
-      >
-        <Route index element={<Files />} />
-        <Route path="folders">
-          <Route index element={<Folders />} />
-          <Route path=":folderId" element={<FolderFiles />} />
+      {/* Protected Routes */}
+      <Route element={<AuthProtection />}>
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route
+            index
+            lazy={async () => {
+              const module = await import("./pages/dashboard/files");
+              return { Component: module.default };
+            }}
+            hydrateFallbackElement={<TableSkeleton />}
+          />
+
+          <Route path="folders">
+            <Route
+              index
+              lazy={async () => {
+                const module = await import("./pages/dashboard/folders");
+                return { Component: module.default };
+              }}
+              hydrateFallbackElement={<TableSkeleton />}
+            />
+
+            <Route
+              path=":folderId"
+              lazy={async () => {
+                const module = await import("./pages/dashboard/folder/folder-files");
+                return { Component: module.default };
+              }}
+              hydrateFallbackElement={<TableSkeleton />}
+            />
+          </Route>
+
+          <Route
+            path="shared-with-me"
+            lazy={async () => {
+              const module = await import("./pages/dashboard/shared");
+              return { Component: module.default };
+            }}
+            hydrateFallbackElement={<TableSkeleton />}
+          />
+
+          <Route
+            path="favorite"
+            lazy={async () => {
+              const module = await import("./pages/dashboard/favorite");
+              return { Component: module.default };
+            }}
+            hydrateFallbackElement={<TableSkeleton />}
+          />
+
+          <Route
+            path="trash"
+            lazy={async () => {
+              const module = await import("./pages/dashboard/trash");
+              return { Component: module.default };
+            }}
+            hydrateFallbackElement={<TableSkeleton />}
+          />
         </Route>
-        <Route path="shared-with-me" element={<Shared />} />
-        <Route path="favorite" element={<Favorite />} />
-        <Route path="trash" element={<Trash />} />
+
+        <Route
+          path="file/:id"
+          lazy={async () => {
+            const module = await import("./pages/file/file");
+            return { Component: module.default };
+          }}
+        />
       </Route>
 
+      {/* Auth Pages */}
       <Route
-        path="file/:id"
-        element={
-          <AuthProtection>
-            <File />
-          </AuthProtection>
-        }
+        path="sign-in"
+        lazy={async () => {
+          const module = await import("./pages/auth/sign-in");
+          return { Component: module.default };
+        }}
       />
 
-      <Route path="sign-in" element={<SignInPage />} />
-      <Route path="sign-up" element={<SignUpPage />} />
+      <Route
+        path="sign-up"
+        lazy={async () => {
+          const module = await import("./pages/auth/sign-up");
+          return { Component: module.default };
+        }}
+      />
 
-      <Route path="*" element={<NotFound />} />
+      {/* Not Found */}
+      <Route
+        path="*"
+        lazy={async () => {
+          const module = await import("./pages/NotFound");
+          return { Component: module.default };
+        }}
+      />
     </Route>,
   ),
 );

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import useMutate from "@/hooks/useMutate.ts";
+import useMutate from "@/hooks/use-mutate";
 
 import { Loader2 } from "lucide-react";
 
