@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { ApiResponse } from "@/types";
 
 const apiClient = Axios.create({
-  baseURL: "/api/v1",
+  baseURL: `${import.meta.env.VITE_API_URL}/v1`,
   timeout: 15000,
   withCredentials: true,
   headers: {
