@@ -34,7 +34,7 @@ const router = createBrowserRouter(
         <Route
           index
           lazy={async () => {
-            const module = await import("./pages/home/home");
+            const module = await import("./pages/home/Home");
             return { Component: module.default };
           }}
         />
@@ -54,7 +54,7 @@ const router = createBrowserRouter(
           <Route
             index
             lazy={async () => {
-              const module = await import("./pages/dashboard/files");
+              const module = await import("./pages/dashboard/Files");
               return { Component: module.default };
             }}
             hydrateFallbackElement={<TableSkeleton />}
@@ -64,7 +64,7 @@ const router = createBrowserRouter(
             <Route
               index
               lazy={async () => {
-                const module = await import("./pages/dashboard/folders");
+                const module = await import("./pages/dashboard/Folders");
                 return { Component: module.default };
               }}
               hydrateFallbackElement={<TableSkeleton />}
@@ -83,7 +83,7 @@ const router = createBrowserRouter(
           <Route
             path="shared-with-me"
             lazy={async () => {
-              const module = await import("./pages/dashboard/shared");
+              const module = await import("./pages/dashboard/Shared");
               return { Component: module.default };
             }}
             hydrateFallbackElement={<TableSkeleton />}
@@ -92,7 +92,7 @@ const router = createBrowserRouter(
           <Route
             path="favorite"
             lazy={async () => {
-              const module = await import("./pages/dashboard/favorite");
+              const module = await import("./pages/dashboard/Favorite");
               return { Component: module.default };
             }}
             hydrateFallbackElement={<TableSkeleton />}
@@ -101,7 +101,7 @@ const router = createBrowserRouter(
           <Route
             path="trash"
             lazy={async () => {
-              const module = await import("./pages/dashboard/trash");
+              const module = await import("./pages/dashboard/Trash");
               return { Component: module.default };
             }}
             hydrateFallbackElement={<TableSkeleton />}
@@ -111,7 +111,7 @@ const router = createBrowserRouter(
         <Route
           path="file/:id"
           lazy={async () => {
-            const module = await import("./pages/file/file");
+            const module = await import("./pages/file/File");
             return { Component: module.default };
           }}
         />
@@ -124,6 +124,7 @@ const router = createBrowserRouter(
           const module = await import("./pages/auth/sign-in");
           return { Component: module.default };
         }}
+        hydrateFallbackElement={<></>}
       />
 
       <Route
@@ -132,6 +133,7 @@ const router = createBrowserRouter(
           const module = await import("./pages/auth/sign-up");
           return { Component: module.default };
         }}
+        hydrateFallbackElement={<></>}
       />
 
       {/* Not Found */}
@@ -141,6 +143,7 @@ const router = createBrowserRouter(
           const module = await import("./pages/NotFound");
           return { Component: module.default };
         }}
+        hydrateFallbackElement={<></>}
       />
     </Route>,
   ),
