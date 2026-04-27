@@ -65,6 +65,7 @@ function Whiteboard({ id, file, token, isDarkMode }: IWhiteboardProps) {
             fileId: id,
             roomId: `room-${id}`,
           },
+          reconnection: true,
         });
         return socketIoToTldrawSocket(socket);
       },
@@ -77,7 +78,6 @@ function Whiteboard({ id, file, token, isDarkMode }: IWhiteboardProps) {
       color: getRandomColor(),
     },
   });
-  const customComponents = useMemo(() => Components(file.role, id), [file.role, id]);
 
   if (store.status === "error") {
     return (
@@ -98,12 +98,14 @@ function Whiteboard({ id, file, token, isDarkMode }: IWhiteboardProps) {
     );
   }
 
+  console.log("Filestore synced with remote:", file);
+
   return (
     <section className="fixed inset-0 size-full">
       <Tldraw
         className="tldraw__editor"
         store={store.store}
-        components={customComponents}
+        components={Components(file.role, id)}
         onMount={(editor) => {
           editor.user.updateUserPreferences({
             colorScheme: isDarkMode ? "dark" : "light",

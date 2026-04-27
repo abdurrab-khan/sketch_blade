@@ -1,8 +1,9 @@
-import { StrictMode } from "react";
+import { StrictMode, useContext, type ReactNode } from "react";
 import { Provider } from "react-redux";
 import { store } from "@/redux/store.ts";
 import { createRoot } from "react-dom/client";
 import { ClerkProvider } from "@clerk/clerk-react";
+import { dark } from "@clerk/themes";
 import { createBrowserRouter } from "react-router";
 import { Toaster } from "@/components/ui/toaster.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -16,7 +17,7 @@ import AuthProtection from "@/components/AuthProtection.tsx";
 import DashboardLayout from "./pages/dashboard/layout";
 import TableSkeleton from "./pages/dashboard/components/mainpanel/table/TableSkeleton";
 
-import { ThemeProvider } from "./context/ThemeProvider";
+import { ThemeContext, ThemeProvider } from "./context/ThemeProvider";
 
 const queryClient = new QueryClient();
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLIC_KEY;
@@ -145,24 +146,43 @@ const router = createBrowserRouter(
   ),
 );
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
+function ThemedClerkProvider({ children }: { children: ReactNode }) {
+  const themeContext = useContext(ThemeContext);
+
+  if (!themeContext) {
+    throw new Error("ThemeContext is unavailable");
+  }
+
+  const isDarkMode = themeContext.mode === "dark";
+
+  return (
     <ClerkProvider
       publishableKey={PUBLISHABLE_KEY}
+      appearance={{
+        baseTheme: isDarkMode ? dark : undefined,
+      }}
       afterSignOutUrl="/"
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
-      signInForceRedirectUrl={"/dashboard"}
-      signUpForceRedirectUrl={"/dashboard"}
+      signInForceRedirectUrl="/dashboard"
+      signUpForceRedirectUrl="/dashboard"
     >
-      <Provider store={store}>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider>
+      {children}
+    </ClerkProvider>
+  );
+}
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <ThemeProvider>
+      <ThemedClerkProvider>
+        <Provider store={store}>
+          <QueryClientProvider client={queryClient}>
             <RouterProvider router={router} />
             <Toaster />
-          </ThemeProvider>
-        </QueryClientProvider>
-      </Provider>
-    </ClerkProvider>
+          </QueryClientProvider>
+        </Provider>
+      </ThemedClerkProvider>
+    </ThemeProvider>
   </StrictMode>,
 );
