@@ -1,23 +1,38 @@
-import { Loader2 } from "lucide-react";
-import useResponse from "@/hooks/useResponse";
+import { Suspense } from "react";
+import { useSelector } from "react-redux";
+import useSuspenseResponse from "@/hooks/use-suspense-response";
+import { RootState } from "@/redux/store";
 import { FolderDetails } from "@/types/file";
-import FolderTable from "@/components/ui/table/FolderTable.tsx";
+import FolderTable from "@/pages/dashboard/components/mainpanel/table/FolderTable";
+import FolderTableSkeleton from "@/pages/dashboard/components/mainpanel/table/TableSkeleton";
 
-const Folders = () => {
-  const { data, isPending, isFetching } = useResponse<FolderDetails[]>({
+const FoldersTableContent = () => {
+  const data = useSuspenseResponse<FolderDetails[]>({
     queryKey: ["getFolders"],
     queryProps: { uri: "/folder" },
   });
 
-  if (isPending || isFetching) {
-    return (
-      <div className={"flex-center size-full flex-1 dark:text-white bg-primary dark:bg-primary-bg-dark"}>
-        <div>
-          <Loader2 className={"h-8 w-8 animate-spin"} />
-        </div>
-      </div>
-    );
-  }
-  return <FolderTable data={data?.data ?? []} />;
+  console.log("Folders data:", data);
+
+  return <FolderTable data={data.data ?? []} />;
 };
+
+const FoldersContent = () => {
+  const { _id: userClerkId } = useSelector((state: RootState) => state.auth);
+
+  if (!userClerkId) {
+    return <FolderTableSkeleton actionsCount={1} />;
+  }
+
+  return <FoldersTableContent />;
+};
+
+const Folders = () => {
+  return (
+    <Suspense fallback={<FolderTableSkeleton actionsCount={1} />}>
+      <FoldersContent />
+    </Suspense>
+  );
+};
+
 export default Folders;

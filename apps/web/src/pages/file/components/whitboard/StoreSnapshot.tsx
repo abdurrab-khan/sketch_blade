@@ -1,4 +1,4 @@
-import useApiClient from "@/hooks/useApiClient";
+import useApiClient from "@/hooks/use-api-client";
 import { throttle } from "lodash";
 import { TLStore, getSnapshot } from "tldraw";
 

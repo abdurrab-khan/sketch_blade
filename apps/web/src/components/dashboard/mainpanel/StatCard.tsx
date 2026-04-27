@@ -2,11 +2,11 @@ import clsx from "clsx";
 import { IconType } from "react-icons";
 import { MdGroups } from "react-icons/md";
 import { FaFile, FaFolder, FaShareNodes } from "react-icons/fa6";
-import useResponse from "@/hooks/useResponse";
+import useResponse from "@/hooks/use-response";
 import { Stat } from "@/types";
 
 function StatManager() {
-  const { data, isLoading } = useResponse<Stat>({
+  const { data } = useResponse<Stat>({
     queryKey: ["getFiles", "getFolders"],
     queryProps: {
       uri: "/stat",
@@ -20,9 +20,9 @@ function StatManager() {
 
   return (
     <div className="flex shrink flex-wrap gap-x-0 gap-y-3 sm:gap-x-4 sm:gap-y-4 xl:gap-x-12">
-      <StatCard icon={FaFile} count={stat.totalDiagrams} title="Total Diagrams" />
-      <StatCard icon={MdGroups} count={stat.totalCollaborators} title="Collaborators" />
-      <StatCard icon={FaFolder} count={stat.totalFolders} title="Folders" />
+      <StatCard icon={FaFile} count={stat?.totalDiagrams} title="Total Diagrams" />
+      <StatCard icon={MdGroups} count={stat?.totalCollaborators} title="Collaborators" />
+      <StatCard icon={FaFolder} count={stat?.totalFolders} title="Folders" />
       <StatCard
         icon={FaShareNodes}
         count={stat.totalSharedDiagrams}
@@ -35,12 +35,12 @@ function StatManager() {
 
 interface StatCardProps {
   icon: IconType;
-  count: number;
+  count?: number;
   title: string;
   style?: string;
 }
 
-function StatCard({ icon: Icon, count, title, style = "" }: StatCardProps) {
+function StatCard({ icon: Icon, title, count = 0, style = "" }: StatCardProps) {
   const numParser = () => {
     return `${count < 10 && count > 0 ? 0 : ""}${count}`;
   };

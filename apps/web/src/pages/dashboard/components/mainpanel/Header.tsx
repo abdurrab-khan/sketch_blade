@@ -4,10 +4,9 @@ import React, { useEffect, useState } from "react";
 import { IoIosSearch } from "react-icons/io";
 import { HiMenuAlt2 } from "react-icons/hi";
 
-import ThemeToggle from "@/components/ThemeToggle";
-import Notification from "@/components/dropdown/Notification";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import SideBar from "../sidebar/SideBar";
+import ThemeToggle from "@/components/ThemeToggle";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface HeaderProps {
   query: string;
@@ -40,7 +39,7 @@ function Header({ query, setQuery }: HeaderProps) {
   }, [setQuery, pathname]);
 
   return (
-    <header className="dark:bg-primary-bg-dark/90 fixed top-0 left-0 z-40 h-(--dashboard-header) w-full border-b border-slate-300/20 bg-white/80 drop-shadow-2xl backdrop-blur-xl dark:border-blue-500/10">
+    <header className="dark:bg-primary-bg-dark/90 fixed top-0 right-0 left-0 z-40 h-(--dashboard-header) border-b border-slate-300/20 bg-white/80 drop-shadow-2xl backdrop-blur-xl dark:border-blue-500/10">
       <div className="flex size-full items-center px-2.5 xl:pr-3 xl:pl-[calc(var(--side-bar)+12px)]">
         {/* Mobile Menu Button - Only visible below xl */}
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -71,7 +70,6 @@ function Header({ query, setQuery }: HeaderProps) {
           </div>
         </div>
         <div className="ml-3">
-          <Notification />
           <ThemeToggle />
         </div>
       </div>

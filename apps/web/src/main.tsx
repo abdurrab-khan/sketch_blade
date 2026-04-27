@@ -1,8 +1,9 @@
-import { StrictMode } from "react";
+import { StrictMode, useContext, type ReactNode } from "react";
 import { Provider } from "react-redux";
 import { store } from "@/redux/store.ts";
 import { createRoot } from "react-dom/client";
 import { ClerkProvider } from "@clerk/clerk-react";
+import { dark } from "@clerk/themes";
 import { createBrowserRouter } from "react-router";
 import { Toaster } from "@/components/ui/toaster.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -10,12 +11,13 @@ import { createRoutesFromElements, Route, RouterProvider } from "react-router";
 
 import "./index.css";
 import App from "@/App.tsx";
-import Navbar from "@/components/Navbar.tsx";
 
-import { File, SignIn, SignUp, NotFound, Home, AboutUs } from "@/pages";
-import HomeLayout from "@/pages/HomeLayout.tsx";
-import { Files, Folders, Shared, Trash, Favorite, FolderFiles } from "@/pages/dashboard";
+import HomeLayout from "@/pages/home/HomeLayout";
 import AuthProtection from "@/components/AuthProtection.tsx";
+import DashboardLayout from "./pages/dashboard/layout";
+import TableSkeleton from "./pages/dashboard/components/mainpanel/table/TableSkeleton";
+
+import { ThemeContext, ThemeProvider } from "./context/ThemeProvider";
 
 const queryClient = new QueryClient();
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLIC_KEY;
@@ -26,63 +28,161 @@ if (!PUBLISHABLE_KEY) {
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route>
+    <Route element={<App />}>
+      {/* Home Layout */}
       <Route path="/" element={<HomeLayout />}>
-        <Route index element={<Home />} />
-        <Route path="about" element={<AboutUs />} />
+        <Route
+          index
+          lazy={async () => {
+            const module = await import("./pages/home/home");
+            return { Component: module.default };
+          }}
+        />
+
+        <Route
+          path="about"
+          lazy={async () => {
+            const module = await import("./pages/home/about-us");
+            return { Component: module.default };
+          }}
+        />
       </Route>
 
-      <Route
-        path="/dashboard"
-        element={
-          <AuthProtection>
-            <App />
-          </AuthProtection>
-        }
-      >
-        <Route index element={<Files />} />
-        <Route path="folders">
-          <Route index element={<Folders />} />
-          <Route path=":folderId" element={<FolderFiles />} />
+      {/* Protected Routes */}
+      <Route element={<AuthProtection />}>
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route
+            index
+            lazy={async () => {
+              const module = await import("./pages/dashboard/files");
+              return { Component: module.default };
+            }}
+            hydrateFallbackElement={<TableSkeleton />}
+          />
+
+          <Route path="folders">
+            <Route
+              index
+              lazy={async () => {
+                const module = await import("./pages/dashboard/folders");
+                return { Component: module.default };
+              }}
+              hydrateFallbackElement={<TableSkeleton />}
+            />
+
+            <Route
+              path=":folderId"
+              lazy={async () => {
+                const module = await import("./pages/dashboard/folder/folder-files");
+                return { Component: module.default };
+              }}
+              hydrateFallbackElement={<TableSkeleton />}
+            />
+          </Route>
+
+          <Route
+            path="shared-with-me"
+            lazy={async () => {
+              const module = await import("./pages/dashboard/shared");
+              return { Component: module.default };
+            }}
+            hydrateFallbackElement={<TableSkeleton />}
+          />
+
+          <Route
+            path="favorite"
+            lazy={async () => {
+              const module = await import("./pages/dashboard/favorite");
+              return { Component: module.default };
+            }}
+            hydrateFallbackElement={<TableSkeleton />}
+          />
+
+          <Route
+            path="trash"
+            lazy={async () => {
+              const module = await import("./pages/dashboard/trash");
+              return { Component: module.default };
+            }}
+            hydrateFallbackElement={<TableSkeleton />}
+          />
         </Route>
-        <Route path="shared-with-me" element={<Shared />} />
-        <Route path="favorite" element={<Favorite />} />
-        <Route path="trash" element={<Trash />} />
+
+        <Route
+          path="file/:id"
+          lazy={async () => {
+            const module = await import("./pages/file/file");
+            return { Component: module.default };
+          }}
+        />
       </Route>
 
+      {/* Auth Pages */}
       <Route
-        path="file/:id"
-        element={
-          <AuthProtection>
-            <File />
-          </AuthProtection>
-        }
+        path="sign-in"
+        lazy={async () => {
+          const module = await import("./pages/auth/sign-in");
+          return { Component: module.default };
+        }}
       />
 
-      <Route path="sign-in" element={<SignIn />} />
-      <Route path="sign-up" element={<SignUp />} />
+      <Route
+        path="sign-up"
+        lazy={async () => {
+          const module = await import("./pages/auth/sign-up");
+          return { Component: module.default };
+        }}
+      />
 
-      <Route path="*" element={<NotFound />} />
+      {/* Not Found */}
+      <Route
+        path="*"
+        lazy={async () => {
+          const module = await import("./pages/NotFound");
+          return { Component: module.default };
+        }}
+      />
     </Route>,
   ),
 );
 
+function ThemedClerkProvider({ children }: { children: ReactNode }) {
+  const themeContext = useContext(ThemeContext);
+
+  if (!themeContext) {
+    throw new Error("ThemeContext is unavailable");
+  }
+
+  const isDarkMode = themeContext.mode === "dark";
+
+  return (
+    <ClerkProvider
+      publishableKey={PUBLISHABLE_KEY}
+      appearance={{
+        baseTheme: isDarkMode ? dark : undefined,
+      }}
+      afterSignOutUrl="/"
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInForceRedirectUrl="/dashboard"
+      signUpForceRedirectUrl="/dashboard"
+    >
+      {children}
+    </ClerkProvider>
+  );
+}
+
 createRoot(document.getElementById("root")!).render(
-  // <StrictMode>
-  <ClerkProvider
-    publishableKey={PUBLISHABLE_KEY}
-    afterSignOutUrl="/"
-    signInUrl="/sign-in"
-    signUpUrl="/sign-up"
-    signInForceRedirectUrl={"/dashboard"}
-    signUpForceRedirectUrl={"/dashboard"}
-  >
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-        <Toaster />
-      </QueryClientProvider>
-    </Provider>
-  </ClerkProvider>,
-  // </StrictMode>,
+  <StrictMode>
+    <ThemeProvider>
+      <ThemedClerkProvider>
+        <Provider store={store}>
+          <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+            <Toaster />
+          </QueryClientProvider>
+        </Provider>
+      </ThemedClerkProvider>
+    </ThemeProvider>
+  </StrictMode>,
 );

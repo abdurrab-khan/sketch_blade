@@ -1,66 +1,113 @@
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { useToast } from "@/hooks/use-toast.ts";
-import useResponse from "@/hooks/useResponse.tsx";
-import Whiteboard from "@/pages/file/components/Whiteboard";
-import { FileData } from "@/types/file";
 import { useAuth } from "@clerk/clerk-react";
 
-const File = () => {
+import Whiteboard from "@/pages/file/components/Whiteboard";
+import { FileData } from "@/types/file";
+import useApiClient from "@/hooks/use-api-client";
+import { ApiResponse } from "@/types";
+import useTheme from "@/hooks/use-theme";
+
+const useAuthToken = () => {
   const [token, setToken] = useState<string>("");
   const [isTokenPending, setIsTokenPending] = useState<boolean>(true);
 
   const { getToken } = useAuth();
-  const { id: fileId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const { data, isPending, isError, error } = useResponse<FileData>({
-    queryKey: [fileId as string],
-    queryProps: { uri: `/file/${fileId}` },
-    queryOptions: {
-      enabled: !!fileId,
-    },
-  });
 
   useEffect(() => {
-    (async () => {
-      const token = await getToken(); // fetching token for authenticating user
+    let ignored = false;
 
-      if (!token) {
+    const fetchToken = async () => {
+      if (ignored) return;
+
+      try {
+        const token = await getToken();
+
+        if (!token) {
+          throw new Error("No token retrieved");
+        }
+
+        setToken(token);
+      } catch {
         navigate("/sign-in");
-        return;
+      } finally {
+        setIsTokenPending(false);
       }
+    };
 
-      setToken(token);
-      setIsTokenPending(false);
-    })();
-  }, [getToken, toast, navigate]);
+    fetchToken();
 
-  // If pending show loader spinner
+    return () => {
+      ignored = true;
+    };
+  }, [getToken, navigate]);
+
+  return {
+    token,
+    isTokenPending,
+  };
+};
+
+const useFileLoader = (fileId: string) => {
+  const apiClient = useApiClient();
+  const [data, setData] = useState<FileData | null>(null);
+  const [isPending, setIsPending] = useState<boolean>(true);
+
+  useEffect(() => {
+    let ignored = false;
+
+    const fetchFile = async () => {
+      if (ignored) return;
+      try {
+        const response = await apiClient.get<ApiResponse<FileData>>(`/file/${fileId}`);
+        console.log("Fetched file data: ", response?.data);
+        setData(response?.data?.data || null);
+      } catch {
+        setData(null);
+      } finally {
+        setIsPending(false);
+      }
+    };
+
+    fetchFile();
+
+    return () => {
+      ignored = true;
+    };
+  }, [apiClient, fileId]);
+
+  return {
+    data,
+    isPending,
+  };
+};
+
+const File = () => {
+  const isDarkMode = useTheme();
+  const { id: fileId } = useParams();
+  const { data, isPending } = useFileLoader(fileId!);
+  const { token, isTokenPending } = useAuthToken();
+
   if (isPending || isTokenPending)
     return (
-      <div className={"size-screen flex-center dark:text-white bg-primary dark:bg-primary-bg-dark"}>
-        <Loader2 size={64} className={"text-quaternary animate-spin"} />
+      <div className={"size-screen flex-center bg-primary dark:bg-primary-bg-dark dark:text-white"}>
+        <Loader2 size={48} className={"text-quaternary animate-spin"} />
       </div>
     );
 
-  // If getting any error navigate to dashboard
-  if (isError || !data?.data) {
-    navigate("/dashboard");
-
-    toast({
-      title: "Error",
-      description: error?.message ?? "Invalid file id",
-      variant: "destructive",
-    });
-    return;
+  if (data === null) {
+    return (
+      <div className={"size-screen flex-center bg-primary dark:bg-primary-bg-dark dark:text-white"}>
+        <p className={"text-quaternary"}>File not found.</p>
+      </div>
+    );
   }
 
   return (
     <main className={"size-screen bg-primary text-quaternary relative"}>
-      <Whiteboard id={fileId!} file={data.data} token={token} />
+      <Whiteboard id={fileId!} file={data} token={token} isDarkMode={isDarkMode} />
     </main>
   );
 };

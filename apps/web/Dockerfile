@@ -1,30 +1,29 @@
 FROM node:22-alpine
 
+WORKDIR /home/sketch-blade-web
+
+ARG NODE_ENV=production
 ARG VITE_API_URL
 ARG VITE_CLERK_PUBLIC_KEY
 
-ENV VITE_CLERK_PUBLIC_KEY=${VITE_CLERK_PUBLIC_KEY} \
-  VITE_API_URL=${VITE_API_URL}
+ENV NODE_ENV=${NODE_ENV} \
+  VITE_API_URL=${VITE_API_URL} \
+  VITE_CLERK_PUBLIC_KEY=${VITE_CLERK_PUBLIC_KEY}
 
-# Installing pnpm
+# Install pnpm
 RUN npm install -g pnpm
 
-# Setting the working directory
-WORKDIR /home/sketch-blade-web
-
-# Copying the package.json and pnpm-lock.yaml into current directory
+# Install dependencies first (better layer cache)
 COPY package.json pnpm-lock.yaml ./
-
-# Installing all dep
 RUN pnpm install --frozen-lockfile
 
-# Copying the rest of the application
+# Copy source
 COPY . .
 
-# Build the application
-# RUN pnpm run build
+# Build only for production
+RUN if [ "$NODE_ENV" != "dev" ]; then pnpm run build; fi
 
-EXPOSE 5173
+EXPOSE 5173 4173
 
-# Running application
-CMD [ "pnpm", "run", "dev" ]
+# dev -> vite dev server, prod -> preview built app
+CMD ["sh", "-c", "if [ \"$NODE_ENV\" = \"dev\" ]; then pnpm run dev --host 0.0.0.0 --port 5173; else pnpm run preview --host 0.0.0.0 --port 5173; fi"]

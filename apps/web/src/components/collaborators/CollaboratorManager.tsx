@@ -7,7 +7,7 @@ import { Label } from "../ui/label";
 import CollaboratorRoleSelector from "./CollaboratorRoleSelector";
 
 import { useToast } from "@/hooks/use-toast";
-import useApiClient from "@/hooks/useApiClient";
+import useApiClient from "@/hooks/use-api-client";
 import CollaboratorInput from "./CollaboratorInput";
 
 interface ICollaboratorManagerProps {

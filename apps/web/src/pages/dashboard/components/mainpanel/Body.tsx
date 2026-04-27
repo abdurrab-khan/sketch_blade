@@ -9,11 +9,13 @@ interface BodyProps {
 
 function Body({ query, setQuery }: BodyProps) {
   return (
-    <div className="dark:to-primary-bg-dark dark:from-secondary-bg-dark flex min-h-full w-full flex-col gap-6 bg-linear-to-tl from-blue-500/15 to-white px-4 pt-[calc(2rem+var(--dashboard-header))] md:px-6">
-      <Banner />
-      <StatManager />
-      <div className="flex size-full flex-1 flex-col">
-        <Outlet context={[query, setQuery]} />
+    <div className="dark:to-primary-bg-dark dark:from-secondary-bg-dark flex min-h-full w-full flex-col bg-linear-to-tl from-blue-500/15 to-white">
+      <div className="mt-(--dashboard-header) flex flex-1 flex-col gap-6 px-4 pt-8 pb-4 md:px-6">
+        <Banner />
+        <StatManager />
+        <div className="flex flex-1 flex-col">
+          <Outlet context={[query, setQuery]} />
+        </div>
       </div>
     </div>
   );

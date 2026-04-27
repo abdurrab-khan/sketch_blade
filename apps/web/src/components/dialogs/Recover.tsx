@@ -1,5 +1,5 @@
 import React from "react";
-import useMutate from "@/hooks/useMutate";
+import useMutate from "@/hooks/use-mutate";
 
 import { Loader2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";

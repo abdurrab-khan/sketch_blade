@@ -4,8 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import Fileform from "../form/Fileform.tsx";
-import useMutate from "@/hooks/useMutate.ts";
-import useApiClient from "@/hooks/useApiClient.ts";
+import useMutate from "@/hooks/use-mutate.ts";
+import useApiClient from "@/hooks/use-api-client.ts";
 
 import { fileSchema } from "@/lib/zod/schemas.ts";
 
@@ -34,16 +34,6 @@ function UpdateFile({ isOpen, fileData, children, setIsOpen }: FileEditDialogPro
   });
 
   const { reset } = form;
-
-  // Initializing default values for form
-  useEffect(() => {
-    if (isOpen && fileData) {
-      reset({
-        fileName: fileData.name ?? "",
-        description: fileData.description ?? "",
-      });
-    }
-  }, [reset, isOpen, fileData]);
 
   // API mutation for update file
   const updateFile = async ({
@@ -90,6 +80,16 @@ function UpdateFile({ isOpen, fileData, children, setIsOpen }: FileEditDialogPro
       setIsOpen(false);
     }
   };
+
+  // Initializing default values for form
+  useEffect(() => {
+    if (isOpen && fileData) {
+      reset({
+        fileName: fileData.name ?? "",
+        description: fileData.description ?? "",
+      });
+    }
+  }, [reset, isOpen, fileData]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

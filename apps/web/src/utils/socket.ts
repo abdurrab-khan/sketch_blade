@@ -1,8 +1,12 @@
 import { TLPersistentClientSocket, TLSocketStatusChangeEvent } from "@tldraw/sync";
 import { Socket } from "socket.io-client";
-import { TLRecord, TLAssetStore, uniqueId } from "tldraw";
+import { TLRecord, TLAssetStore } from "tldraw";
 
 const API_URL = import.meta.env["VITE_API_URL"];
+
+function toStorageKey(assetId: string) {
+  return encodeURIComponent(assetId.replace(/[^a-zA-Z0-9._-]/g, "_"));
+}
 
 // Convert Socket.IO to TLPersistentClientSocket
 function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRecord> {
@@ -17,9 +21,13 @@ function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRe
 
     onReceiveMessage: (callback) => {
       // Listen for tldraw sync protocol messages
-      const handler = (message: any) => {
-        // console.log("📥 Received:", message);
-        callback(message);
+      const handler = (message: unknown) => {
+        try {
+          const parsedMessage = typeof message === "string" ? JSON.parse(message) : message;
+          callback(parsedMessage);
+        } catch (error) {
+          console.error("Failed to parse socket payload:", error);
+        }
       };
 
       ioSocket.on("tldraw-message", handler);
@@ -58,18 +66,30 @@ function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRe
     statusChangeListeners.forEach((cb) => cb({ status: "online" }));
   };
 
-  const disconnectHandler = () => {
+  const disconnectHandler = (reason?: string) => {
+    if (reason === "io server disconnect") {
+      tldrawSocket.connectionStatus = "error";
+      statusChangeListeners.forEach((cb) =>
+        cb({
+          status: "error",
+          reason: "Disconnected by server",
+        }),
+      );
+      return;
+    }
+
     tldrawSocket.connectionStatus = "offline";
     statusChangeListeners.forEach((cb) => cb({ status: "offline" }));
   };
 
-  const errorHandler = (error: any) => {
+  const errorHandler = (error: unknown) => {
+    const errorObj = error as { message?: string; description?: string } | undefined;
     console.error("❌ Error is going on: ", error);
     tldrawSocket.connectionStatus = "error";
     statusChangeListeners.forEach((cb) =>
       cb({
         status: "error",
-        reason: error.message || "Connection error",
+        reason: errorObj?.message || errorObj?.description || "Connection error",
       }),
     );
   };
@@ -91,14 +111,13 @@ function socketIoToTldrawSocket(ioSocket: Socket): TLPersistentClientSocket<TLRe
 
 // Handle assets like images and videos?
 const multiplayerAssets: TLAssetStore = {
-  async upload(_asset, file) {
-    const id = uniqueId();
+  async upload(asset, file) {
+    const storageKey = toStorageKey(asset.id);
+    const uploadUrl = `${API_URL}/v1/assets/upload/${storageKey}`;
+    const readUrl = `${API_URL}/v1/assets/${storageKey}`;
 
-    const objectName = `${id}-${file.name}`;
-    const url = `${API_URL}/uploads/${encodeURIComponent(objectName)}`;
-
-    const response = await fetch(url, {
-      method: "PUT",
+    const response = await fetch(uploadUrl, {
+      method: "POST",
       body: file,
     });
 
@@ -106,12 +125,26 @@ const multiplayerAssets: TLAssetStore = {
       throw new Error(`Failed to upload asset: ${response.statusText}`);
     }
 
-    return { src: url };
+    return { src: readUrl };
   },
   // to retrieve an asset, we can just use the same URL. you could customize this to add extra
   // auth, or to serve optimized versions / sizes of the asset.
   resolve(asset) {
     return asset.props.src;
+  },
+  async remove(assetIds) {
+    await Promise.all(
+      assetIds.map(async (assetId) => {
+        const storageKey = toStorageKey(assetId);
+        const response = await fetch(`${API_URL}/v1/assets/${storageKey}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to remove asset ${assetId}: ${response.statusText}`);
+        }
+      }),
+    );
   },
 };
 

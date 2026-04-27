@@ -22,7 +22,7 @@ import {
 import * as z from "zod";
 import { Folder } from "@/types/file.ts";
 import { useForm } from "react-hook-form";
-import useMutate from "@/hooks/useMutate.ts";
+import useMutate from "@/hooks/use-mutate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { folderSchema } from "@/lib/zod/schemas.ts";
 
@@ -34,6 +34,8 @@ interface FolderFormProps {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+type FolderFormType = z.infer<typeof folderSchema>;
+
 function FolderForm({ _id, children, isOpen, setIsOpen, folderData }: FolderFormProps) {
   const form = useForm<z.infer<typeof folderSchema>>({
     resolver: zodResolver(folderSchema),
@@ -43,14 +45,14 @@ function FolderForm({ _id, children, isOpen, setIsOpen, folderData }: FolderForm
   });
   const { control, handleSubmit } = form;
 
-  const mutation = useMutate({
+  const mutation = useMutate<undefined, FolderFormType>({
     options: { queryKey: ["getFolders"] },
     isShowToast: true,
     finallyFn: () => setIsOpen(false),
   });
   const { isPending } = mutation;
 
-  const handleFolderSubmit = (data: z.infer<typeof folderSchema>) => {
+  const handleFolderSubmit = (data: FolderFormType) => {
     if (isPending) return;
 
     const method = _id ? "put" : "post";

@@ -68,6 +68,8 @@ import "./controllers/socket.controller";
 
 const COMMON_ROUTE = "/v1/";
 
+app.use(COMMON_ROUTE + "assets", assetsRouter);
+
 app.use(COMMON_ROUTE, svixRouter);
 
 // Apply user authentication middleware to all routes after this point
@@ -79,8 +81,7 @@ app.use(COMMON_ROUTE + "collaborator", collaboratorRouter);
 app.use(COMMON_ROUTE + "folder", folderRouter);
 app.use(COMMON_ROUTE + "canvas", canvasRouter);
 app.use(COMMON_ROUTE + "users", userRouter);
-app.get(COMMON_ROUTE + "trash", userMiddleware, getTrashedData);
-app.get(COMMON_ROUTE + "assets", userMiddleware, assetsRouter);
+app.get(COMMON_ROUTE + "trash", getTrashedData);
 
 // Error Middleware
 app.use(ErrorMiddleware);

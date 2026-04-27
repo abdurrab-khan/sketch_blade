@@ -14,10 +14,14 @@ const socketMiddleware = async (
    next: (err?: ExtendedError) => void,
 ) => {
    try {
-      const { accessToken } = socket.handshake.query;
+      const accessToken =
+         (socket.handshake.auth as { accessToken?: string })?.accessToken ??
+         socket.handshake.query.accessToken;
 
       if (!accessToken || typeof accessToken !== "string") {
-         socket.disconnect();
+         const error = new Error("Missing access token") as ExtendedError;
+         error.data = { code: "UNAUTHORIZED" };
+         next(error);
          return;
       }
 
@@ -32,7 +36,14 @@ const socketMiddleware = async (
          "Unexpected error occurred in socket middleware: ",
          (error as Error)?.message ?? error,
       );
-      socket.disconnect();
+      const authError = new Error(
+         "Socket authentication failed",
+      ) as ExtendedError;
+      authError.data = {
+         code: "UNAUTHORIZED",
+         reason: (error as Error)?.message ?? "Authentication error",
+      };
+      next(authError);
    }
 };
 

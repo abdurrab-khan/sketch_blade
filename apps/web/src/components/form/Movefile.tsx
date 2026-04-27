@@ -3,7 +3,7 @@ import { Skeleton } from "../ui/skeleton";
 import { Label } from "../ui/label";
 import { FaFolderOpen } from "react-icons/fa6";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import useResponse from "@/hooks/useResponse";
+import useResponse from "@/hooks/use-response";
 import { FolderDetails } from "@/types/file";
 
 interface FolderCardProps {

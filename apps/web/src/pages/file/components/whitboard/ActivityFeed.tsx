@@ -16,9 +16,11 @@ function ActivityFeed({ store }: IActivityFeed) {
 
       if (addedKeys.length > 0) {
         addedKeys.forEach((k) => {
-          if (!(k in changedRecord.added)) return;
+          const typedKey = k as keyof typeof changedRecord.added;
+          const addedRecord = changedRecord.added[typedKey];
+          if (!addedRecord) return;
 
-          const { userName } = changedRecord.added[k];
+          const { userName } = addedRecord as { userName?: string };
 
           addToast({
             title: `${userName} joined the room.`,
@@ -29,9 +31,11 @@ function ActivityFeed({ store }: IActivityFeed) {
 
       if (removedKeys.length > 0) {
         removedKeys.forEach((k) => {
-          if (!(k in changedRecord.removed)) return;
+          const typedKey = k as keyof typeof changedRecord.removed;
+          const removedRecord = changedRecord.removed[typedKey];
+          if (!removedRecord) return;
 
-          const { userName } = changedRecord.removed[k];
+          const { userName } = removedRecord as { userName?: string };
 
           addToast({
             title: `${userName} left the room`,

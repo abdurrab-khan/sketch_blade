@@ -1,9 +1,10 @@
 import type { Request, Response } from "express";
 
 import { AsyncHandler } from "@/utils";
-import { loadAsset, storeAsset } from "@/utils/assets";
+import ErrorHandler from "@/utils/ErrorHandler";
+import { loadAsset, removeAsset, storeAsset } from "@/utils/assets";
 
-// To enable blob storage for assets, we add simple endpoints supporting PUT and GET requests
+// To enable blob storage for assets, we add simple endpoints supporting upload, get and delete requests
 const updateAsset = AsyncHandler(async (req: Request, res: Response) => {
    const id = req.params.id;
    await storeAsset(id, req.body);
@@ -12,8 +13,29 @@ const updateAsset = AsyncHandler(async (req: Request, res: Response) => {
 
 const getAsset = AsyncHandler(async (req: Request, res: Response) => {
    const id = req.params.id;
-   const data = await loadAsset(id);
+   let data: Buffer;
+
+   try {
+      data = await loadAsset(id);
+   } catch (error: any) {
+      if (error?.code === "ENOENT") {
+         throw new ErrorHandler({
+            statusCode: 404,
+            message: "Asset not found",
+         });
+      }
+
+      throw error;
+   }
+
    res.send(data);
 });
 
-export { updateAsset, getAsset };
+const deleteAsset = AsyncHandler(async (req: Request, res: Response) => {
+   const id = req.params.id;
+
+   await removeAsset(id);
+   res.json({ ok: true });
+});
+
+export { updateAsset, getAsset, deleteAsset };
