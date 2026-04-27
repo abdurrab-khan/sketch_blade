@@ -35,7 +35,7 @@ export default function AuthProtection() {
           "flex-center dark:bg-secondary-bg-dark fixed inset-0 overflow-hidden dark:text-white"
         }
       >
-        <Loader2 size={64} className={"text-quaternary animate-spin"} />
+        <Loader2 size={48} className={"text-quaternary animate-spin"} />
       </div>
     );
   }

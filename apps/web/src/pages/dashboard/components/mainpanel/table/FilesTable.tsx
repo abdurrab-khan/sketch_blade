@@ -61,8 +61,6 @@ const FilesTable: React.FC<FilesTableProps> = ({ data }) => {
     return true;
   };
 
-  debugger;
-
   return (
     <div className="flex size-full flex-1 flex-col">
       <div className="mb-2.5 h-fit">

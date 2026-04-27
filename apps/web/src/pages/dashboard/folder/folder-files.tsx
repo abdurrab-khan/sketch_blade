@@ -16,10 +16,9 @@ const FolderFilesTableContent = () => {
   const { folderId } = useParams();
 
   const data = useSuspenseResponse<IFolderFiles>({
-    queryProps: { uri: `/folder/files/${folderId}` },
     queryKey: ["getFiles"],
+    queryProps: { uri: `/folder/files/${folderId}` },
   });
-  debugger;
 
   return (
     <div className="flex size-full flex-1 flex-col gap-y-3">

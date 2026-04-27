@@ -5,7 +5,6 @@ import { RootState } from "@/redux/store";
 
 import { io } from "socket.io-client";
 import { Tldraw } from "tldraw";
-import { Loader2 } from "lucide-react";
 
 import { FileData } from "@/types/file";
 import { getRandomColor } from "@/utils/AppUtils";
@@ -15,10 +14,13 @@ import "tldraw/tldraw.css";
 import ActivityFeed from "./whitboard/ActivityFeed";
 import Components from "./ui-zone/components";
 import StoreSnapshot from "./whitboard/StoreSnapshot";
-import useTheme from "@/hooks/use-theme";
+
+import SyncStateScreen from "./SyncStateScreen";
+import { Loader2 } from "lucide-react";
 
 interface IWhiteboardProps {
   id: string;
+  isDarkMode: boolean;
   file: FileData;
   token: string;
 }
@@ -45,9 +47,9 @@ const getSocketServerUrl = () => {
   }
 };
 
-function Whiteboard({ id, file, token }: IWhiteboardProps) {
-  const isDarkMode = useTheme();
+function Whiteboard({ id, file, token, isDarkMode }: IWhiteboardProps) {
   const auth = useSelector((root: RootState) => root.auth);
+  const retrySync = () => window.location.reload();
 
   const store = useSync({
     connect: useCallback(
@@ -68,7 +70,7 @@ function Whiteboard({ id, file, token }: IWhiteboardProps) {
       },
       [id, token],
     ),
-    assets: multiplayerAssets, // handled assets like image, videos
+    assets: multiplayerAssets,
     userInfo: {
       id: auth._id,
       name: auth.name,
@@ -79,18 +81,20 @@ function Whiteboard({ id, file, token }: IWhiteboardProps) {
 
   if (store.status === "error") {
     return (
-      <section className="flex-center text-quaternary fixed inset-0 size-full px-4 text-center">
-        Failed to sync this file. Please refresh and try again.
-      </section>
+      <SyncStateScreen
+        fileName={file.name}
+        isDarkMode={isDarkMode}
+        state="error"
+        onRetry={retrySync}
+      />
     );
   }
 
-  // Keep showing a loader until sync store is ready.
   if (store.status !== "synced-remote") {
     return (
-      <section className="flex-center text-quaternary fixed inset-0 size-full">
-        <Loader2 size={48} className="animate-spin" />
-      </section>
+      <div className={"size-screen flex-center bg-primary dark:bg-primary-bg-dark dark:text-white"}>
+        <Loader2 size={48} className={"text-quaternary animate-spin"} />
+      </div>
     );
   }
 

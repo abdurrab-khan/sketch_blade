@@ -78,20 +78,18 @@ const FilterLayout: React.FC<IFilterLayoutProps> = ({
 };
 
 function FileFilter({ data = [], filterValues, setFilterValue }: IFileFilterProps) {
-  debugger;
-
   const { pathname } = useLocation();
   const { email: userEmail } = useSelector((root: RootState) => root.auth);
   const FilterFolderOptions = useMemo(
     () =>
-      Array.from(new Map(data.map((file) => [file?.folder?._id, file?.folder?.name])))
+      Array.from(new Map(data?.map((file) => [file?.folder?._id, file?.folder?.name])))
         .filter(([id]) => id !== undefined)
         .map(([id, name]) => ({ id: id as string, label: name as string })),
     [data],
   );
   const FilterOwnerOption = useMemo(
     () =>
-      Array.from(new Map(data.map((file) => [file.owner.email, file.owner.fullName]))).map(
+      Array.from(new Map(data?.map((file) => [file.owner.email, file.owner.fullName]))).map(
         ([email, fullName]) => ({ id: email, label: email === userEmail ? "Me" : fullName }),
       ),
     [data, userEmail],

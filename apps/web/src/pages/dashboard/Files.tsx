@@ -10,13 +10,11 @@ import FilesTable from "@/pages/dashboard/components/mainpanel/table/FilesTable"
 
 const FilesTableContent = () => {
   const data = useSuspenseResponse<File[]>({
-    queryKey: ["getFiles"],
+    queryKey: ["getFiles", "files"],
     queryProps: { uri: "/file" },
   });
 
-  debugger;
-
-  return <FilesTable data={data.data ?? []} />;
+  return <FilesTable data={data?.data ?? []} />;
 };
 
 const FilesContent = () => {
