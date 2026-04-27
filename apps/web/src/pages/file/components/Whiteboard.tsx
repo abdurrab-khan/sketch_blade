@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useSync } from "@tldraw/sync";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";

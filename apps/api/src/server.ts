@@ -67,6 +67,7 @@ import getStat from "./controllers/stat.controller";
 import "./controllers/socket.controller";
 
 const COMMON_ROUTE = "/v1/";
+
 app.use(COMMON_ROUTE + "assets", assetsRouter);
 
 app.use(COMMON_ROUTE, svixRouter);

@@ -52,7 +52,6 @@ function DataTable<T extends File | Folder | (ExtendedFile | ExtendedFolder)>({
     data,
     columns,
     getRowId: (row) => row._id,
-
     onGlobalFilterChange: setSearchValue,
     globalFilterFn: globalFilterFn,
     getCoreRowModel: getCoreRowModel(),

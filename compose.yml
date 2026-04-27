@@ -35,7 +35,7 @@ services:
     container_name: sketch-blade-api
     build:
       context: ./apps/api
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         - PORT=${PORT:?"ERROR:" Port is required}
         - MONGO_URI=${MONGO_URI:?"ERROR:" MongoDB URI is required}
