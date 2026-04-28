@@ -1,4 +1,4 @@
-import { useSession } from "@clerk/clerk-react";
+import { useAuth, useSession } from "@clerk/clerk-react";
 import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
@@ -6,12 +6,13 @@ import { addUser } from "../redux/slices/authSlice";
 import { Loader2 } from "lucide-react";
 
 export default function AuthProtection() {
+  const { userId } = useAuth();
   const { session, isLoaded, isSignedIn } = useSession();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!isLoaded) {
+    if (!isLoaded || !userId) {
       return;
     }
 
@@ -26,7 +27,7 @@ export default function AuthProtection() {
       email: session.user.primaryEmailAddress?.emailAddress,
     };
     dispatch(addUser(sessionData));
-  }, [isLoaded, session, navigate, isSignedIn, dispatch]);
+  }, [isLoaded, session, navigate, isSignedIn, dispatch, userId]);
 
   if (!isLoaded) {
     return (
