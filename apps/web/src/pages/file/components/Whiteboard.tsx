@@ -106,6 +106,7 @@ function Whiteboard({ id, file, token, isDarkMode }: IWhiteboardProps) {
         className="tldraw__editor"
         store={store.store}
         components={Components(file.role, id)}
+        licenseKey={import.meta.env["VITE_TLDRAW_LICENSE_KEY"] || undefined}
         onMount={(editor) => {
           editor.user.updateUserPreferences({
             colorScheme: isDarkMode ? "dark" : "light",
