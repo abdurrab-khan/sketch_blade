@@ -1,111 +1,129 @@
-<div align="center">
+# SketchBlade
 
-# 🎨 SketchBlade
+A real-time collaborative whiteboard built on an infinite canvas. Multiple people can work on the same drawing at once — every stroke, shape, and cursor position is synced live over websockets.
 
-**Imagine. Draw. Collaborate.**
+Live demo: [sketch-blade.vercel.app](https://sketch-blade.vercel.app/)
 
-_Bring your ideas to life on an infinite canvas that connects you with your team instantly. The modern whiteboard designed for creative minds and remote teams._
+![SketchBlade in action](assets/sketch-blade.gif)
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-sketch--blade.vercel.app-2563eb?style=for-the-badge&logo=vercel)](https://sketch-blade.vercel.app/)
+## Why I built this
 
-</div>
+Most whiteboard tools either lock collaboration behind a paywall or feel sluggish when more than a couple of people join. I wanted to see how far I could push a fully self-hostable alternative: tldraw for the canvas, Socket.io for the sync layer, and a dashboard on top for organizing work into folders. SketchBlade is the result — and a good reference if you're curious how tldraw's sync protocol works over a custom transport.
 
-<br />
+## Features
 
-<div align="center">
+- **Infinite canvas** — powered by tldraw, with shapes, arrows, and freehand drawing
+- **Live collaboration** — cursors and edits sync in real time via Socket.io, using tldraw's sync protocol under the hood
+- **Dashboard** — organize drawings into folders, sort and filter them, and mark favorites
+- **Authentication** — handled by Clerk, including webhook-based user sync on the backend
+- **Dark mode first** — the UI was designed dark from the start, with motion kept subtle on purpose
 
-<!-- 🎥 VIDEO PLACEHOLDER: Drop your video demonstration link or GIF here -->
+## Tech stack
 
-> **📹 Watch SketchBlade in Action:**  
-> _(Add your demo video link or GIF here)_
+| Layer      | Tools                                                            |
+| ---------- | ---------------------------------------------------------------- |
+| Frontend   | React 19, Vite, TypeScript, Tailwind CSS 4, Redux Toolkit, tldraw |
+| Backend    | Node.js, Express 5, TypeScript, Socket.io, Mongoose              |
+| Database   | MongoDB 8                                                        |
+| Auth       | Clerk (React SDK on the front, Clerk SDK + webhooks on the back)  |
+| Infra      | Docker Compose, ngrok (for Clerk webhooks in local dev)           |
 
-</div>
+## Project structure
 
----
+```
+sketch_blade/
+├── apps/
+│   ├── web/     # React frontend (Vite)
+│   └── api/     # Express backend + Socket.io server
+├── assets/      # Demo assets
+├── compose.yml  # Docker Compose for local development
+└── .env.example
+```
 
-## ✨ Features
+Both apps are pnpm workspaces in spirit — pnpm is enforced via a `preinstall` check, so don't use npm or yarn.
 
-- 🎨 **Infinite Canvas & Advanced Tools**  
-  Unleash your creativity with a wide array of drawing tools, customizable shapes, smart arrows, and vibrant color palettes. Powered by `tldraw` for a seamless sketching experience.
-- ⚡ **Real-time Collaboration**  
-  Work together without borders. See your teammates' cursors and edits in real-time, backed by a robust `Socket.io` architecture.
+## Getting started
 
-- 📁 **Organized Dashboard**  
-  Keep your workspace clutter-free. Manage your diagrams with custom folders, advanced sorting, filtering, and a dedicated favorites system.
-
-- 🌓 **Modern, Beautiful UI/UX**  
-  A sleek, eye-catching interface built with a deep dark-mode-first approach. Fluid animations and accessible components make navigation a breeze.
-
-- 🔒 **Secure Authentication**  
-  Enterprise-grade security and user management powered by Clerk, ensuring your data and collaborations stay private.
-
----
-
-## 🛠️ Tech Stack
-
-Designed for performance and scalability, SketchBlade leverages a modern, cutting-edge ecosystem:
-
-### **Frontend**
-
-![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Redux](https://img.shields.io/badge/Redux-593D88?style=for-the-badge&logo=redux&logoColor=white)
-![TLDraw](https://img.shields.io/badge/TLDraw-000000?style=for-the-badge&logo=canvas&logoColor=white)
-
-### **Backend**
-
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
-![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socketdotio&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
-![Clerk](https://img.shields.io/badge/Clerk_Auth-6C47FF?style=for-the-badge&logo=clerk&logoColor=white)
-
----
-
-## 🚀 Getting Started (Local Development)
-
-Want to run SketchBlade on your local machine? We've made it incredibly simple using Docker.
+The easiest way to run everything locally is Docker Compose. It brings up four services: the frontend, the API, MongoDB, and an ngrok tunnel that Clerk webhooks can reach.
 
 ### Prerequisites
 
-Ensure you have the following installed on your local machine:
+- [Docker](https://www.docker.com/products/docker-desktop/) (Docker Compose v2 works with the built-in `docker compose` command)
+- A [Clerk](https://clerk.com/) account for auth keys
+- An [ngrok](https://ngrok.com/) auth token
 
-- [Git](https://git-scm.com/)
-- [Docker & Docker Compose](https://www.docker.com/products/docker-desktop)
+### Setup
 
-### Step-by-Step Installation
+1. **Clone and configure**
 
-**1. Clone the repository**
+   ```bash
+   git clone https://github.com/abdurrab-khan/sketch_blade.git
+   cd sketch_blade
+   cp .env.example .env
+   ```
+
+2. **Fill in `.env`** — the variables that actually matter:
+
+   | Variable | What it's for |
+   | --- | --- |
+   | `MONGO_INITDB_ROOT_USERNAME` / `MONGO_INITDB_ROOT_PASSWORD` | Mongo credentials; the `MONGO_URI` in the example already matches them |
+   | `CLERK_PUBLIC_KEY` / `CLERK_SECRET_KEY` / `CLERK_SIGNING_SECRET` | From your Clerk dashboard |
+   | `VITE_CLERK_PUBLIC_KEY` | The publishable key, for the frontend |
+   | `VITE_TLDRAW_LICENSE_KEY` | Optional — only needed if you use tldraw's watermark-free license features |
+   | `NGROK_AUTHTOKEN` | Your ngrok token, used for the Clerk webhook tunnel |
+
+   Note the compose file hard-fails at startup if the Mongo or ngrok variables are missing, so don't skip them.
+
+3. **Start everything**
+
+   ```bash
+   docker compose up --build
+   ```
+
+   Add `-d` if you'd rather run it detached. Both apps have file-watching set up through Compose's `develop.watch`, so source changes sync into the containers without a rebuild.
+
+4. **Open the app**
+
+   Frontend: <http://localhost:5173>
+   API: <http://localhost:8080>
+   ngrok inspector: <http://localhost:4040>
+
+One gotcha worth knowing: the Clerk webhook URL points at a fixed ngrok domain (`aware-wanted-puma.ngrok-free.app` in `compose.yml`). If you're running this yourself, update that domain to your own and point your Clerk webhook settings at it.
+
+### Running without Docker
+
+Both apps run fine on their own if you'd rather not use containers. You'll need Node 22+ and pnpm:
 
 ```bash
-git clone https://github.com/your-username/sketch-blade.git
-cd sketch-blade
+# backend
+cd apps/api
+pnpm install
+pnpm dev
+
+# frontend (second terminal)
+cd apps/web
+pnpm install
+pnpm dev
 ```
 
-**2. Setup Environment Variables**
-Copy the example environment file and fill in your specific keys (such as MongoDB credentials and Clerk API keys):
+You'll still need a MongoDB instance somewhere reachable — either a local install or something like MongoDB Atlas — and the right `MONGO_URI`.
 
-```bash
-cp .env.example .env
-```
+## Scripts
 
-_Note: Make sure to open the `.env` file and populate any required values like `MONGO_INITDB_ROOT_PASSWORD` or `CLERK_SECRET_KEY`._
+| Command | Runs in | What it does |
+| --- | --- | --- |
+| `pnpm dev` | `apps/api`, `apps/web` | Start the dev server (nodemon / Vite) |
+| `pnpm build` | `apps/api`, `apps/web` | Type-check and build for production |
+| `pnpm test` | `apps/api`, `apps/web` | Run the Jest test suite |
+| `pnpm test:coverage` | `apps/api`, `apps/web` | Same, with a coverage report |
+| `pnpm lint` | `apps/web` | ESLint |
+| `pnpm format` | `apps/api` | Prettier |
 
-**3. Fire it up with Docker**
-We use Docker Compose to orchestrate the frontend, backend, MongoDB database, and Ngrok webhook seamlessly.
+## Contributing
 
-```bash
-docker compose up --build
-```
+Issues and PRs are welcome. If you're planning something bigger than a typo fix, open an issue first so we can talk it through — saves everyone a wasted afternoon. Please run `pnpm lint` and the test suite before submitting.
 
-_(Tip: Add `-d` at the end of the command to run it in the background/detached mode)._
+## License
 
-**4. Open the Application**
-Once the containers are running and healthy, open your browser and navigate to:
+ISC © [Abdur Rab Khan](https://github.com/abdurrab-khan)
 
-```text
-http://localhost:5173
-```
-
----
